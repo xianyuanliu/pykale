@@ -22,7 +22,7 @@ def get_videodata_config(cfg):
             "dataset_tar_name": cfg.DATASET.TARGET,
             "dataset_tar_trainlist": cfg.DATASET.TAR_TRAINLIST,
             "dataset_tar_testlist": cfg.DATASET.TAR_TESTLIST,
-            "dataset_mode": cfg.DATASET.MODE,
+            "dataset_mode": cfg.DATASET.IMAGE_MODE,
             "num_classes": cfg.DATASET.NUM_CLASSES,
             "window_len": cfg.DATASET.WINDOW_LEN
         }
