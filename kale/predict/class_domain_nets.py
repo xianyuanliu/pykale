@@ -193,15 +193,8 @@ class DomainNetVideo(nn.Module):
 
 
 class DomainNet4b(nn.Module):
-    """Domain classifier network for video input
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-    """
-
     def __init__(self, input_size=128):
         super(DomainNet4b, self).__init__()
-
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
@@ -214,15 +207,8 @@ class DomainNet4b(nn.Module):
 
 
 class DomainNet4c(nn.Module):
-    """Domain classifier network for video input
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-    """
-
     def __init__(self, input_size=128):
         super(DomainNet4c, self).__init__()
-
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
         self.relu1 = nn.ReLU()
@@ -235,12 +221,6 @@ class DomainNet4c(nn.Module):
 
 
 class DomainNet4d(nn.Module):
-    """Domain classifier network for video input
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-    """
-
     def __init__(self, input_size=128):
         super(DomainNet4d, self).__init__()
 
@@ -256,12 +236,6 @@ class DomainNet4d(nn.Module):
 
 
 class DomainNet4e(nn.Module):
-    """Domain classifier network for video input
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-    """
-
     def __init__(self, input_size=128):
         super(DomainNet4e, self).__init__()
 
@@ -277,14 +251,81 @@ class DomainNet4e(nn.Module):
 
 
 class DomainNet4f(nn.Module):
-    """Domain classifier network for video input
-
-    Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 128.
-    """
-
     def __init__(self, input_size=128):
         super(DomainNet4f, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNett4b(nn.Module):
+    def __init__(self, input_size=128):
+        super(DomainNett4b, self).__init__()
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNett4c(nn.Module):
+    def __init__(self, input_size=128):
+        super(DomainNett4c, self).__init__()
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNett4d(nn.Module):
+    def __init__(self, input_size=128):
+        super(DomainNett4d, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNett4e(nn.Module):
+    def __init__(self, input_size=128):
+        super(DomainNett4e, self).__init__()
+
+        self.fc1 = nn.Linear(input_size, 100)
+        self.bn1 = nn.BatchNorm1d(100)
+        self.relu1 = nn.ReLU()
+        self.fc2 = nn.Linear(100, 2)
+
+    def forward(self, input):
+        x = self.relu1(self.bn1(self.fc1(input)))
+        x = self.fc2(x)
+        return x
+
+
+class DomainNett4f(nn.Module):
+    def __init__(self, input_size=128):
+        super(DomainNett4f, self).__init__()
 
         self.fc1 = nn.Linear(input_size, 100)
         self.bn1 = nn.BatchNorm1d(100)
