@@ -344,22 +344,11 @@ class BaseAdaptTrainer(pl.LightningModule):
         """
         self._update_batch_epoch_factors(batch_nb)
 
-        # task_loss, adv_loss, log_metrics, fe_loss = self.compute_loss(batch, split_name="T")
-        # if self.current_epoch < self._init_epochs:
-        #     loss = task_loss
-        # else:
-        #     loss = task_loss + self.lamb_da * adv_loss + fe_loss
-
-        task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(batch, split_name="T")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
-        # fe_loss = (c_loss + t_loss) / 2
-        fe_loss = c_loss
-        print("c loss")
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
-            loss = task_loss + self.lamb_da * (adv_loss + fe_loss)
+            loss = task_loss + self.lamb_da * adv_loss
 
         # loss = task_loss
 
@@ -367,31 +356,19 @@ class BaseAdaptTrainer(pl.LightningModule):
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["T_total_loss"] = loss
         log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_fe_loss"] = fe_loss
         log_metrics["T_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
 
-        return {
-            "loss": loss,  # required, for backward pass
-            # "progress_bar": {"class_loss": task_loss},
-            # "log": log_metrics,
-        }
+        return {"loss": loss}  # required, for backward pass
 
     def validation_step(self, batch, batch_nb):
-        task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(batch, split_name="V")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
-        fe_loss = (c_loss + t_loss) / 2
-        loss = task_loss + self.lamb_da * adv_loss + fe_loss
-
-        # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
-        # loss = task_loss + self.lamb_da * adv_loss
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
+        loss = task_loss + self.lamb_da * adv_loss
         log_metrics["val_loss"] = loss
         log_metrics["val_task_loss"] = task_loss
         log_metrics["val_adv_loss"] = adv_loss
-        log_metrics["val_fe_loss"] = fe_loss
         return log_metrics
 
     def _validation_epoch_end(self, outputs, metrics_at_valid):
@@ -402,12 +379,6 @@ class BaseAdaptTrainer(pl.LightningModule):
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
 
-        # return {
-        #     "val_loss": avg_loss,  # for callbacks (eg early stopping)
-        #     "progress_bar": {"val_loss": avg_loss},
-        #     "log": log_dict,
-        # }
-
     def validation_epoch_end(self, outputs):
         metrics_to_log = (
             "val_loss",
@@ -417,13 +388,8 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_step(self, batch, batch_nb):
-        # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
-        # loss = task_loss + self.lamb_da * adv_loss
-        task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(batch, split_name="Te")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
-        fe_loss = (c_loss + t_loss) / 2
-        loss = task_loss + self.lamb_da * adv_loss + fe_loss
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
+        loss = task_loss + self.lamb_da * adv_loss
 
         log_metrics["test_loss"] = loss
         return log_metrics
@@ -438,12 +404,6 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
