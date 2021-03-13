@@ -521,7 +521,6 @@ class BaseDANNLike(BaseAdaptTrainer):
             "val_loss",
             "val_task_loss",
             "val_adv_loss",
-            "val_fe_loss",
             "V_source_acc",
             "V_target_acc",
             "V_source_domain_acc",
@@ -541,12 +540,6 @@ class BaseDANNLike(BaseAdaptTrainer):
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
 
 class DANNtrainer(BaseDANNLike):

@@ -416,8 +416,10 @@ class DANNtrainer4Video(DANNtrainer):
         elif self.image_modality in ['rgb', 'flow'] and len(batch) == 2:
 
             (x_s, y_s), (x_tu, y_tu) = batch
-            _, y_hat, d_hat, d_c4b_hat, d_c4c_hat, d_c4d_hat, d_c4e_hat, d_c4f_hat, d_t4b_hat, d_t4c_hat, d_t4d_hat, d_t4e_hat, d_t4f_hat = self.forward(x_s)
-            _, y_t_hat, d_t_hat, d_t_c4b_hat, d_t_c4c_hat, d_t_c4d_hat, d_t_c4e_hat, d_t_c4f_hat, d_t_t4b_hat, d_t_t4c_hat, d_t_t4d_hat, d_t_t4e_hat, d_t_t4f_hat = self.forward(x_tu)
+            _, y_hat, d_hat, d_c4b_hat, d_c4c_hat, d_c4d_hat, d_c4e_hat, d_c4f_hat, d_t4b_hat, d_t4c_hat, d_t4d_hat, d_t4e_hat, d_t4f_hat = self.forward(
+                x_s)
+            _, y_t_hat, d_t_hat, d_t_c4b_hat, d_t_c4c_hat, d_t_c4d_hat, d_t_c4e_hat, d_t_c4f_hat, d_t_t4b_hat, d_t_t4c_hat, d_t_t4d_hat, d_t_t4e_hat, d_t_t4f_hat = self.forward(
+                x_tu)
 
             batch_size = len(y_s)
 
@@ -498,11 +500,12 @@ class DANNtrainer4Video(DANNtrainer):
         return task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f
 
         # learning rate warm-up
+
     def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,
                        optimizer_closure, on_tpu, using_native_amp, using_lbfgs):
         # warm up lr
-        if self.trainer.global_step < 500:
-            lr_scale = min(1., float(self.trainer.global_step + 1) / 500.)
+        if self.trainer.global_step < 200:
+            lr_scale = min(1., float(self.trainer.global_step + 1) / 200.)
             for pg in optimizer.param_groups:
                 pg['lr'] = lr_scale * self._init_lr
 
@@ -519,7 +522,6 @@ class DANNtrainer4Video(DANNtrainer):
         t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
         # fe_loss = (c_loss + t_loss) / 2
         fe_loss = c_loss
-        print("c loss")
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
@@ -557,6 +559,20 @@ class DANNtrainer4Video(DANNtrainer):
         log_metrics["val_fe_loss"] = fe_loss
         return log_metrics
 
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = (
+            "val_loss",
+            "val_task_loss",
+            "val_adv_loss",
+            "val_fe_loss",
+            "V_source_acc",
+            "V_target_acc",
+            "V_source_domain_acc",
+            "V_target_domain_acc",
+            "V_domain_acc",
+        )
+        return self._validation_epoch_end(outputs, metrics_to_log)
+
     def test_step(self, batch, batch_nb):
         # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
         # loss = task_loss + self.lamb_da * adv_loss
@@ -569,8 +585,6 @@ class DANNtrainer4Video(DANNtrainer):
 
         log_metrics["test_loss"] = loss
         return log_metrics
-
-
 
 
 class CDANtrainer4Video(CDANtrainer):
