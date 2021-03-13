@@ -519,13 +519,13 @@ class DANNtrainer4Video(DANNtrainer):
         task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(
             batch, split_name="T")
         c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
+        # t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
         # fe_loss = (c_loss + t_loss) / 2
         fe_loss = c_loss
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
-            loss = task_loss + self.lamb_da * (adv_loss + fe_loss)
+            loss = task_loss + self.lamb_da * (adv_loss + 0.1 * fe_loss)
 
         # loss = task_loss
 
