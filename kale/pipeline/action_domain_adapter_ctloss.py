@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 
 import kale.predict.losses as losses
@@ -499,8 +500,7 @@ class DANNtrainer4Video(DANNtrainer):
 
         return task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f
 
-        # learning rate warm-up
-
+    # learning rate warm-up
     def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,
                        optimizer_closure, on_tpu, using_native_amp, using_lbfgs):
         # warm up lr
@@ -513,19 +513,35 @@ class DANNtrainer4Video(DANNtrainer):
         optimizer.step(closure=optimizer_closure)
         optimizer.zero_grad()
 
+    def _update_batch_epoch_factors(self, batch_id):
+        if self.current_epoch >= self._init_epochs:
+            delta_epoch = self.current_epoch - self._init_epochs
+            p = (batch_id + delta_epoch * self._nb_training_batches) / (
+                    self._non_init_epochs * self._nb_training_batches
+            )
+            self._grow_fact = 2.0 / (1.0 + np.exp(-10 * p)) - 1
+
+            if self._adapt_lr:
+                self._lr_fact = 1.0 / ((1.0 + 10 * p) ** 0.75)
+
+        if self._adapt_lambda:
+            self.lamb_da = self._init_lambda * self._grow_fact
+
     def training_step(self, batch, batch_nb):
         self._update_batch_epoch_factors(batch_nb)
 
         task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(
             batch, split_name="T")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
+        c_loss = (avl_c4c + avl_c4e) / 2
+        # c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
         # t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
         # fe_loss = (c_loss + t_loss) / 2
         fe_loss = c_loss
+        # if self.current_epoch < self._init_epochs:
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
-            loss = task_loss + self.lamb_da * (adv_loss + 0.1 * fe_loss)
+            loss = task_loss + self.lamb_da * (adv_loss + fe_loss)
 
         # loss = task_loss
 
