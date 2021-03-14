@@ -28,7 +28,7 @@ _C.DATASET.IMAGE_MODALITY = 'rgb'  # mode choices=['rgb', 'flow', 'joint']
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.WEIGHT_TYPE = "natural"
-_C.DATASET.SIZE_TYPE = "max"
+_C.DATASET.SIZE_TYPE = "source"
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
