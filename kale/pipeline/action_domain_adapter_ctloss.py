@@ -541,7 +541,7 @@ class DANNtrainer4Video(DANNtrainer):
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
-            loss = task_loss + self.lamb_da * (adv_loss + fe_loss)
+            loss = task_loss + self.lamb_da * (adv_loss + 0.1 * fe_loss)
 
         # loss = task_loss
 
