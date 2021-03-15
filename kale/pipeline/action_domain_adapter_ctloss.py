@@ -501,17 +501,17 @@ class DANNtrainer4Video(DANNtrainer):
         return task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f
 
     # learning rate warm-up
-    def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,
-                       optimizer_closure, on_tpu, using_native_amp, using_lbfgs):
-        # warm up lr
-        if self.trainer.global_step < 200:
-            lr_scale = min(1., float(self.trainer.global_step + 1) / 200.)
-            for pg in optimizer.param_groups:
-                pg['lr'] = lr_scale * self._init_lr
-
-        # update params
-        optimizer.step(closure=optimizer_closure)
-        optimizer.zero_grad()
+    # def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,
+    #                    optimizer_closure, on_tpu, using_native_amp, using_lbfgs):
+    #     # warm up lr
+    #     if self.trainer.global_step < 200:
+    #         lr_scale = min(1., float(self.trainer.global_step + 1) / 200.)
+    #         for pg in optimizer.param_groups:
+    #             pg['lr'] = lr_scale * self._init_lr
+    #
+    #     # update params
+    #     optimizer.step(closure=optimizer_closure)
+    #     optimizer.zero_grad()
 
     def _update_batch_epoch_factors(self, batch_id):
         if self.current_epoch >= self._init_epochs:
