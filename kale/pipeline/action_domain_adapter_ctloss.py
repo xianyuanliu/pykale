@@ -559,6 +559,19 @@ class DANNtrainer4Video(DANNtrainer):
             "loss": loss,  # required, for backward pass
         }
 
+    def histogram_adder(self):
+        # iterating through all parameters
+        for name, params in self.named_parameters():
+            self.logger.experiment.add_histogram(name, params, self.current_epoch)
+
+    def training_epoch_end(self, outputs):
+        if self.current_epoch == 1:
+            sample = torch.rand(1, 3, 16, 224, 224).to(self.device)
+            self.logger.experiment.add_graph(DANNtrainer4Video(
+                self._dataset, self.image_modality, self.feat, self.classifier, self.domain_classifier, self.method), sample)
+
+        self.histogram_adder()
+
     def validation_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(
             batch, split_name="V")
