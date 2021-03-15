@@ -575,10 +575,11 @@ class DANNtrainer4Video(DANNtrainer):
     def validation_step(self, batch, batch_nb):
         task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(
             batch, split_name="V")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
-        fe_loss = (c_loss + t_loss) / 2
-        loss = task_loss + self.lamb_da * adv_loss + fe_loss
+        c_loss = (avl_c4c + avl_c4e) / 2
+        # c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
+        # t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
+        # fe_loss = (c_loss + t_loss) / 2
+        fe_loss = c_loss
 
         # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
         # loss = task_loss + self.lamb_da * adv_loss
@@ -607,9 +608,11 @@ class DANNtrainer4Video(DANNtrainer):
         # loss = task_loss + self.lamb_da * adv_loss
         task_loss, adv_loss, log_metrics, avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f = self.compute_loss(
             batch, split_name="Te")
-        c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
-        t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
-        fe_loss = (c_loss + t_loss) / 2
+        c_loss = (avl_c4c + avl_c4e) / 2
+        # c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
+        # t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
+        # fe_loss = (c_loss + t_loss) / 2
+        fe_loss = c_loss
         loss = task_loss + self.lamb_da * adv_loss + fe_loss
 
         log_metrics["test_loss"] = loss
