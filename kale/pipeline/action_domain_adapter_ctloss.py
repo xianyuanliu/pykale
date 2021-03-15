@@ -582,7 +582,7 @@ class DANNtrainer4Video(DANNtrainer):
         fe_loss = c_loss
 
         # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="V")
-        # loss = task_loss + self.lamb_da * adv_loss
+        loss = task_loss + self.lamb_da * (adv_loss + 0.1 * fe_loss)
         log_metrics["val_loss"] = loss
         log_metrics["val_task_loss"] = task_loss
         log_metrics["val_adv_loss"] = adv_loss
