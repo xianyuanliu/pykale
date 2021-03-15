@@ -494,29 +494,44 @@ class InceptionI3d(nn.Module):
         #         x = self._modules[end_point](x)  # use _modules to work with dataparallel
 
         x = self.avg_pool(x)
-        c4b_ap = self.avg_pool(c4b)
-        c4c_ap = self.avg_pool(c4c)
-        c4d_ap = self.avg_pool(c4d)
-        c4e_ap = self.avg_pool(c4e)
-        c4f_ap = self.avg_pool(c4f)
-
-        t4b_ap = self.avg_pool(t4b)
-        t4c_ap = self.avg_pool(t4c)
-        t4d_ap = self.avg_pool(t4d)
-        t4e_ap = self.avg_pool(t4e)
-        t4f_ap = self.avg_pool(t4f)
-
         # logits = self.logits(self.dropout(x))
         if self._spatial_squeeze:
             x = x.squeeze(3).squeeze(3)
         # x is batch X time X classes, which is what we want to work with
+
+        if c4b is not None:
+            c4b_ap = self.avg_pool(c4b)
+            c4c_ap = self.avg_pool(c4c)
+            c4d_ap = self.avg_pool(c4d)
+            c4e_ap = self.avg_pool(c4e)
+            c4f_ap = self.avg_pool(c4f)
+
+            t4b_ap = self.avg_pool(t4b)
+            t4c_ap = self.avg_pool(t4c)
+            t4d_ap = self.avg_pool(t4d)
+            t4e_ap = self.avg_pool(t4e)
+            t4f_ap = self.avg_pool(t4f)
+
+        else:
+            c4b_ap = c4b
+            c4c_ap = c4c
+            c4d_ap = c4d
+            c4e_ap = c4e
+            c4f_ap = c4f
+
+            t4b_ap = t4b
+            t4c_ap = t4c
+            t4d_ap = t4d
+            t4e_ap = t4e
+            t4f_ap = t4f
+
         return x, \
-               c4b_ap, c4c_ap, c4d_ap, c4e_ap, c4f_ap, \
-               t4b_ap, t4c_ap, t4d_ap, t4e_ap, t4f_ap, \
-               c4b, c4c, c4d, c4e, c4f, \
-               t4b, t4c, t4d, t4e, t4f, \
-               ac4b, ac4c, ac4d, ac4e, ac4f, \
-               at4b, at4c, at4d, at4e, at4f
+            c4b_ap, c4c_ap, c4d_ap, c4e_ap, c4f_ap, \
+            t4b_ap, t4c_ap, t4d_ap, t4e_ap, t4f_ap, \
+            c4b, c4c, c4d, c4e, c4f, \
+            t4b, t4c, t4d, t4e, t4f, \
+            ac4b, ac4c, ac4d, ac4e, ac4f, \
+            at4b, at4c, at4d, at4e, at4f
 
     # def extract_features(self, x):
     #     for end_point in self.VALID_ENDPOINTS:

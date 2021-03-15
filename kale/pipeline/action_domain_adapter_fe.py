@@ -317,46 +317,46 @@ class DANNtrainer4Video(DANNtrainer):
                 else:
                     x = self.flow_feat(x)
                 x = x.view(x.size(0), -1)
-                c4b_ap = c4b_ap.view(c4b_ap.size(0), -1)
-                c4c_ap = c4c_ap.view(c4c_ap.size(0), -1)
-                c4d_ap = c4d_ap.view(c4d_ap.size(0), -1)
-                c4e_ap = c4e_ap.view(c4e_ap.size(0), -1)
-                c4f_ap = c4f_ap.view(c4f_ap.size(0), -1)
-
-                t4b_ap = t4b_ap.view(t4b_ap.size(0), -1)
-                t4c_ap = t4c_ap.view(t4c_ap.size(0), -1)
-                t4d_ap = t4d_ap.view(t4d_ap.size(0), -1)
-                t4e_ap = t4e_ap.view(t4e_ap.size(0), -1)
-                t4f_ap = t4f_ap.view(t4f_ap.size(0), -1)
-
                 class_output = self.classifier(x)
-
                 reverse_feature = ReverseLayerF.apply(x, self.alpha)
-
-                c4b_ap = ReverseLayerF.apply(c4b_ap, self.alpha)
-                c4c_ap = ReverseLayerF.apply(c4c_ap, self.alpha)
-                c4d_ap = ReverseLayerF.apply(c4d_ap, self.alpha)
-                c4e_ap = ReverseLayerF.apply(c4e_ap, self.alpha)
-                c4f_ap = ReverseLayerF.apply(c4f_ap, self.alpha)
-
-                t4b_ap = ReverseLayerF.apply(t4b_ap, self.alpha)
-                t4c_ap = ReverseLayerF.apply(t4c_ap, self.alpha)
-                t4d_ap = ReverseLayerF.apply(t4d_ap, self.alpha)
-                t4e_ap = ReverseLayerF.apply(t4e_ap, self.alpha)
-                t4f_ap = ReverseLayerF.apply(t4f_ap, self.alpha)
-
                 adversarial_output = self.domain_classifier[0](reverse_feature)
-                c4b_ap = self.domain_classifier[1](c4b_ap)
-                c4c_ap = self.domain_classifier[2](c4c_ap)
-                c4d_ap = self.domain_classifier[3](c4d_ap)
-                c4e_ap = self.domain_classifier[4](c4e_ap)
-                c4f_ap = self.domain_classifier[5](c4f_ap)
 
-                t4b_ap = self.domain_classifier[6](t4b_ap)
-                t4c_ap = self.domain_classifier[7](t4c_ap)
-                t4d_ap = self.domain_classifier[8](t4d_ap)
-                t4e_ap = self.domain_classifier[9](t4e_ap)
-                t4f_ap = self.domain_classifier[10](t4f_ap)
+                if c4b_ap is not None:
+                    c4b_ap = c4b_ap.view(c4b_ap.size(0), -1)
+                    c4c_ap = c4c_ap.view(c4c_ap.size(0), -1)
+                    c4d_ap = c4d_ap.view(c4d_ap.size(0), -1)
+                    c4e_ap = c4e_ap.view(c4e_ap.size(0), -1)
+                    c4f_ap = c4f_ap.view(c4f_ap.size(0), -1)
+
+                    t4b_ap = t4b_ap.view(t4b_ap.size(0), -1)
+                    t4c_ap = t4c_ap.view(t4c_ap.size(0), -1)
+                    t4d_ap = t4d_ap.view(t4d_ap.size(0), -1)
+                    t4e_ap = t4e_ap.view(t4e_ap.size(0), -1)
+                    t4f_ap = t4f_ap.view(t4f_ap.size(0), -1)
+
+                    c4b_ap = ReverseLayerF.apply(c4b_ap, self.alpha)
+                    c4c_ap = ReverseLayerF.apply(c4c_ap, self.alpha)
+                    c4d_ap = ReverseLayerF.apply(c4d_ap, self.alpha)
+                    c4e_ap = ReverseLayerF.apply(c4e_ap, self.alpha)
+                    c4f_ap = ReverseLayerF.apply(c4f_ap, self.alpha)
+
+                    t4b_ap = ReverseLayerF.apply(t4b_ap, self.alpha)
+                    t4c_ap = ReverseLayerF.apply(t4c_ap, self.alpha)
+                    t4d_ap = ReverseLayerF.apply(t4d_ap, self.alpha)
+                    t4e_ap = ReverseLayerF.apply(t4e_ap, self.alpha)
+                    t4f_ap = ReverseLayerF.apply(t4f_ap, self.alpha)
+
+                    c4b_ap = self.domain_classifier[1](c4b_ap)
+                    c4c_ap = self.domain_classifier[2](c4c_ap)
+                    c4d_ap = self.domain_classifier[3](c4d_ap)
+                    c4e_ap = self.domain_classifier[4](c4e_ap)
+                    c4f_ap = self.domain_classifier[5](c4f_ap)
+
+                    t4b_ap = self.domain_classifier[6](t4b_ap)
+                    t4c_ap = self.domain_classifier[7](t4c_ap)
+                    t4d_ap = self.domain_classifier[8](t4d_ap)
+                    t4e_ap = self.domain_classifier[9](t4e_ap)
+                    t4f_ap = self.domain_classifier[10](t4f_ap)
 
                 return x, class_output, adversarial_output, \
                        c4b_ap, c4c_ap, c4d_ap, c4e_ap, c4f_ap, \
@@ -452,52 +452,52 @@ class DANNtrainer4Video(DANNtrainer):
             loss_dmn_src, dok_src = losses.cross_entropy_logits(d_hat, torch.zeros(batch_size))
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
 
-            lds_c4b, doks_c4b = losses.cross_entropy_logits(d_c4b_hat, torch.zeros(batch_size))
-            ldt_c4b, dokt_c4b = losses.cross_entropy_logits(d_t_c4b_hat, torch.ones(batch_size))
-
-            lds_c4c, doks_c4c = losses.cross_entropy_logits(d_c4c_hat, torch.zeros(batch_size))
-            ldt_c4c, dokt_c4c = losses.cross_entropy_logits(d_t_c4c_hat, torch.ones(batch_size))
-
-            lds_c4d, doks_c4d = losses.cross_entropy_logits(d_c4d_hat, torch.zeros(batch_size))
-            ldt_c4d, dokt_c4d = losses.cross_entropy_logits(d_t_c4d_hat, torch.ones(batch_size))
-
-            lds_c4e, doks_c4e = losses.cross_entropy_logits(d_c4e_hat, torch.zeros(batch_size))
-            ldt_c4e, dokt_c4e = losses.cross_entropy_logits(d_t_c4e_hat, torch.ones(batch_size))
-
-            lds_c4f, doks_c4f = losses.cross_entropy_logits(d_c4f_hat, torch.zeros(batch_size))
-            ldt_c4f, dokt_c4f = losses.cross_entropy_logits(d_t_c4f_hat, torch.ones(batch_size))
-
-            lds_t4b, doks_t4b = losses.cross_entropy_logits(d_t4b_hat, torch.zeros(batch_size))
-            ldt_t4b, dokt_t4b = losses.cross_entropy_logits(d_t_t4b_hat, torch.ones(batch_size))
-
-            lds_t4c, doks_t4c = losses.cross_entropy_logits(d_t4c_hat, torch.zeros(batch_size))
-            ldt_t4c, dokt_t4c = losses.cross_entropy_logits(d_t_t4c_hat, torch.ones(batch_size))
-
-            lds_t4d, doks_t4d = losses.cross_entropy_logits(d_t4d_hat, torch.zeros(batch_size))
-            ldt_t4d, dokt_t4d = losses.cross_entropy_logits(d_t_t4d_hat, torch.ones(batch_size))
-
-            lds_t4e, doks_t4e = losses.cross_entropy_logits(d_t4e_hat, torch.zeros(batch_size))
-            ldt_t4e, dokt_t4e = losses.cross_entropy_logits(d_t_t4e_hat, torch.ones(batch_size))
-
-            lds_t4f, doks_t4f = losses.cross_entropy_logits(d_t4f_hat, torch.zeros(batch_size))
-            ldt_t4f, dokt_t4f = losses.cross_entropy_logits(d_t_t4f_hat, torch.ones(batch_size))
+            # lds_c4b, doks_c4b = losses.cross_entropy_logits(d_c4b_hat, torch.zeros(batch_size))
+            # ldt_c4b, dokt_c4b = losses.cross_entropy_logits(d_t_c4b_hat, torch.ones(batch_size))
+            #
+            # lds_c4c, doks_c4c = losses.cross_entropy_logits(d_c4c_hat, torch.zeros(batch_size))
+            # ldt_c4c, dokt_c4c = losses.cross_entropy_logits(d_t_c4c_hat, torch.ones(batch_size))
+            #
+            # lds_c4d, doks_c4d = losses.cross_entropy_logits(d_c4d_hat, torch.zeros(batch_size))
+            # ldt_c4d, dokt_c4d = losses.cross_entropy_logits(d_t_c4d_hat, torch.ones(batch_size))
+            #
+            # lds_c4e, doks_c4e = losses.cross_entropy_logits(d_c4e_hat, torch.zeros(batch_size))
+            # ldt_c4e, dokt_c4e = losses.cross_entropy_logits(d_t_c4e_hat, torch.ones(batch_size))
+            #
+            # lds_c4f, doks_c4f = losses.cross_entropy_logits(d_c4f_hat, torch.zeros(batch_size))
+            # ldt_c4f, dokt_c4f = losses.cross_entropy_logits(d_t_c4f_hat, torch.ones(batch_size))
+            #
+            # lds_t4b, doks_t4b = losses.cross_entropy_logits(d_t4b_hat, torch.zeros(batch_size))
+            # ldt_t4b, dokt_t4b = losses.cross_entropy_logits(d_t_t4b_hat, torch.ones(batch_size))
+            #
+            # lds_t4c, doks_t4c = losses.cross_entropy_logits(d_t4c_hat, torch.zeros(batch_size))
+            # ldt_t4c, dokt_t4c = losses.cross_entropy_logits(d_t_t4c_hat, torch.ones(batch_size))
+            #
+            # lds_t4d, doks_t4d = losses.cross_entropy_logits(d_t4d_hat, torch.zeros(batch_size))
+            # ldt_t4d, dokt_t4d = losses.cross_entropy_logits(d_t_t4d_hat, torch.ones(batch_size))
+            #
+            # lds_t4e, doks_t4e = losses.cross_entropy_logits(d_t4e_hat, torch.zeros(batch_size))
+            # ldt_t4e, dokt_t4e = losses.cross_entropy_logits(d_t_t4e_hat, torch.ones(batch_size))
+            #
+            # lds_t4f, doks_t4f = losses.cross_entropy_logits(d_t4f_hat, torch.zeros(batch_size))
+            # ldt_t4f, dokt_t4f = losses.cross_entropy_logits(d_t_t4f_hat, torch.ones(batch_size))
 
             loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
 
             _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
 
             adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-
-            avl_c4b = lds_c4b + ldt_c4b
-            avl_c4c = lds_c4c + ldt_c4c
-            avl_c4d = lds_c4d + ldt_c4d
-            avl_c4e = lds_c4e + ldt_c4e
-            avl_c4f = lds_c4f + ldt_c4f
-            avl_t4b = lds_t4b + ldt_t4b
-            avl_t4c = lds_t4c + ldt_t4c
-            avl_t4d = lds_t4d + ldt_t4d
-            avl_t4e = lds_t4e + ldt_t4e
-            avl_t4f = lds_t4f + ldt_t4f
+            #
+            # avl_c4b = lds_c4b + ldt_c4b
+            # avl_c4c = lds_c4c + ldt_c4c
+            # avl_c4d = lds_c4d + ldt_c4d
+            # avl_c4e = lds_c4e + ldt_c4e
+            # avl_c4f = lds_c4f + ldt_c4f
+            # avl_t4b = lds_t4b + ldt_t4b
+            # avl_t4c = lds_t4c + ldt_t4c
+            # avl_t4d = lds_t4d + ldt_t4d
+            # avl_t4e = lds_t4e + ldt_t4e
+            # avl_t4f = lds_t4f + ldt_t4f
 
             task_loss = loss_cls
 
@@ -507,17 +507,17 @@ class DANNtrainer4Video(DANNtrainer):
                 f"{split_name}_domain_acc": torch.cat((dok_src, dok_tgt)),
                 f"{split_name}_source_domain_acc": dok_src,
                 f"{split_name}_target_domain_acc": dok_tgt,
-                f"{split_name}_c4b_domain_acc": torch.cat((doks_c4b, dokt_c4b)),
-                f"{split_name}_c4c_domain_acc": torch.cat((doks_c4c, dokt_c4c)),
-                f"{split_name}_c4d_domain_acc": torch.cat((doks_c4d, dokt_c4d)),
-                f"{split_name}_c4e_domain_acc": torch.cat((doks_c4e, dokt_c4e)),
-                f"{split_name}_c4f_domain_acc": torch.cat((doks_c4f, dokt_c4f)),
+                # f"{split_name}_c4b_domain_acc": torch.cat((doks_c4b, dokt_c4b)),
+                # f"{split_name}_c4c_domain_acc": torch.cat((doks_c4c, dokt_c4c)),
+                # f"{split_name}_c4d_domain_acc": torch.cat((doks_c4d, dokt_c4d)),
+                # f"{split_name}_c4e_domain_acc": torch.cat((doks_c4e, dokt_c4e)),
+                # f"{split_name}_c4f_domain_acc": torch.cat((doks_c4f, dokt_c4f)),
 
-                f"{split_name}_t4b_domain_acc": torch.cat((doks_t4b, dokt_t4b)),
-                f"{split_name}_t4c_domain_acc": torch.cat((doks_t4c, dokt_t4c)),
-                f"{split_name}_t4d_domain_acc": torch.cat((doks_t4d, dokt_t4d)),
-                f"{split_name}_t4e_domain_acc": torch.cat((doks_t4e, dokt_t4e)),
-                f"{split_name}_t4f_domain_acc": torch.cat((doks_t4f, dokt_t4f)),
+                # f"{split_name}_t4b_domain_acc": torch.cat((doks_t4b, dokt_t4b)),
+                # f"{split_name}_t4c_domain_acc": torch.cat((doks_t4c, dokt_t4c)),
+                # f"{split_name}_t4d_domain_acc": torch.cat((doks_t4d, dokt_t4d)),
+                # f"{split_name}_t4e_domain_acc": torch.cat((doks_t4e, dokt_t4e)),
+                # f"{split_name}_t4f_domain_acc": torch.cat((doks_t4f, dokt_t4f)),
             }
 
         else:
@@ -527,18 +527,23 @@ class DANNtrainer4Video(DANNtrainer):
             t_x = torch.cat((t_x, y_tu.unsqueeze(0)), dim=-1)
 
             return task_loss, adv_loss, log_metrics, \
-                   avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, \
-                   avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f, \
                    t_c4b, t_c4c, t_c4d, t_c4e, t_c4f, \
                    t_t4b, t_t4c, t4d, t_t4e, t_t4f, \
                    t_ac4b, t_ac4c, t_ac4d, t_ac4e, t_ac4f, \
                    t_at4b, t_at4c, t_at4d, t_at4e, t_at4f, t_x
+
+            # return task_loss, adv_loss, log_metrics, \
+            #        avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, \
+            #        avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f, \
+            #        t_c4b, t_c4c, t_c4d, t_c4e, t_c4f, \
+            #        t_t4b, t_t4c, t4d, t_t4e, t_t4f, \
+            #        t_ac4b, t_ac4c, t_ac4d, t_ac4e, t_ac4f, \
+            #        t_at4b, t_at4c, t_at4d, t_at4e, t_at4f, t_x
         else:
             return task_loss, adv_loss, log_metrics, \
-                   avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, \
-                   avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f, \
  \
-    # learning rate warm-up
+                # learning rate warm-up
+
     # def optimizer_step(self, epoch, batch_idx, optimizer, optimizer_idx,
     #                    optimizer_closure, on_tpu, using_native_amp, using_lbfgs):
     #     # warm up lr
@@ -645,24 +650,28 @@ class DANNtrainer4Video(DANNtrainer):
     def test_step(self, batch, batch_nb):
         # task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
         # loss = task_loss + self.lamb_da * adv_loss
+        # task_loss, adv_loss, log_metrics, \
+        # avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, \
+        # avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f, \
         task_loss, adv_loss, log_metrics, \
-        avl_c4b, avl_c4c, avl_c4d, avl_c4e, avl_c4f, \
-        avl_t4b, avl_t4c, avl_t4d, avl_t4e, avl_t4f, \
         t_c4b, t_c4c, t_c4d, t_c4e, t_c4f, \
         t_t4b, t_t4c, t4d, t_t4e, t_t4f, \
         t_ac4b, t_ac4c, t_ac4d, t_ac4e, t_ac4f, \
         t_at4b, t_at4c, t_at4d, t_at4e, t_at4f, t_x = self.compute_loss(batch, split_name="Te")
-        c_loss = (avl_c4c + avl_c4e) / 2
+        # c_loss = (avl_c4c + avl_c4e) / 2
         # c_loss = (avl_c4b + avl_c4c + avl_c4d + avl_c4e + avl_c4f) / 5
         # t_loss = (avl_t4b + avl_t4c + avl_t4d + avl_t4e + avl_t4f) / 5
         # fe_loss = (c_loss + t_loss) / 2
-        fe_loss = c_loss
-        loss = task_loss + self.lamb_da * adv_loss + fe_loss
+        # fe_loss = c_loss
+        loss = task_loss + self.lamb_da * adv_loss
         log_metrics["test_loss"] = loss
 
-        t_x = t_x.cpu().detach().numpy()
-        t_c4f = t_c4f.cpu().detach().numpy()
-        t_ac4f = t_ac4f.cpu().detach().numpy()
+        if t_c4f is not None:
+            t_x = t_x.cpu().detach().numpy()
+            t_c4f = t_c4f.cpu().detach().numpy()
+            t_ac4f = t_ac4f.cpu().detach().numpy()
+        else:
+            t_x = t_x.cpu().detach().numpy()
 
         pickle.dump(DataFrame(t_x), open('t_x.pkl', 'ab+'))
 
