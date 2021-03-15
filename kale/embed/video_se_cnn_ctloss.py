@@ -18,11 +18,11 @@ class SELayerC(nn.Module):
     def forward(self, x):
         b, c, _, _, _ = x.size()
         y = self.avg_pool(x).view(b, c)
-        y = self.fc(y).view(b, c, 1, 1, 1)
-        out_c = x * y.expand_as(x)
-        y = y - 0.5
+        y_a = self.fc(y).view(b, c, 1, 1, 1)
+        out_c = x * y_a.expand_as(x)
+        y = y_a - 0.5
         out = x + x * y.expand_as(x)
-        return out, out_c
+        return out, out_c, y_a
 
 
 class SELayerT(nn.Module):
@@ -40,12 +40,12 @@ class SELayerT(nn.Module):
         b, _, t, _, _ = x.size()
         output = x.transpose(1, 2).contiguous()
         y = self.avg_pool(output).view(b, t)
-        y = self.fc(y).view(b, t, 1, 1, 1)
-        y = y.transpose(1, 2).contiguous()
-        out_t = x * y.expand_as(x)
-        y = y - 0.5
+        y_a = self.fc(y).view(b, t, 1, 1, 1)
+        y_a = y_a.transpose(1, 2).contiguous()
+        out_t = x * y_a.expand_as(x)
+        y = y_a - 0.5
         out = x + x * y.expand_as(x)
-        return out, out_t
+        return out, out_t, y_a
 
 
 class SELayerCoC(nn.Module):
