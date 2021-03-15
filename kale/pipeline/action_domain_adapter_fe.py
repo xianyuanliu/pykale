@@ -673,7 +673,7 @@ class DANNtrainer4Video(DANNtrainer):
         else:
             t_x = t_x.cpu().detach().numpy()
 
-        pickle.dump(DataFrame(t_x), open('t_x.pkl', 'ab+'))
+        pickle.dump(DataFrame(t_x), open('dann.pkl', 'ab+'))
 
         # with open("t_x.npy", "a") as f:
         #     save(f, t_x)
