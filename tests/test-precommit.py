@@ -4,7 +4,6 @@ import pytest
 from kale.loaddata.digits_access import DigitDataset, DigitDatasetAccess
 from kale.loaddata.multi_domain import DomainsDatasetBase, MultiDomainDatasets
 
-a = 1
 SOURCES = ["MNIST", "USPS"]
 TARGETS = ["MNISTM", "SVHN"]
 ALL = ["SVHN", "USPS"]  # SOURCES + TARGETS
