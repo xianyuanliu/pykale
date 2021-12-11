@@ -23,13 +23,23 @@ def get_selayer(attention):
 
     Args:
         attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC"])
+            (Options: ["SELayerC", "SELayerT", "SRMLayerVideo", "CSAMLayer", "STAMLayer",
+            "SELayerCoC", "SELayerMC", "SELayerMAC"])
 
     Returns:
         se_layer (SELayer, optional): the SELayer.
     """
+
     if attention == "SELayerC":
         se_layer = SELayerC
+    elif attention == "SELayerT":
+        se_layer = SELayerT
+    elif attention == "SRMLayerVideo":
+        se_layer = SRMLayerVideo
+    elif attention == "CSAMLayer":
+        se_layer = CSAMLayer
+    elif attention == "STAMLayer":
+        se_layer = STAMLayer
     elif attention == "SELayerCoC":
         se_layer = SELayerCoC
     elif attention == "SELayerMC":
@@ -38,8 +48,7 @@ def get_selayer(attention):
         se_layer = SELayerMAC
     elif attention == "SELayerCoC":
         se_layer = SELayerCoC
-    elif attention == "SELayerT":
-        se_layer = SELayerT
+
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
     return se_layer
@@ -243,7 +252,7 @@ class STAMLayer(SELayer):
     def __init__(self, channel, reduction=16):
         super(STAMLayer, self).__init__(channel, reduction)
         self.kernel_size = 7
-        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Sequential(
             nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
@@ -255,9 +264,9 @@ class STAMLayer(SELayer):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
-        b, c, t, _, _ = x.size()
-        y = self.avg_pool(x).view(b, c, t)
-        y = self.fc(y).view(b, c, t, 1, 1)
+        b, c, _, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1, 1)
         y = self.sigmoid(y)
         y = x * y.expand_as(x)
         y = y.mean(1).unsqueeze(1)

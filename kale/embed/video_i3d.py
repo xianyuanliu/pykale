@@ -228,6 +228,12 @@ class InceptionModule(nn.Module):
         if "SELayerTCc" in dir(self):
             out = self.SELayerTCc(out)
 
+        if "SRMLayerVideo" in dir(self):
+            out = self.SRMLayerVideo(out)
+        if "CSAMLayer" in dir(self):
+            out = self.CSAMLayer(out)
+        if "STAMLayer" in dir(self):
+            out = self.STAMLayer(out)
         return out
 
 
