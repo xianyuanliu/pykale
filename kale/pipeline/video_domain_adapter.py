@@ -12,9 +12,11 @@ import torch
 import kale.predict.losses as losses
 from kale.loaddata.video_access import get_image_modality
 from kale.pipeline.domain_adapter import (
+    BaseAdaptTrainer,
     BaseMMDLike,
     CDANTrainer,
     DANNTrainer,
+    get_aggregated_metrics,
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     GradReverse,
@@ -100,7 +102,108 @@ def create_dann_like_video(
         raise ValueError(f"Unsupported method: {method}")
 
 
-class BaseMMDLikeVideo(BaseMMDLike):
+class BaseAdaptTrainerVideo(BaseAdaptTrainer):
+    """Base class for all domain adaptation architectures on videos. Inherited from BaseAdaptTrainer."""
+
+    def train_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="train", batch_size=self._batch_size)
+        self._nb_training_batches = len(dataloader)
+        return dataloader
+
+    def val_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="valid", batch_size=self._batch_size)
+        return dataloader
+
+    def test_dataloader(self):
+        dataloader = self._dataset.get_domain_loaders(split="test", batch_size=self._batch_size)
+        # dataloader, target_batch_size = self._dataset.get_domain_loaders(split="test", batch_size=500)
+        return dataloader
+
+    def training_step(self, batch, batch_nb):
+        # print("tr src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
+
+        self._update_batch_epoch_factors(batch_nb)
+
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
+        if self.current_epoch < self._init_epochs:
+            loss = task_loss
+        else:
+            # loss = task_loss
+            loss = task_loss + self.lamb_da * adv_loss
+
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
+        return {"loss": loss}
+
+    def create_metrics_log(self, split_name):
+        metrics_to_log = (
+            "{}_loss".format(split_name),
+            "{}_task_loss".format(split_name),
+            "{}_adv_loss".format(split_name),
+            "{}_source_acc".format(split_name),
+            "{}_source_top1_acc".format(split_name),
+            "{}_source_top5_acc".format(split_name),
+            "{}_target_acc".format(split_name),
+            "{}_target_top1_acc".format(split_name),
+            "{}_target_top5_acc".format(split_name),
+            "{}_source_domain_acc".format(split_name),
+            "{}_target_domain_acc".format(split_name),
+            "{}_domain_acc".format(split_name),
+        )
+        if self.method.is_mmd_method():
+            metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
+        if split_name == "test":
+            metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
+        return metrics_to_log
+
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = self.create_metrics_log("val")
+        return self._validation_epoch_end(outputs, metrics_to_log)
+
+    def test_epoch_end(self, outputs):
+        metrics_at_test = self.create_metrics_log("test")
+
+        # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
+        # save_results_to_json(
+        #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        # )
+        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+    def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
+        """Get the loss, top1/5 accuracy and metrics for a given split."""
+
+        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        prec1_src, prec5_src = losses.topk_accuracy(y_hat, y_s, topk=(1, 5))
+        prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat, y_tu, topk=(1, 5))
+        task_loss = loss_cls
+
+        log_metrics = {
+            f"{split_name}_source_acc": ok_src,
+            f"{split_name}_target_acc": ok_tgt,
+            f"{split_name}_source_top1_acc": prec1_src,
+            f"{split_name}_source_top5_acc": prec5_src,
+            f"{split_name}_target_top1_acc": prec1_tgt,
+            f"{split_name}_target_top5_acc": prec5_tgt,
+        }
+        if self.method.is_mmd_method():
+            log_metrics.update({f"{split_name}_mmd": dok})
+        else:
+            log_metrics.update({f"{split_name}_domain_acc": dok})
+
+        return task_loss, log_metrics
+
+
+class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     def __init__(
         self, dataset, image_modality, feature_extractor, task_classifier, kernel_mul=2.0, kernel_num=5, **base_params,
     ):
@@ -152,15 +255,8 @@ class BaseMMDLikeVideo(BaseMMDLike):
         # print('rgb_s:{}, flow_s:{}, rgb_f:{}, flow_f:{}'.format(y_s, y_s_flow, y_tu, y_tu_flow))
         # print('equal: {}/{}'.format(torch.all(torch.eq(y_s, y_s_flow)), torch.all(torch.eq(y_tu, y_tu_flow))))
 
-        # ok is abbreviation for (all) correct
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        task_loss = loss_cls
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": mmd,
-        }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, mmd)
+
         return task_loss, mmd, log_metrics
 
 
@@ -218,7 +314,7 @@ class JANTrainerVideo(BaseMMDLikeVideo):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNTrainerVideo(DANNTrainer):
+class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
@@ -300,18 +396,21 @@ class DANNTrainerVideo(DANNTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        # }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
-
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         return task_loss, adv_loss, log_metrics
 
@@ -336,7 +435,7 @@ class DANNTrainerVideo(DANNTrainer):
         return {"loss": loss}
 
 
-class CDANTrainerVideo(CDANTrainer):
+class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
@@ -462,23 +561,26 @@ class CDANTrainerVideo(CDANTrainer):
             loss_dmn_tgt, dok_tgt = losses.cross_entropy_logits(d_t_hat, torch.ones(batch_size))
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        # }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
-        task_loss = loss_cls
-
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-        }
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(WDGRLTrainer):
+class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
@@ -571,19 +673,23 @@ class WDGRLTrainerVideo(WDGRLTrainer):
             wasserstein_distance = d_hat.mean() - (1 + self._beta_ratio) * d_t_hat.mean()
             dok = torch.cat((dok_src, dok_tgt))
 
-        loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
-        _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
+        # _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
+        # adv_loss = wasserstein_distance
+        # task_loss = loss_cls
+        #
+        # log_metrics = {
+        #     f"{split_name}_source_acc": ok_src,
+        #     f"{split_name}_target_acc": ok_tgt,
+        #     f"{split_name}_domain_acc": dok,
+        #     f"{split_name}_source_domain_acc": dok_src,
+        #     f"{split_name}_target_domain_acc": dok_tgt,
+        #     f"{split_name}_wasserstein_dist": wasserstein_distance,
+        # }
+        task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = wasserstein_distance
-        task_loss = loss_cls
+        log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
-        log_metrics = {
-            f"{split_name}_source_acc": ok_src,
-            f"{split_name}_target_acc": ok_tgt,
-            f"{split_name}_domain_acc": dok,
-            f"{split_name}_source_domain_acc": dok_src,
-            f"{split_name}_target_domain_acc": dok_tgt,
-            f"{split_name}_wasserstein_dist": wasserstein_distance,
-        }
         return task_loss, adv_loss, log_metrics
 
     def configure_optimizers(self):
