@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.video_selayer import CSAMLayer, STAMLayer, SRMLayerVideo, SRMLayer
+from kale.embed.video_selayer import CSAMLayer, SRMLayer, SRMLayerVideo, STAMLayer
 
 # Dummy data: [batch_size, time, channel, height, width]
 INPUT_5D = torch.randn(2, 4, 8, 16, 16)
@@ -14,7 +14,7 @@ def test_csam_layer():
 
 
 def test_stam_layer():
-    layer = STAMLayer(8, 2)  # 8 is INPUT.shape[0] * INPUT.shape[1]
+    layer = STAMLayer(INPUT_5D.shape[1], 2)
     output = layer(INPUT_5D)
     assert output.shape == (2, 4, 8, 16, 16)
 

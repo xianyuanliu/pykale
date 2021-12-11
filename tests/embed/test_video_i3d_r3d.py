@@ -11,12 +11,23 @@ from kale.utils.seed import set_seed
 
 set_seed(36)
 # The default input shape is batch_size * num_channel * frame_per_segment * height * weight.
-# In our experiment, the height and weight are both 224. To avoid to allocate too many memory,
+# In our experiment, the height and weight are both 224. To avoid allocating too many memory,
 # height and weight are set as 112. It won't influence the model test.
 # Differences between inputs of RGB and flow is channel number and frame_per_segment.
 INPUT_BATCH_RGB = torch.randn(2, 3, 16, 112, 112)
 INPUT_BATCH_FLOW = torch.randn(2, 2, 8, 112, 112)
-SE_LAYERS = ["SELayerC", "SELayerT", "SELayerCoC", "SELayerMC", "SELayerMAC", "SELayerCT", "SELayerTC"]
+SE_LAYERS = [
+    "SELayerC",
+    "SELayerT",
+    "SRMLayerVideo",
+    "CSAMLayer",
+    "STAMLayer",
+    "SELayerCoC",
+    "SELayerMC",
+    "SELayerMAC",
+    "SELayerCT",
+    "SELayerTC",
+]
 
 
 def test_i3d_shapes():
