@@ -148,10 +148,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             "{}_adv_loss".format(split_name),
             "{}_source_acc".format(split_name),
             "{}_source_top1_acc".format(split_name),
-            "{}_source_top5_acc".format(split_name),
+            "{}_source_top3_acc".format(split_name),
             "{}_target_acc".format(split_name),
             "{}_target_top1_acc".format(split_name),
-            "{}_target_top5_acc".format(split_name),
+            "{}_target_top3_acc".format(split_name),
             "{}_source_domain_acc".format(split_name),
             "{}_target_domain_acc".format(split_name),
             "{}_domain_acc".format(split_name),
@@ -179,21 +179,21 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
     def get_loss_log_metrics(self, split_name, y_hat, y_t_hat, y_s, y_tu, dok):
-        """Get the loss, top1/5 accuracy and metrics for a given split."""
+        """Get the loss, top-k accuracy and metrics for a given split."""
 
         loss_cls, ok_src = losses.cross_entropy_logits(y_hat, y_s)
         _, ok_tgt = losses.cross_entropy_logits(y_t_hat, y_tu)
-        prec1_src, prec5_src = losses.topk_accuracy(y_hat, y_s, topk=(1, 5))
-        prec1_tgt, prec5_tgt = losses.topk_accuracy(y_t_hat, y_tu, topk=(1, 5))
+        prec1_src, prec3_src = losses.topk_accuracy(y_hat, y_s, topk=(1, 3))
+        prec1_tgt, prec3_tgt = losses.topk_accuracy(y_t_hat, y_tu, topk=(1, 3))
         task_loss = loss_cls
 
         log_metrics = {
             f"{split_name}_source_acc": ok_src,
             f"{split_name}_target_acc": ok_tgt,
             f"{split_name}_source_top1_acc": prec1_src,
-            f"{split_name}_source_top5_acc": prec5_src,
+            f"{split_name}_source_top3_acc": prec3_src,
             f"{split_name}_target_top1_acc": prec1_tgt,
-            f"{split_name}_target_top5_acc": prec5_tgt,
+            f"{split_name}_target_top3_acc": prec3_tgt,
         }
         if self.method.is_mmd_method():
             log_metrics.update({f"{split_name}_mmd": dok})
