@@ -73,7 +73,7 @@ def main():
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
             filename="{epoch}-{step}-{val_loss:.4f}",
-            # save_last=True,
+            save_last=True,
             # save_top_k=1,
             monitor="val_loss",
             mode="min",
@@ -114,7 +114,8 @@ def main():
         trainer.fit(model)
 
         ### Test process
-        trainer.test()
+        trainer.test(ckpt_path="best")
+        trainer.test(ckpt_path=checkpoint_callback.last_model_path)
 
 
 if __name__ == "__main__":
