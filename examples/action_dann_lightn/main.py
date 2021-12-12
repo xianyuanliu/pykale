@@ -91,6 +91,7 @@ def main():
         trainer = pl.Trainer(
             min_epochs=cfg.SOLVER.MIN_EPOCHS,
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
+            log_every_n_steps=10,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
             logger=tb_logger,  # logger,
@@ -98,7 +99,7 @@ def main():
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor, checkpoint_callback, progress_bar],
             # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.005,
+            # limit_train_batches=0.05,
             # limit_val_batches=0.06,
             # limit_test_batches=0.06,
         )
