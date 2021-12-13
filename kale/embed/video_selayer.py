@@ -96,7 +96,8 @@ class SRMLayer(SELayer):
         z = self.bn(z)
         g = self.sigmoid(z)
         g = g.view(b, c, 1, 1)
-        out = x * g.expand_as(x)
+        # out = x * g.expand_as(x)
+        out = x + x * g.expand_as(x)
         return out
 
 
@@ -120,7 +121,7 @@ class SRMLayerVideo(SELayer):
         z = self.bn(z)
         g = self.sigmoid(z)
         g = g.view(b, c, 1, 1, 1)
-        out = x * g.expand_as(x)
+        out = x + x * g.expand_as(x)
         return out
 
 
@@ -215,7 +216,7 @@ class CSAMChannelModule(SELayer):
         y_max = self.fc(y_max).view(b, c, 1, 1, 1)
         y = torch.add(y_avg, y_max)
         y = self.sigmoid(y)
-        out = x * y.expand_as(x)
+        out = x + x * y.expand_as(x)
         return out
 
 
@@ -231,7 +232,7 @@ class CSAMSpatialModule(nn.Module):
         x_compress = self.compress(x)
         y = self.conv(x_compress)
         y = self.sigmoid(y)
-        out = x * y.expand_as(x)
+        out = x + x * y.expand_as(x)
         return out
 
 
@@ -272,7 +273,7 @@ class STAMLayer(SELayer):
         y = y.mean(1).unsqueeze(1)
         y = self.conv(y)
         y = self.sigmoid(y)
-        out = x * y.expand_as(x)
+        out = x + x * y.expand_as(x)
         return out
 
 
