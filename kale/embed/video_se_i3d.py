@@ -161,6 +161,8 @@ class SEInceptionI3DFlow(nn.Module):
             model.Mixed_4d.add_module(attention, se_layer(temporal_length // 8))
             model.Mixed_4e.add_module(attention, se_layer(temporal_length // 8))
             model.Mixed_4f.add_module(attention, se_layer(temporal_length // 8))
+            # model.Mixed_5b.add_module(attention, se_layer(temporal_length // 16))
+            # model.Mixed_5c.add_module(attention, se_layer(temporal_length // 16))
 
         # Add channel-temporal-wise SELayer
         elif attention == "SELayerCT":

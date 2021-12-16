@@ -64,7 +64,7 @@ def main():
     # ---- training/test process ----
     ### Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
-        seed = seed + i * 10
+        seed = cfg.SOLVER.SEED + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
