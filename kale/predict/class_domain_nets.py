@@ -182,6 +182,18 @@ class ClassNetVideoConv(nn.Module):
         return x
 
 
+class ClassNetVideoC3D(nn.Module):
+    """Classifier network for video input refer to C3D."""
+
+    def __init__(self, input_size=4096, n_class=8):
+        super(ClassNetVideoC3D, self).__init__()
+        self.fc = nn.Linear(input_size, n_class)
+
+    def forward(self, input):
+        x = self.fc(input)
+        return x
+
+
 # For Video/Action Recognition, DomainClassifier.
 class DomainNetVideo(nn.Module):
     """Regular domain classifier network for video input.
