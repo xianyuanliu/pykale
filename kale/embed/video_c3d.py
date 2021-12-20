@@ -164,16 +164,28 @@ def get_10x_lr_params(model):
                 yield k
 
 
-def c3d(pretrained=False, **kwargs):
-    return C3D(pretrained=pretrained)
+def c3d(rgb, flow, pretrained=False):
+    c3d_rgb = c3d_flow = None
+    if rgb:
+        c3d_rgb = C3D(pretrained=pretrained, input_channel=3)
+    if flow:
+        c3d_flow = C3D(pretrained=pretrained, input_channel=2)
+    models = {"rgb": c3d_rgb, "flow": c3d_flow}
+    return models
 
 
-def se_c3d(attention, pretrained=False, **kwargs):
-    model = C3D(pretrained=pretrained)
+def se_c3d(rgb, flow, attention, pretrained=False):
+    c3d_rgb = c3d_flow = None
+    if rgb:
+        c3d_rgb = C3D(pretrained=pretrained, input_channel=3)
+    if flow:
+        c3d_flow = C3D(pretrained=pretrained, input_channel=2)
 
     se_layer = get_selayer(attention)
-    model.conv5b.add_module(attention, se_layer(512))
-    return model
+    c3d_rgb.conv5b.add_module(attention, se_layer(512))
+    c3d_flow.conv5b.add_module(attention, se_layer(512))
+    models = {"rgb": c3d_rgb, "flow": c3d_flow}
+    return models
 
 
 if __name__ == "__main__":
