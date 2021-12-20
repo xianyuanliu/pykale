@@ -1,0 +1,153 @@
+import pytorch_lightning as pl
+import torch
+from torch.nn import functional as F
+
+from kale.pipeline.domain_adapter import get_aggregated_metrics_from_dict, get_metrics_from_parameter_dict, \
+    get_aggregated_metrics
+from kale.predict import losses
+
+
+class BaseTrainer(pl.LightningModule):
+
+    def __init__(self, feature_extractor, task_classifier, batch_size, optimizer, init_lr=0.001, image_modality=None):
+        super(BaseTrainer, self).__init__()
+        self.feat = feature_extractor
+        self.classifier = task_classifier
+        self.image_modality = image_modality
+        self._init_lr = init_lr
+        self._batch_size = batch_size
+        self._optimizer_params = optimizer
+
+    def configure_optimizers(self):
+        """
+        Config adam as default optimizer.
+        """
+        if self._optimizer_params is None:
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
+            return [optimizer]
+        if self._optimizer_params["type"] == "Adam":
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr,
+                                         **self._optimizer_params["optim_params"], )
+            return [optimizer]
+        if self._optimizer_params["type"] == "SGD":
+            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"], )
+            return [optimizer]
+        raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
+
+    def forward(self, x):
+        """
+        Same as :meth:`torch.nn.Module.forward()`
+        """
+        raise NotImplementedError("Forward pass needs to be defined.")
+
+    def training_step(self, train_batch, batch_idx):
+        """
+        Compute and return the training loss on one step
+        """
+        x, y = train_batch
+        y_pred = self(x)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
+        self.logger.log_metrics({"train_loss": loss}, self.global_step)
+        return loss
+
+    def validation_step(self, val_batch, batch_idx):
+        """
+        Compute and return the validation loss on one step
+        """
+        x, y = val_batch
+        y_pred = self(x)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
+        return loss
+
+    def test_step(self, test_batch, batch_idx):
+        """
+        Compute and return the test loss on one step
+        """
+        x, y = test_batch
+        y_pred = self(x)
+        loss = F.mse_loss(y_pred, y.view(-1, 1))
+        self.log("test_loss", loss, on_epoch=True, on_step=False)
+        return loss
+
+
+class ActionRecogTrainer(BaseTrainer):
+
+    def __init__(self, feature_extractor, task_classifier, **kwargs):
+        super(ActionRecogTrainer, self).__init__(feature_extractor, task_classifier, **kwargs)
+        self.rgb_feat = self.feat["rgb"]
+        self.flow_feat = self.feat["flow"]
+
+    def forward(self, x):
+        if self.rgb_feat is not None:
+            x = self.rgb_feat(x)
+        else:
+            x = self.flow_feat(x)
+        x = x.view(x.size(0), -1)
+        output = self.classifier(x)
+        return output
+
+    def compute_loss(self, batch, split_name="valid"):
+        if len(batch) == 3:
+            x, _, y = batch
+            x = x.permute(0, 4, 1, 2, 3).contiguous().float()
+        else:
+            x, y = batch
+        y_hat = self.forward(x)
+
+        loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y)
+        return loss, log_metrics
+
+    def training_step(self, train_batch, batch_idx):
+        loss, log_metrics = self.compute_loss(train_batch, "train")
+        log_metrics = get_aggregated_metrics_from_dict(log_metrics)
+        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
+        log_metrics["train_loss"] = loss
+        return loss
+
+    def validation_step(self, batch, batch_nb):
+        loss, log_metrics = self.compute_loss(batch, split_name="valid")
+        log_metrics["valid_loss"] = loss
+        return log_metrics
+
+    def validation_epoch_end(self, outputs):
+        metrics_to_log = self.create_metrics_log("valid")
+        log_dict = get_aggregated_metrics(metrics_to_log, outputs)
+        device = outputs[0].get("valid_loss").device
+        # log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
+
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+    def test_step(self, batch, batch_nb):
+        loss, log_metrics = self.compute_loss(batch, split_name="test")
+        log_metrics["test_loss"] = loss
+        return log_metrics
+
+    def test_epoch_end(self, outputs):
+        metrics_at_test = self.create_metrics_log("test")
+
+        log_dict = get_aggregated_metrics(metrics_at_test, outputs)
+        for key in log_dict:
+            self.log(key, log_dict[key], prog_bar=True)
+
+    def create_metrics_log(self, split_name):
+        metrics_to_log = (
+            "{}_loss".format(split_name),
+            "{}_acc".format(split_name),
+            "{}_top1_acc".format(split_name),
+            "{}_top3_acc".format(split_name),
+        )
+        return metrics_to_log
+
+    def get_loss_log_metrics(self, split_name, y_hat, y):
+        """Get the loss, top-k accuracy and metrics for a given split."""
+
+        task_loss, ok = losses.cross_entropy_logits(y_hat, y)
+        prec1, prec3 = losses.topk_accuracy(y_hat, y, topk=(1, 3))
+
+        log_metrics = {
+            f"{split_name}_acc": ok,
+            f"{split_name}_top1_acc": prec1,
+            f"{split_name}_top3_acc": prec3,
+        }
+        return task_loss, log_metrics
