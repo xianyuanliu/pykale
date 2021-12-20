@@ -8,6 +8,7 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
+from kale.embed.video_c3d import c3d, se_c3d
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
@@ -49,7 +50,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
         "SELayerTC",
         "SELayerMAC",
     ]
-    model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18"]
+    model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18", "C3D"]
 
     if attention in attention_list:
         att = True
@@ -124,4 +125,15 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
                 logging.info("{} with {}.".format(model_name, attention))
                 feature_network = se_mc3(rgb=rgb, flow=flow, pretrained=True, attention=attention)
 
+    # Get C3D w/o SELayers for RGB input
+    elif model_name == "C3D":
+        class_feature_dim = 4096
+        domain_feature_dim = class_feature_dim
+
+        if not att:
+            logging.info("{} without SELayer.".format(model_name))
+            feature_network = c3d(rgb=rgb, flow=flow, pretrained=True)
+        else:
+            logging.info("{} with {}.".format(model_name, attention))
+            feature_network = se_c3d(rgb=rgb, flow=flow, pretrained=True, attention=attention)
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
