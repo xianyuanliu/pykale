@@ -250,7 +250,6 @@ class InceptionI3d(nn.Module):
         Dragomir Anguelov, Dumitru Erhan, Vincent Vanhoucke, Andrew Rabinovich.
         http://arxiv.org/pdf/1409.4842v1.pdf.
     """
-
     # Endpoints of the model in order. During construction, all the endpoints up
     # to a designated `final_endpoint` are returned in a dictionary as the
     # second return value.
