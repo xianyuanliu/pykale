@@ -55,7 +55,7 @@ def main():
         train_dataset = torchvision.datasets.HMDB51(
             root=root + "hmdb51_videos",
             annotation_path=root + "annotation",
-            frames_per_clip=2,
+            frames_per_clip=16,
             fold=1,
             train=True,
             transform=get_transform(kind="hmdb51", image_modality="rgb")["train"],
@@ -63,7 +63,7 @@ def main():
         valid_dataset = torchvision.datasets.HMDB51(
             root=root + "hmdb51_videos",
             annotation_path=root + "annotation",
-            frames_per_clip=2,
+            frames_per_clip=16,
             fold=1,
             train=False,
             transform=get_transform(kind="hmdb51", image_modality="rgb")["valid"],
@@ -71,7 +71,7 @@ def main():
         test_dataset = torchvision.datasets.HMDB51(
             root=root + "hmdb51_videos",
             annotation_path=root + "annotation",
-            frames_per_clip=2,
+            frames_per_clip=16,
             fold=1,
             train=False,
             transform=get_transform(kind="hmdb51", image_modality="rgb")["test"],
