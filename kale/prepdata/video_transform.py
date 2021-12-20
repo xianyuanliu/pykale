@@ -83,29 +83,35 @@ def get_transform(kind, image_modality):
         transform = {
             "train": transforms.Compose(
                 [
+                    TensorPermute2(),
+                    transforms.ConvertImageDtype(torch.float),
                     # ImglistToTensor(),
                     # transforms.Resize(size=256),
-                    transforms.RandomCrop(size=112),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute2(),
+                    transforms.RandomCrop(size=224),
+                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
+                    TensorPermute(),
                 ]
             ),
             "valid": transforms.Compose(
                 [
+                    TensorPermute2(),
+                    transforms.ConvertImageDtype(torch.float),
                     # ImglistToTensor(),
                     # transforms.Resize(size=256),
-                    transforms.CenterCrop(size=112),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute2(),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
+                    TensorPermute(),
                 ]
             ),
             "test": transforms.Compose(
                 [
+                    TensorPermute2(),
+                    transforms.ConvertImageDtype(torch.float),
                     # ImglistToTensor(),
                     # transforms.Resize(size=256),
-                    transforms.CenterCrop(size=112),
-                    transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                    TensorPermute2(),
+                    transforms.CenterCrop(size=224),
+                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
+                    TensorPermute(),
                 ]
             ),
         }
@@ -157,8 +163,8 @@ class TensorPermute(torch.nn.Module):
 class TensorPermute2(torch.nn.Module):
     """
     Convert a torch.FloatTensor of shape (NUM_IMAGES x HEIGHT x WIDTH x CHANNEL) to
-    a torch.FloatTensor of shape (CHANNELS x NUM_IMAGES x HEIGHT x WIDTH).
+    a torch.FloatTensor of shape (NUM_IMAGES x CHANNELS x HEIGHT x WIDTH).
     """
 
     def forward(self, tensor):
-        return tensor.permute(3, 0, 1, 2).contiguous()
+        return tensor.permute(0, 3, 1, 2).contiguous()
