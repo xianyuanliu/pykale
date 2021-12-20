@@ -89,7 +89,6 @@ class ActionRecogTrainer(BaseTrainer):
     def compute_loss(self, batch, split_name="valid"):
         if len(batch) == 3:
             x, _, y = batch
-            x = x.permute(0, 4, 1, 2, 3).contiguous().float()
         else:
             x, y = batch
         y_hat = self.forward(x)
@@ -97,14 +96,14 @@ class ActionRecogTrainer(BaseTrainer):
         loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y)
         return loss, log_metrics
 
-    def training_step(self, train_batch, batch_idx):
-        loss, log_metrics = self.compute_loss(train_batch, "train")
+    def training_step(self, batch, batch_idx):
+        loss, log_metrics = self.compute_loss(batch, "train")
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_loss"] = loss
         return loss
 
-    def validation_step(self, batch, batch_nb):
+    def validation_step(self, batch, batch_idx):
         loss, log_metrics = self.compute_loss(batch, split_name="valid")
         log_metrics["valid_loss"] = loss
         return log_metrics
@@ -118,7 +117,7 @@ class ActionRecogTrainer(BaseTrainer):
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
 
-    def test_step(self, batch, batch_nb):
+    def test_step(self, batch, batch_idx):
         loss, log_metrics = self.compute_loss(batch, split_name="test")
         log_metrics["test_loss"] = loss
         return log_metrics
