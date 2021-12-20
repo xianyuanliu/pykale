@@ -11,9 +11,8 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_video_feat_extractor
-from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.pipeline.basic_trainer import ActionRecogTrainer
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo, ClassNetVideoC3D
+from kale.pipeline.base_trainer import ActionRecogTrainer
+from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D
 
 
 def get_config(cfg):
@@ -28,12 +27,13 @@ def get_config(cfg):
         "train_params": {
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
+            "image_modality": cfg.DATASET.IMAGE_MODALITY,
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
-                #     "momentum": cfg.SOLVER.MOMENTUM,
-                #     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
-                #     "nesterov": cfg.SOLVER.NESTEROV,
+                    #     "momentum": cfg.SOLVER.MOMENTUM,
+                    #     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
+                    #     "nesterov": cfg.SOLVER.NESTEROV,
                 },
             },
         },
@@ -68,6 +68,6 @@ def get_model(cfg, num_classes):
         feature_extractor=feature_network,
         task_classifier=classifier_network,
         **train_params_local,
-        )
+    )
 
     return model

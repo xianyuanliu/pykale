@@ -2,9 +2,14 @@
 
 import argparse
 import logging
+from pathlib import Path
 
 import pytorch_lightning as pl
+import torchvision
+from torchvision.datasets import HMDB51
+
 from config import get_cfg_defaults
+from kale.prepdata.video_transform import get_transform
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
@@ -44,13 +49,45 @@ def main():
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
     seed = cfg.SOLVER.SEED
+    name = cfg.DATASET.NAME
+    if name == "HMDB51":
+        root = cfg.DATASET.ROOT
+        train_dataset = torchvision.datasets.HMDB51(
+            root=root + "hmdb51_videos",
+            annotation_path=root + "annotation",
+            frames_per_clip=2,
+            fold=1,
+            train=True,
+            transform=get_transform(kind="hmdb51", image_modality="rgb")["train"],
+        )
+        valid_dataset = torchvision.datasets.HMDB51(
+            root=root + "hmdb51_videos",
+            annotation_path=root + "annotation",
+            frames_per_clip=2,
+            fold=1,
+            train=False,
+            transform=get_transform(kind="hmdb51", image_modality="rgb")["valid"],
+        )
+        test_dataset = torchvision.datasets.HMDB51(
+            root=root + "hmdb51_videos",
+            annotation_path=root + "annotation",
+            frames_per_clip=2,
+            fold=1,
+            train=False,
+            transform=get_transform(kind="hmdb51", image_modality="rgb")["test"],
+        )
+        num_classes = 51
+    else:
+        dataset, num_classes = VideoDataset.get_dataset(VideoDataset(name.upper()), cfg.MODEL.METHOD, seed, cfg)
+        train_dataset, valid_dataset = dataset.get_train_val(val_ratio=0.1)
+        test_dataset = dataset.get_test()
 
-    dataset, num_classes = VideoDataset.get_dataset(VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, seed, cfg)
-    train_dataset, val_dataset = dataset.get_train_val(val_ratio=0.1)
-
-    train_loader = DataLoader(train_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=True, num_workers=cfg.SOLVER.WORKERS)
-    valid_loader = DataLoader(val_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS)
-    test_loader = DataLoader(dataset.get_test(), batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS)
+    train_loader = DataLoader(train_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=True,
+                              num_workers=cfg.SOLVER.WORKERS)
+    valid_loader = DataLoader(valid_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=False,
+                              num_workers=cfg.SOLVER.WORKERS)
+    test_loader = DataLoader(test_dataset, batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False,
+                             num_workers=cfg.SOLVER.WORKERS)
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
@@ -77,10 +114,23 @@ def main():
             gpus=args.gpus,
             logger=tb_logger,
             callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            limit_train_batches=0.005,
-            limit_val_batches=0.06,
-            limit_test_batches=0.06,
+            # limit_train_batches=0.005,
+            # limit_val_batches=0.1,
+            # limit_test_batches=0.06,
         )
+
+        ### Find learning_rate
+        # import os
+        # os.environ['KMP_DUPLICATE_LIB_OK'] = 'True'
+        # lr_finder = trainer.tuner.lr_find(
+        #     model,
+        #     train_dataloaders=train_loader,
+        #     val_dataloaders=valid_loader,
+        #     max_lr=1e-3,
+        #     min_lr=1e-8)
+        # fig = lr_finder.plot(suggest=True)
+        # fig.show()
+        # print(lr_finder.suggestion())
 
         ### Training/validation process
         trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
