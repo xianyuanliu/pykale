@@ -32,8 +32,8 @@ def get_image_modality(image_modality):
     return rgb, flow
 
 
-def get_videodata_config(cfg):
-    """Get the configure parameters for video data from the cfg files"""
+def get_domain_adapt_config(cfg):
+    """Get the configure parameters for video data for action recognition domain adaptation from the cfg files"""
 
     config_params = {
         "data_params": {
@@ -51,13 +51,29 @@ def get_videodata_config(cfg):
     return config_params
 
 
-def generate_list(data_name, data_params_local, domain):
+def get_action_recog_config(cfg):
+    """Get the configure parameters for video data for action recognition from the cfg files"""
+
+    config_params = {
+        "data_params": {
+            "dataset_root": cfg.DATASET.ROOT,
+            "dataset_name": cfg.DATASET.NAME,
+            "dataset_trainlist": cfg.DATASET.TRAINLIST,
+            "dataset_testlist": cfg.DATASET.TESTLIST,
+            "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
+        },
+    }
+    return config_params
+
+
+def generate_list(data_name, data_params_local, domain=None):
     """
 
     Args:
         data_name (string): name of dataset
-        data_params_local (dict): hyper parameters from configure file
-        domain (string): domain type (source or target)
+        data_params_local (dict): hyperparameters from configure file
+        domain (string, optional): domain type (source or target)
 
     Returns:
         data_path (string): image directory of dataset
@@ -74,12 +90,20 @@ def generate_list(data_name, data_params_local, domain):
     else:
         raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN]")
 
-    train_listpath = os.path.join(
-        dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_trainlist".format(domain)]
-    )
-    test_listpath = os.path.join(
-        dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_testlist".format(domain)]
-    )
+    if domain is None:
+        train_listpath = os.path.join(
+            dataset_path, "annotations", "labels_train_test", data_params_local["dataset_trainlist"]
+        )
+        test_listpath = os.path.join(
+            dataset_path, "annotations", "labels_train_test", data_params_local["dataset_testlist"]
+        )
+    else:
+        train_listpath = os.path.join(
+            dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_trainlist".format(domain)]
+        )
+        test_listpath = os.path.join(
+            dataset_path, "annotations", "labels_train_test", data_params_local["dataset_{}_testlist".format(domain)]
+        )
 
     return data_path, train_listpath, test_listpath
 
@@ -106,7 +130,7 @@ class VideoDataset(Enum):
         Examples::
             >>> source, target, num_classes = get_source_target(source, target, seed, params)
         """
-        config_params = get_videodata_config(params)
+        config_params = get_domain_adapt_config(params)
         data_params = config_params["data_params"]
         data_params_local = deepcopy(data_params)
         data_src_name = data_params_local["dataset_src_name"].upper()
@@ -195,6 +219,51 @@ class VideoDataset(Enum):
             {"rgb": rgb_target, "flow": flow_target},
             num_classes,
         )
+
+    @staticmethod
+    def get_dataset(name: "VideoDataset", method, seed, params):
+
+        config_params = get_action_recog_config(params)
+        data_params = config_params["data_params"]
+        data_params_local = deepcopy(data_params)
+        data_name = data_params_local["dataset_name"].upper()
+        data_path, tr_listpath, te_listpath = generate_list(data_name, data_params_local)
+        image_modality = data_params_local["dataset_image_modality"]
+        frames_per_segment = data_params_local["frames_per_segment"]
+
+        transform_names = {
+            VideoDataset.EPIC: "epic",
+            VideoDataset.GTEA: "gtea",
+            VideoDataset.ADL: "adl",
+            VideoDataset.KITCHEN: "kitchen",
+        }
+
+        class_numbers = {
+            VideoDataset.EPIC: 8,
+            VideoDataset.GTEA: 6,
+            VideoDataset.ADL: 7,
+            VideoDataset.KITCHEN: 6,
+        }
+
+        factories = {
+            VideoDataset.EPIC: EPICDatasetAccess,
+            VideoDataset.GTEA: GTEADatasetAccess,
+            VideoDataset.ADL: ADLDatasetAccess,
+            VideoDataset.KITCHEN: KITCHENDatasetAccess,
+        }
+
+        dataset = factories[name](
+            data_path,
+            tr_listpath,
+            te_listpath,
+            image_modality,
+            frames_per_segment,
+            class_numbers[name],
+            transform_names[name],
+            seed,
+        )
+
+        return dataset, class_numbers[name]
 
 
 class VideoDatasetAccess(DatasetAccess):
