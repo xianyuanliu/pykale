@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_video_feat_extractor
 from kale.pipeline.base_trainer import ActionRecogTrainer
-from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D
+from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D, ClassNetVideoI3D
 
 
 def get_config(cfg):
@@ -57,6 +57,8 @@ def get_model(cfg, num_classes):
     # setup classifier
     if cfg.MODEL.METHOD.upper() == "C3D":
         classifier_network = ClassNetVideoC3D(input_size=class_feature_dim, n_class=num_classes)
+    elif cfg.MODEL.METHOD.upper() == "I3D":
+        classifier_network = ClassNetVideoI3D(input_size=class_feature_dim, n_class=num_classes)
     else:
         classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
 
