@@ -178,7 +178,12 @@ class ClassNetVideoI3D(nn.Module):
         )
 
     def forward(self, input):
-        x = self.logits(self.dp(input))
+        if len(input.shape) == 2:
+            input = input.unsqueeze(-1).unsqueeze(-1).unsqueeze(-1)
+            x = self.logits(self.dp(input))
+            x = x.squeeze(-1).squeeze(-1).squeeze(-1)
+        else:
+            x = self.logits(self.dp(input))
         return x
 
 
