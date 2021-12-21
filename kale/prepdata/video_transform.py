@@ -22,7 +22,7 @@ def get_transform(kind, image_modality):
                         transforms.CenterCrop(size=224),
                         transforms.RandomCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
                 "valid": transforms.Compose(
@@ -31,7 +31,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
                 "test": transforms.Compose(
@@ -40,7 +40,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
             }
@@ -53,7 +53,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.RandomCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
                 "valid": transforms.Compose(
@@ -63,7 +63,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
                 "test": transforms.Compose(
@@ -73,7 +73,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        TensorPermute(),
+                        ConvertBCHWtoCBHW(),
                     ]
                 ),
             }
@@ -83,35 +83,40 @@ def get_transform(kind, image_modality):
         transform = {
             "train": transforms.Compose(
                 [
-                    TensorPermute2(),
-                    transforms.ConvertImageDtype(torch.float),
-                    # ImglistToTensor(),
-                    # transforms.Resize(size=256),
-                    transforms.RandomCrop(size=224),
-                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
-                    TensorPermute(),
+                    ToFloatTensorInZeroOne(),
+                    ConvertBHWCtoBCHW(),
+                    transforms.Resize((128, 171)),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.RandomCrop((112, 112)),
+                    ConvertBCHWtoCBHW(),
+                    # TensorPermute2(),
+                    # transforms.ConvertImageDtype(torch.float),
+                    # # ImglistToTensor(),
+                    # # transforms.Resize(size=256),
+                    # transforms.RandomCrop(size=224),
+                    # transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
+                    # TensorPermute(),
                 ]
             ),
             "valid": transforms.Compose(
                 [
-                    TensorPermute2(),
-                    transforms.ConvertImageDtype(torch.float),
-                    # ImglistToTensor(),
-                    # transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
-                    TensorPermute(),
+                    ToFloatTensorInZeroOne(),
+                    ConvertBHWCtoBCHW(),
+                    transforms.Resize((128, 171)),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.CenterCrop((112, 112)),
+                    ConvertBCHWtoCBHW(),
                 ]
             ),
             "test": transforms.Compose(
                 [
-                    TensorPermute2(),
-                    transforms.ConvertImageDtype(torch.float),
-                    # ImglistToTensor(),
-                    # transforms.Resize(size=256),
-                    transforms.CenterCrop(size=224),
-                    transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
-                    TensorPermute(),
+                    ToFloatTensorInZeroOne(),
+                    ConvertBHWCtoBCHW(),
+                    transforms.Resize((128, 171)),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.CenterCrop((112, 112)),
+                    ConvertBCHWtoCBHW(),
                 ]
             ),
         }
@@ -150,21 +155,30 @@ class ImglistToTensor(torch.nn.Module):
             raise RuntimeError("Image modality is not in [rgb, flow].")
 
 
-class TensorPermute(torch.nn.Module):
+class ConvertBCHWtoCBHW(torch.nn.Module):
     """
-    Convert a torch.FloatTensor of shape (NUM_IMAGES x CHANNELS x HEIGHT x WIDTH) to
-    a torch.FloatTensor of shape (CHANNELS x NUM_IMAGES x HEIGHT x WIDTH).
+    Convert a torch.FloatTensor of shape (BATCH x CHANNELS x HEIGHT x WIDTH) to
+    a torch.FloatTensor of shape (CHANNELS x BATCH x HEIGHT x WIDTH).
     """
 
     def forward(self, tensor):
         return tensor.permute(1, 0, 2, 3).contiguous()
 
 
-class TensorPermute2(torch.nn.Module):
+class ConvertBHWCtoBCHW(torch.nn.Module):
     """
-    Convert a torch.FloatTensor of shape (NUM_IMAGES x HEIGHT x WIDTH x CHANNEL) to
-    a torch.FloatTensor of shape (NUM_IMAGES x CHANNELS x HEIGHT x WIDTH).
+    Convert a torch.FloatTensor of shape (BATCH x HEIGHT x WIDTH x CHANNEL) to
+    a torch.FloatTensor of shape (BATCH x CHANNELS x HEIGHT x WIDTH).
     """
 
     def forward(self, tensor):
         return tensor.permute(0, 3, 1, 2).contiguous()
+
+
+class ToFloatTensorInZeroOne(torch.nn.Module):
+    """
+    Convert Tensor to FloatTensor in the range [0,1].
+    """
+
+    def forward(self, tensor):
+        return tensor.to(torch.float32) / 255
