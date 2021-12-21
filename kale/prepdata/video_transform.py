@@ -90,13 +90,6 @@ def get_transform(kind, image_modality):
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
                     transforms.RandomCrop((112, 112)),
                     ConvertBCHWtoCBHW(),
-                    # TensorPermute2(),
-                    # transforms.ConvertImageDtype(torch.float),
-                    # # ImglistToTensor(),
-                    # # transforms.Resize(size=256),
-                    # transforms.RandomCrop(size=224),
-                    # transforms.Normalize(mean=[128, 128, 128], std=[128, 128, 128]),
-                    # TensorPermute(),
                 ]
             ),
             "valid": transforms.Compose(
