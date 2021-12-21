@@ -65,9 +65,7 @@ def get_model(cfg, num_classes):
     train_params_local = deepcopy(train_params)
 
     model = ActionRecogTrainer(
-        feature_extractor=feature_network,
-        task_classifier=classifier_network,
-        **train_params_local,
+        feature_extractor=feature_network, task_classifier=classifier_network, **train_params_local,
     )
 
     return model

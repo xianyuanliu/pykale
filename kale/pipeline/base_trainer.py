@@ -2,13 +2,14 @@ import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
 
-from kale.pipeline.domain_adapter import get_aggregated_metrics_from_dict, get_metrics_from_parameter_dict, \
-    get_aggregated_metrics
+from kale.pipeline.domain_adapter import (  # get_metrics_from_parameter_dict,
+    get_aggregated_metrics,
+    get_aggregated_metrics_from_dict,
+)
 from kale.predict import losses
 
 
 class BaseTrainer(pl.LightningModule):
-
     def __init__(self, feature_extractor, task_classifier, batch_size, optimizer, init_lr=0.001, image_modality=None):
         super(BaseTrainer, self).__init__()
         self.feat = feature_extractor
@@ -26,11 +27,10 @@ class BaseTrainer(pl.LightningModule):
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr,
-                                         **self._optimizer_params["optim_params"], )
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"], )
+            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
             return [optimizer]
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
 
@@ -71,7 +71,6 @@ class BaseTrainer(pl.LightningModule):
 
 
 class ActionRecogTrainer(BaseTrainer):
-
     def __init__(self, feature_extractor, task_classifier, **kwargs):
         super(ActionRecogTrainer, self).__init__(feature_extractor, task_classifier, **kwargs)
         self.rgb_feat = self.feat["rgb"]
@@ -111,7 +110,7 @@ class ActionRecogTrainer(BaseTrainer):
     def validation_epoch_end(self, outputs):
         metrics_to_log = self.create_metrics_log("valid")
         log_dict = get_aggregated_metrics(metrics_to_log, outputs)
-        device = outputs[0].get("valid_loss").device
+        # device = outputs[0].get("valid_loss").device
         # log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
 
         for key in log_dict:

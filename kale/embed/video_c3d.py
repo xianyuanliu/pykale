@@ -145,8 +145,18 @@ def get_1x_lr_params(model):
     """
     This generator returns all the parameters for conv and two fc layers of the net.
     """
-    b = [model.conv1, model.conv2, model.conv3a, model.conv3b, model.conv4a, model.conv4b,
-         model.conv5a, model.conv5b, model.fc6, model.fc7]
+    b = [
+        model.conv1,
+        model.conv2,
+        model.conv3a,
+        model.conv3b,
+        model.conv4a,
+        model.conv4b,
+        model.conv5a,
+        model.conv5b,
+        model.fc6,
+        model.fc7,
+    ]
     for i in range(len(b)):
         for k in b[i].parameters():
             if k.requires_grad:
@@ -193,4 +203,4 @@ if __name__ == "__main__":
     net = C3D(num_classes=101, pretrained=True)
 
     outputs = net.forward(inputs)
-    print(outputs.size())
+    # print(outputs.size())
