@@ -152,8 +152,8 @@ class ClassNetVideo(nn.Module):
         return x
 
 
-class ClassNetVideoConv(nn.Module):
-    """Classifier network for video input refer to MMSADA.
+class ClassNetVideoI3D(nn.Module):
+    """Classifier network for video input for I3D refer to MMSADA.
 
     Args:
         input_size (int, optional): the dimension of the final feature vector. Defaults to 1024.
@@ -165,7 +165,7 @@ class ClassNetVideoConv(nn.Module):
     """
 
     def __init__(self, input_size=1024, n_class=8):
-        super(ClassNetVideoConv, self).__init__()
+        super(ClassNetVideoI3D, self).__init__()
         self.dp = nn.Dropout()
         self.logits = Unit3D(
             in_channels=input_size,

@@ -4,7 +4,7 @@ import torch
 from kale.predict.class_domain_nets import (
     ClassNetSmallImage,
     ClassNetVideo,
-    ClassNetVideoConv,
+    ClassNetVideoI3D,
     DomainNetSmallImage,
     DomainNetVideo,
     SoftmaxNet,
@@ -38,7 +38,7 @@ def test_classnet_shapes(model):
 
 
 def test_classnetvideoconv_shapes():
-    model = ClassNetVideoConv(n_class=8)
+    model = ClassNetVideoI3D(n_class=8)
     model.eval()
     output_batch = model(INPUT_BATCH_AVERAGE)
     assert output_batch.size() == (BATCH_SIZE, 8, 1, 1, 1)
