@@ -2,21 +2,17 @@
 
 import argparse
 import logging
-from pathlib import Path
 
 import pytorch_lightning as pl
 import torchvision
-from torchvision.datasets import HMDB51
-
 from config import get_cfg_defaults
-from kale.prepdata.video_transform import get_transform
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
+from torch.utils.data import DataLoader, random_split
 
 from kale.loaddata.video_access import VideoDataset
-from torch.utils.data import DataLoader
-
+from kale.prepdata.video_transform import get_transform
 from kale.utils.seed import set_seed
 
 
@@ -28,7 +24,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     args = parser.parse_args()
     return args
@@ -48,47 +44,51 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    seed = cfg.SOLVER.SEED
-    name = cfg.DATASET.NAME
-    fps = cfg.DATASET.FRAMES_PER_SEGMENT
-    if name == "HMDB51":
+    if cfg.DATASET.NAME == "HMDB51":
         root = cfg.DATASET.ROOT + "hmdb51/"
         train_dataset = torchvision.datasets.HMDB51(
             root=root + "video/",
             annotation_path=root + "annotation/",
-            frames_per_clip=fps,
+            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
+            step_between_clips=50,
             fold=1,
             train=True,
             transform=get_transform(kind="hmdb51", image_modality="rgb")["train"],
         )
-        valid_dataset = torchvision.datasets.HMDB51(
-            root=root + "video/",
-            annotation_path=root + "annotation/",
-            frames_per_clip=fps,
-            fold=1,
-            train=False,
-            transform=get_transform(kind="hmdb51", image_modality="rgb")["valid"],
-        )
+
         test_dataset = torchvision.datasets.HMDB51(
             root=root + "video/",
             annotation_path=root + "annotation/",
-            frames_per_clip=fps,
+            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
+            step_between_clips=50,
             fold=1,
             train=False,
             transform=get_transform(kind="hmdb51", image_modality="rgb")["test"],
         )
+        num_train = len(train_dataset)
+        num_valid = round(0.1 * num_train)
+        train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
+
+        logging.info(f"number of train samples {num_train}")
+        logging.info(f"number of validation samples {num_valid}")
+        logging.info(f"number of test samples {len(test_dataset)}")
         num_classes = 51
     else:
-        dataset, num_classes = VideoDataset.get_dataset(VideoDataset(name.upper()), cfg.MODEL.METHOD, seed, cfg)
+        dataset, num_classes = VideoDataset.get_dataset(
+            VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
+        )
         train_dataset, valid_dataset = dataset.get_train_val(val_ratio=0.1)
         test_dataset = dataset.get_test()
 
-    train_loader = DataLoader(train_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=True,
-                              num_workers=cfg.SOLVER.WORKERS)
-    valid_loader = DataLoader(valid_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=False,
-                              num_workers=cfg.SOLVER.WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False,
-                             num_workers=cfg.SOLVER.WORKERS)
+    train_loader = DataLoader(
+        train_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=True, num_workers=cfg.SOLVER.WORKERS
+    )
+    valid_loader = DataLoader(
+        valid_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS
+    )
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
@@ -100,10 +100,7 @@ def main():
         model = get_model(cfg, num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
-            filename="{epoch}-{step}-{val_loss:.4f}",
-            save_last=True,
-            monitor="valid_loss",
-            mode="min",
+            filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
         )
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
@@ -135,6 +132,7 @@ def main():
 
         ### Training/validation process
         trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
+        # trainer.fit(model, train_dataloaders=train_loader)
 
         ### Evaluation
         trainer.test(ckpt_path="best", dataloaders=test_loader)
