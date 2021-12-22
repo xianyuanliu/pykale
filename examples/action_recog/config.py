@@ -16,7 +16,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "I:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
+_C.DATASET.ROOT = "J:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
 _C.DATASET.NAME = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.TESTLIST = "epic_D1_test.pkl"
