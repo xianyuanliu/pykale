@@ -42,7 +42,7 @@ def main():
 
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
-    logging.basicConfig(format=format_str)
+    logging.basicConfig(format=format_str, level=logging.DEBUG)
     # ---- setup dataset ----
     if cfg.DATASET.NAME == "HMDB51":
         root = cfg.DATASET.ROOT + "hmdb51/"
@@ -68,16 +68,37 @@ def main():
         num_train = len(train_dataset)
         num_valid = round(0.1 * num_train)
         train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
-
-        logging.info(f"number of train samples {num_train}")
-        logging.info(f"number of validation samples {num_valid}")
-        logging.info(f"number of test samples {len(test_dataset)}")
         num_classes = 51
+    elif cfg.DATASET.NAME == "UCF101":
+        root = cfg.DATASET.ROOT + "ucf101/"
+        train_dataset = torchvision.datasets.UCF101(
+            root=root + "video/",
+            annotation_path=root + "annotation/",
+            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
+            step_between_clips=50,
+            fold=1,
+            train=True,
+            transform=get_transform(kind="ucf101", image_modality="rgb")["train"],
+        )
+
+        test_dataset = torchvision.datasets.HMDB51(
+            root=root + "video/",
+            annotation_path=root + "annotation/",
+            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
+            step_between_clips=50,
+            fold=1,
+            train=False,
+            transform=get_transform(kind="ucf101", image_modality="rgb")["test"],
+        )
+        num_train = len(train_dataset)
+        num_valid = round(cfg.DATASET.VALID_RATIO * num_train)
+        train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
+        num_classes = 101
     else:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
         )
-        train_dataset, valid_dataset = dataset.get_train_val(val_ratio=0.1)
+        train_dataset, valid_dataset = dataset.get_train_val(val_ratio=cfg.DATASET.VALID_RATIO)
         test_dataset = dataset.get_test()
 
     train_loader = DataLoader(
@@ -89,6 +110,13 @@ def main():
     test_loader = DataLoader(
         test_dataset, batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS
     )
+
+    logging.info(f"Total number of train samples: {len(train_dataset)}")
+    logging.info(f"Total number of validation samples: {len(valid_dataset)}")
+    logging.info(f"Total number of test samples: {len(test_dataset)}")
+    logging.info(f"Total number of train batches: {len(train_loader)}")
+    logging.info(f"Total number of validation batches: {len(valid_loader)}")
+    logging.info(f"Total number of test batches: {len(test_loader)}")
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
