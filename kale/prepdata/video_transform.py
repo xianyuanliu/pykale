@@ -1,6 +1,7 @@
 import torch
 from torchvision import transforms
 
+
 # from torchvision.transforms import _transforms_video as transforms_video
 
 
@@ -13,6 +14,7 @@ def get_transform(kind, image_modality):
         image_modality (string): image type (RGB or Optical Flow)
     """
 
+    mean, std = get_dataset_mean_std(kind)
     if kind in ["epic", "gtea", "adl", "kitchen"]:
         transform = dict()
         if image_modality == "rgb":
@@ -23,7 +25,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.RandomCrop(size=224),
-                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        transforms.Normalize(mean=mean, std=std),
                         ConvertTCHWtoCTHW(),
                     ]
                 ),
@@ -32,7 +34,7 @@ def get_transform(kind, image_modality):
                         ImglistToTensor(),
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
-                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        transforms.Normalize(mean=mean, std=std),
                         ConvertTCHWtoCTHW(),
                     ]
                 ),
@@ -41,7 +43,7 @@ def get_transform(kind, image_modality):
                         ImglistToTensor(),
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
-                        transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
+                        transforms.Normalize(mean=mean, std=std),
                         ConvertTCHWtoCTHW(),
                     ]
                 ),
@@ -89,7 +91,7 @@ def get_transform(kind, image_modality):
                     ToTensorVideo(),
                     # transforms.Resize((128, 171)),
                     transforms.RandomHorizontalFlip(),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.RandomCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -98,7 +100,7 @@ def get_transform(kind, image_modality):
                 [
                     ToTensorVideo(),
                     # transforms.Resize((128, 171)),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -107,7 +109,7 @@ def get_transform(kind, image_modality):
                 [
                     ToTensorVideo(),
                     # transforms.Resize((128, 171)),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -119,7 +121,7 @@ def get_transform(kind, image_modality):
                 [
                     ToTensorVideo(),
                     transforms.RandomHorizontalFlip(),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.RandomCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -127,7 +129,7 @@ def get_transform(kind, image_modality):
             "valid": transforms.Compose(
                 [
                     ToTensorVideo(),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -135,7 +137,7 @@ def get_transform(kind, image_modality):
             "test": transforms.Compose(
                 [
                     ToTensorVideo(),
-                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
@@ -209,3 +211,29 @@ class ToTensorVideo(torch.nn.Module):
         if not tensor.dtype == torch.uint8:
             raise TypeError("clip tensor should have data type uint8. Got %s" % str(tensor.dtype))
         return tensor.float().permute(0, 3, 1, 2) / 255.0
+
+
+def get_dataset_mean_std(dataset):
+    """Get mean and std of a dataset for normalization."""
+    if dataset == "epic":
+        mean = [0.412773, 0.316411, 0.278039]
+        std = [0.222826, 0.215075, 0.202924]
+    elif dataset == "gtea":
+        mean = [0.555380, 0.430436, 0.183021]
+        std = [0.132028, 0.139590, 0.123337]
+    elif dataset == "adl":
+        mean = [0.411622, 0.354001, 0.246640]
+        std = [0.181746, 0.185856, 0.162441]
+    elif dataset == "kitchen":
+        mean = [0.252758, 0.243761, 0.268163]
+        std = [0.188945, 0.186148, 0.191553]
+    elif dataset == "ucf101":
+        mean = [0.43216, 0.394666, 0.37645]
+        std = [0.22803, 0.22145, 0.216989]
+    elif dataset == "hmdb51":
+        mean = [0.43216, 0.394666, 0.37645]
+        std = [0.22803, 0.22145, 0.216989]
+    else:
+        raise ValueError(f"Unknown transform for dataset '{dataset}'")
+    return mean, std
+
