@@ -90,7 +90,7 @@ def get_transform(kind, image_modality):
                     # transforms.Resize((128, 171)),
                     transforms.RandomHorizontalFlip(),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.RandomCrop((224, 224)),
+                    transforms.RandomCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -99,7 +99,7 @@ def get_transform(kind, image_modality):
                     ToTensorVideo(),
                     # transforms.Resize((128, 171)),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((224, 224)),
+                    transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -108,7 +108,7 @@ def get_transform(kind, image_modality):
                     ToTensorVideo(),
                     # transforms.Resize((128, 171)),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((224, 224)),
+                    transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -120,7 +120,7 @@ def get_transform(kind, image_modality):
                     ToTensorVideo(),
                     transforms.RandomHorizontalFlip(),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.RandomCrop((224, 224)),
+                    transforms.RandomCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -128,7 +128,7 @@ def get_transform(kind, image_modality):
                 [
                     ToTensorVideo(),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((224, 224)),
+                    transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -136,7 +136,7 @@ def get_transform(kind, image_modality):
                 [
                     ToTensorVideo(),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((224, 224)),
+                    transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
