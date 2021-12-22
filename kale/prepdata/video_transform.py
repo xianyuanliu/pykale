@@ -200,7 +200,7 @@ class ToTensorVideo(torch.nn.Module):
     """
     Convert tensor data type from uint8 to float, divide value by 255.0 and
     permute the dimensions of clip tensor from (TIME x HEIGHT x WIDTH x CHANNEL).
-    to (CHANNEL x TIME x HEIGHT x WIDTH).
+    to (TIME x CHANNEL x HEIGHT x WIDTH).
 
     References: https://github.com/pytorch/vision/blob/main/torchvision/transforms/_transforms_video.py
     """
@@ -208,4 +208,4 @@ class ToTensorVideo(torch.nn.Module):
     def forward(self, tensor):
         if not tensor.dtype == torch.uint8:
             raise TypeError("clip tensor should have data type uint8. Got %s" % str(tensor.dtype))
-        return tensor.float().permute(3, 0, 1, 2) / 255.0
+        return tensor.float().permute(0, 3, 1, 2) / 255.0
