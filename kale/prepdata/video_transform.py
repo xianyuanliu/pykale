@@ -1,5 +1,6 @@
 import torch
 from torchvision import transforms
+# from torchvision.transforms import _transforms_video as transforms_video
 
 
 def get_transform(kind, image_modality):
@@ -22,7 +23,7 @@ def get_transform(kind, image_modality):
                         transforms.CenterCrop(size=224),
                         transforms.RandomCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
                 "valid": transforms.Compose(
@@ -31,7 +32,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
                 "test": transforms.Compose(
@@ -40,7 +41,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
             }
@@ -53,7 +54,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.RandomCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
                 "valid": transforms.Compose(
@@ -63,7 +64,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
                 "test": transforms.Compose(
@@ -73,7 +74,7 @@ def get_transform(kind, image_modality):
                         transforms.Resize(size=256),
                         transforms.CenterCrop(size=224),
                         transforms.Normalize(mean=[0.5, 0.5], std=[0.5, 0.5]),
-                        ConvertBCHWtoCBHW(),
+                        ConvertTCHWtoCTHW(),
                     ]
                 ),
             }
@@ -83,33 +84,59 @@ def get_transform(kind, image_modality):
         transform = {
             "train": transforms.Compose(
                 [
-                    ToFloatTensorInZeroOne(),
-                    ConvertBHWCtoBCHW(),
-                    transforms.Resize((128, 171)),
+                    # ConvertBHWCtoBCHW(),
+                    ToTensorVideo(),
+                    # transforms.Resize((128, 171)),
                     transforms.RandomHorizontalFlip(),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.RandomCrop((112, 112)),
-                    ConvertBCHWtoCBHW(),
+                    transforms.RandomCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
                 ]
             ),
             "valid": transforms.Compose(
                 [
-                    ToFloatTensorInZeroOne(),
-                    ConvertBHWCtoBCHW(),
-                    transforms.Resize((128, 171)),
+                    ToTensorVideo(),
+                    # transforms.Resize((128, 171)),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((112, 112)),
-                    ConvertBCHWtoCBHW(),
+                    transforms.CenterCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
                 ]
             ),
             "test": transforms.Compose(
                 [
-                    ToFloatTensorInZeroOne(),
-                    ConvertBHWCtoBCHW(),
-                    transforms.Resize((128, 171)),
+                    ToTensorVideo(),
+                    # transforms.Resize((128, 171)),
                     transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
-                    transforms.CenterCrop((112, 112)),
-                    ConvertBCHWtoCBHW(),
+                    transforms.CenterCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
+                ]
+            ),
+        }
+    elif kind == "ucf101":
+        transform = {
+            "train": transforms.Compose(
+                [
+                    ToTensorVideo(),
+                    transforms.RandomHorizontalFlip(),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.RandomCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
+                ]
+            ),
+            "valid": transforms.Compose(
+                [
+                    ToTensorVideo(),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.CenterCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
+                ]
+            ),
+            "test": transforms.Compose(
+                [
+                    ToTensorVideo(),
+                    transforms.Normalize(mean=[0.43216, 0.394666, 0.37645], std=[0.22803, 0.22145, 0.216989]),
+                    transforms.CenterCrop((224, 224)),
+                    ConvertTCHWtoCTHW(),
                 ]
             ),
         }
@@ -148,30 +175,36 @@ class ImglistToTensor(torch.nn.Module):
             raise RuntimeError("Image modality is not in [rgb, flow].")
 
 
-class ConvertBCHWtoCBHW(torch.nn.Module):
+class ConvertTCHWtoCTHW(torch.nn.Module):
     """
-    Convert a torch.FloatTensor of shape (BATCH x CHANNELS x HEIGHT x WIDTH) to
-    a torch.FloatTensor of shape (CHANNELS x BATCH x HEIGHT x WIDTH).
+    Convert a torch.FloatTensor of shape (TIME x CHANNELS x HEIGHT x WIDTH) to
+    a torch.FloatTensor of shape (CHANNELS x TIME x HEIGHT x WIDTH).
     """
 
     def forward(self, tensor):
         return tensor.permute(1, 0, 2, 3).contiguous()
 
 
-class ConvertBHWCtoBCHW(torch.nn.Module):
+class ConvertTHWCtoTCHW(torch.nn.Module):
     """
-    Convert a torch.FloatTensor of shape (BATCH x HEIGHT x WIDTH x CHANNEL) to
-    a torch.FloatTensor of shape (BATCH x CHANNELS x HEIGHT x WIDTH).
+    Convert a torch.FloatTensor of shape (TIME x HEIGHT x WIDTH x CHANNEL) to
+    a torch.FloatTensor of shape (TIME x CHANNELS x HEIGHT x WIDTH).
     """
 
     def forward(self, tensor):
         return tensor.permute(0, 3, 1, 2).contiguous()
 
 
-class ToFloatTensorInZeroOne(torch.nn.Module):
+class ToTensorVideo(torch.nn.Module):
     """
-    Convert Tensor to FloatTensor in the range [0,1].
+    Convert tensor data type from uint8 to float, divide value by 255.0 and
+    permute the dimensions of clip tensor from (TIME x HEIGHT x WIDTH x CHANNEL).
+    to (CHANNEL x TIME x HEIGHT x WIDTH).
+
+    References: https://github.com/pytorch/vision/blob/main/torchvision/transforms/_transforms_video.py
     """
 
     def forward(self, tensor):
-        return tensor.to(torch.float32) / 255
+        if not tensor.dtype == torch.uint8:
+            raise TypeError("clip tensor should have data type uint8. Got %s" % str(tensor.dtype))
+        return tensor.float().permute(3, 0, 1, 2) / 255.0
