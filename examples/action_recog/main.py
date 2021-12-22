@@ -69,6 +69,7 @@ def main():
         num_valid = round(0.1 * num_train)
         train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
         num_classes = 51
+
     elif cfg.DATASET.NAME == "UCF101":
         root = cfg.DATASET.ROOT + "ucf101/"
         train_dataset = torchvision.datasets.UCF101(
@@ -81,7 +82,7 @@ def main():
             transform=get_transform(kind="ucf101", image_modality="rgb")["train"],
         )
 
-        test_dataset = torchvision.datasets.HMDB51(
+        test_dataset = torchvision.datasets.UCF101(
             root=root + "video/",
             annotation_path=root + "annotation/",
             frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
@@ -94,6 +95,7 @@ def main():
         num_valid = round(cfg.DATASET.VALID_RATIO * num_train)
         train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
         num_classes = 101
+
     else:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
