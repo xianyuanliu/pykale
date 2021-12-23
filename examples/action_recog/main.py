@@ -26,6 +26,7 @@ def arg_parse():
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
+    parser.add_argument("--steps", default=50, help="step between clips", type=int)
     args = parser.parse_args()
     return args
 
@@ -66,7 +67,7 @@ def main():
             transform=get_transform(kind="hmdb51", image_modality="rgb")["test"],
         )
         num_train = len(train_dataset)
-        num_valid = round(0.1 * num_train)
+        num_valid = round(cfg.DATASET.VALID_RATIO * num_train)
         train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
         num_classes = 51
 
@@ -76,7 +77,7 @@ def main():
             root=root + "video/",
             annotation_path=root + "annotation/",
             frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=50,
+            step_between_clips=args.steps,
             fold=1,
             train=True,
             transform=get_transform(kind="ucf101", image_modality="rgb")["train"],
@@ -86,7 +87,7 @@ def main():
             root=root + "video/",
             annotation_path=root + "annotation/",
             frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=50,
+            step_between_clips=args.steps,
             fold=1,
             train=False,
             transform=get_transform(kind="ucf101", image_modality="rgb")["test"],

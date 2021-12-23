@@ -1,7 +1,6 @@
 import torch
 from torchvision import transforms
 
-
 # from torchvision.transforms import _transforms_video as transforms_video
 
 
@@ -236,4 +235,3 @@ def get_dataset_mean_std(dataset):
     else:
         raise ValueError(f"Unknown transform for dataset '{dataset}'")
     return mean, std
-
