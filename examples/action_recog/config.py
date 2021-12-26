@@ -29,7 +29,7 @@ _C.DATASET.VALID_RATIO = 0.1
 # ---------------------------------------------------------------------------- #
 _C.SOLVER = CN()
 _C.SOLVER.SEED = 2020
-_C.SOLVER.WORKERS = 4
+_C.SOLVER.NUM_WORKERS = 4
 _C.SOLVER.BASE_LR = 0.01  # learning rate
 # _C.SOLVER.MOMENTUM = 0.9
 # _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
