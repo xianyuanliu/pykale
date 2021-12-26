@@ -4,15 +4,18 @@ import argparse
 import logging
 
 import pytorch_lightning as pl
-import torchvision
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
-from torch.utils.data import DataLoader, random_split
 
+from examples.action_recog.torchvision_data import (
+    collate_video_label,
+    get_hmdb51_dataset,
+    get_train_valid_test_loaders,
+    get_ucf101_dataset,
+)
 from kale.loaddata.video_access import VideoDataset
-from kale.prepdata.video_transform import get_transform
 from kale.utils.seed import set_seed
 
 
@@ -26,7 +29,6 @@ def arg_parse():
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
         "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
-    parser.add_argument("--steps", default=50, help="step between clips", type=int)
     args = parser.parse_args()
     return args
 
@@ -45,74 +47,51 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str, level=logging.DEBUG)
     # ---- setup dataset ----
-    if cfg.DATASET.NAME == "HMDB51":
-        root = cfg.DATASET.ROOT + "hmdb51/"
-        train_dataset = torchvision.datasets.HMDB51(
-            root=root + "video/",
-            annotation_path=root + "annotation/",
-            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=50,
-            fold=1,
-            train=True,
-            transform=get_transform(kind="hmdb51", image_modality="rgb")["train"],
-        )
-
-        test_dataset = torchvision.datasets.HMDB51(
-            root=root + "video/",
-            annotation_path=root + "annotation/",
-            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=50,
-            fold=1,
-            train=False,
-            transform=get_transform(kind="hmdb51", image_modality="rgb")["test"],
-        )
-        num_train = len(train_dataset)
-        num_valid = round(cfg.DATASET.VALID_RATIO * num_train)
-        train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
-        num_classes = 51
-
-    elif cfg.DATASET.NAME == "UCF101":
-        root = cfg.DATASET.ROOT + "ucf101/"
-        train_dataset = torchvision.datasets.UCF101(
-            root=root + "video/",
-            annotation_path=root + "annotation/",
-            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=args.steps,
-            fold=1,
-            train=True,
-            transform=get_transform(kind="ucf101", image_modality="rgb")["train"],
-        )
-
-        test_dataset = torchvision.datasets.UCF101(
-            root=root + "video/",
-            annotation_path=root + "annotation/",
-            frames_per_clip=cfg.DATASET.FRAMES_PER_SEGMENT,
-            step_between_clips=args.steps,
-            fold=1,
-            train=False,
-            transform=get_transform(kind="ucf101", image_modality="rgb")["test"],
-        )
-        num_train = len(train_dataset)
-        num_valid = round(cfg.DATASET.VALID_RATIO * num_train)
-        train_dataset, valid_dataset = random_split(train_dataset, [num_train - num_valid, num_valid])
-        num_classes = 101
-
-    else:
+    if cfg.DATASET.NAME in ["ADL", "KITCHEN", "GTEA", "EPIC"]:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
         )
         train_dataset, valid_dataset = dataset.get_train_val(val_ratio=cfg.DATASET.VALID_RATIO)
         test_dataset = dataset.get_test()
+        train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
+            train_dataset,
+            valid_dataset,
+            test_dataset,
+            cfg.SOLVER.TRAIN_BATCH_SIZE,
+            cfg.SOLVER.TEST_BATCH_SIZE,
+            cfg.SOLVER.NUM_WORKERS,
+        )
 
-    train_loader = DataLoader(
-        train_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=True, num_workers=cfg.SOLVER.WORKERS
-    )
-    valid_loader = DataLoader(
-        valid_dataset, batch_size=cfg.SOLVER.TRAIN_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS
-    )
-    test_loader = DataLoader(
-        test_dataset, batch_size=cfg.SOLVER.TEST_BATCH_SIZE, shuffle=False, num_workers=cfg.SOLVER.WORKERS
-    )
+    elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:
+        if cfg.DATASET.NAME == "HMDB51":
+            train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset(
+                cfg.DATASET.ROOT + "hmdb51/",
+                cfg.DATASET.FRAMES_PER_SEGMENT,
+                cfg.DATASET.VALID_RATIO,
+                step_between_clips=50,
+                fold=1,
+            )
+
+        else:
+            train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset(
+                cfg.DATASET.ROOT + "ucf101/",
+                cfg.DATASET.FRAMES_PER_SEGMENT,
+                cfg.DATASET.VALID_RATIO,
+                step_between_clips=50,
+                fold=1,
+            )
+
+        train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
+            train_dataset,
+            valid_dataset,
+            test_dataset,
+            cfg.SOLVER.TRAIN_BATCH_SIZE,
+            cfg.SOLVER.TEST_BATCH_SIZE,
+            cfg.SOLVER.NUM_WORKERS,
+            collate_fn=collate_video_label,
+        )
+    else:
+        raise ValueError("Dataset not supported")
 
     logging.info(f"Total number of train samples: {len(train_dataset)}")
     logging.info(f"Total number of validation samples: {len(valid_dataset)}")
