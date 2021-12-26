@@ -1,5 +1,5 @@
 import torch
-import torchvision
+from torchvision.datasets import HMDB51, UCF101
 from torch.utils.data import random_split, DataLoader
 
 from kale.prepdata.video_transform import get_transform
@@ -33,7 +33,7 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     Get the HMDB51 dataset. Using torchvision.datasets.HMDB51.
     """
 
-    train_dataset = torchvision.datasets.HMDB51(
+    train_dataset = HMDB51(
         root=root + "video/",
         annotation_path=root + "annotation/",
         frames_per_clip=frame_per_segment,
@@ -43,7 +43,7 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
         transform=get_transform(kind="hmdb51", image_modality="rgb")["train"],
     )
 
-    test_dataset = torchvision.datasets.HMDB51(
+    test_dataset = HMDB51(
         root=root + "video/",
         annotation_path=root + "annotation/",
         frames_per_clip=frame_per_segment,
@@ -62,7 +62,7 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     Get the UCF101 dataset. Using torchvision.datasets.UCF101.
     """
 
-    train_dataset = torchvision.datasets.UCF101(
+    train_dataset = UCF101(
         root=root + "video/",
         annotation_path=root + "annotation/",
         frames_per_clip=frame_per_segment,
@@ -72,7 +72,7 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
         transform=get_transform(kind="ucf101", image_modality="rgb")["train"],
     )
 
-    test_dataset = torchvision.datasets.UCF101(
+    test_dataset = UCF101(
         root=root + "video/",
         annotation_path=root + "annotation/",
         frames_per_clip=frame_per_segment,
