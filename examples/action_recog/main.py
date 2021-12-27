@@ -9,6 +9,11 @@ from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
+from examples.action_recog.pytorchvideo_data import (
+    get_hmdb51_dataset_ptvideo,
+    get_train_valid_test_loaders_ptvideo,
+    get_ucf101_dataset_ptvideo,
+)
 from examples.action_recog.torchvision_data import (
     collate_video_label,
     get_hmdb51_dataset,
@@ -64,32 +69,50 @@ def main():
 
     elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:
         if cfg.DATASET.NAME == "HMDB51":
-            train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset(
-                cfg.DATASET.ROOT + "hmdb51/",
-                cfg.DATASET.FRAMES_PER_SEGMENT,
-                cfg.DATASET.VALID_RATIO,
-                step_between_clips=50,
-                fold=1,
+            # train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset(
+            #     cfg.DATASET.ROOT + "hmdb51/",
+            #     cfg.DATASET.FRAMES_PER_SEGMENT,
+            #     cfg.DATASET.VALID_RATIO,
+            #     step_between_clips=16,
+            #     fold=1,
+            # )
+
+            train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset_ptvideo(
+                cfg.DATASET.ROOT + "hmdb51/", cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
             )
 
         else:
-            train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset(
-                cfg.DATASET.ROOT + "ucf101/",
-                cfg.DATASET.FRAMES_PER_SEGMENT,
-                cfg.DATASET.VALID_RATIO,
-                step_between_clips=50,
-                fold=1,
+            # train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset(
+            #     cfg.DATASET.ROOT + "ucf101/",
+            #     cfg.DATASET.FRAMES_PER_SEGMENT,
+            #     cfg.DATASET.VALID_RATIO,
+            #     step_between_clips=16,
+            #     fold=1,
+            # )
+
+            train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset_ptvideo(
+                cfg.DATASET.ROOT + "ucf101/", cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
             )
 
-        train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
+        # train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
+        #     train_dataset,
+        #     valid_dataset,
+        #     test_dataset,
+        #     cfg.SOLVER.TRAIN_BATCH_SIZE,
+        #     cfg.SOLVER.TEST_BATCH_SIZE,
+        #     cfg.SOLVER.NUM_WORKERS,
+        #     collate_fn=collate_video_label,
+        # )
+
+        train_loader, valid_loader, test_loader = get_train_valid_test_loaders_ptvideo(
             train_dataset,
             valid_dataset,
             test_dataset,
             cfg.SOLVER.TRAIN_BATCH_SIZE,
             cfg.SOLVER.TEST_BATCH_SIZE,
             cfg.SOLVER.NUM_WORKERS,
-            collate_fn=collate_video_label,
         )
+
     else:
         raise ValueError("Dataset not supported")
 
