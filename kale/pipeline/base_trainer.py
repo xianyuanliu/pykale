@@ -86,9 +86,12 @@ class ActionRecogTrainer(BaseTrainer):
         return output
 
     def compute_loss(self, batch, split_name="valid"):
-        if len(batch) == 3:
+        if len(batch) == 3:  # Video, audio, labels
             x, _, y = batch
-        else:
+        elif len(batch) > 3:
+            x = batch["video"]
+            y = batch["label"]
+        else:  # Video, labels
             x, y = batch
         y_hat = self.forward(x)
 

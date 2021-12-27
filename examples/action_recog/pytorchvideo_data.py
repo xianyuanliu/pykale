@@ -1,15 +1,34 @@
 import itertools
-
-import torch
-from pytorchvideo.data import Ucf101, Hmdb51, make_clip_sampler
 from pathlib import Path
 
-from pytorchvideo.transforms import ApplyTransformToKey, UniformTemporalSubsample, Normalize, RandomShortSideScale, \
-    ShortSideScale, RemoveKey
+import torch
+from pytorchvideo.data import Hmdb51, labeled_video_dataset, LabeledVideoDataset, make_clip_sampler, Ucf101
+from pytorchvideo.transforms import (
+    ApplyTransformToKey,
+    Normalize,
+    RandomShortSideScale,
+    RemoveKey,
+    ShortSideScale,
+    UniformTemporalSubsample,
+)
 from torch.utils.data import DataLoader, RandomSampler
-from torchvision.transforms import Compose, RandomCrop, RandomHorizontalFlip, CenterCrop
+from torchvision.transforms import CenterCrop, Compose, RandomCrop, RandomHorizontalFlip
 
 from examples.action_recog.torchvision_data import get_validation_dataset
+
+
+def Hmdb51_with_ucf101_list(
+    data_path,
+    clip_sampler,
+    video_sampler=torch.utils.data.RandomSampler,
+    transform=None,
+    video_path_prefix="",
+    decode_audio=True,
+    decoder="pyav",
+) -> LabeledVideoDataset:
+    return labeled_video_dataset(
+        data_path, clip_sampler, video_sampler, transform, video_path_prefix, decode_audio, decoder,
+    )
 
 
 class LimitDataset(torch.utils.data.Dataset):
@@ -24,9 +43,7 @@ class LimitDataset(torch.utils.data.Dataset):
         super().__init__()
         self.dataset = dataset
 
-        self.dataset_iter = itertools.chain.from_iterable(
-            itertools.repeat(iter(dataset), 2)
-        )
+        self.dataset_iter = itertools.chain.from_iterable(itertools.repeat(iter(dataset), 2))
 
     def __getitem__(self, index):
         return next(self.dataset_iter)
@@ -67,29 +84,28 @@ def video_transform(mode):
 
 
 def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
+    frame_per_segment = frame_per_segment / 30
     train_dataset = LimitDataset(
-        Hmdb51(
-            data_path=Path(root).joinpath("annotation"),
+        # Hmdb51(
+        #     data_path=Path(root).joinpath("annotation_org"),
+        Hmdb51_with_ucf101_list(
+            data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
             clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
-            split_id=fold,
-            split_type="train",
             transform=video_transform(mode="train"),
             video_path_prefix=str(Path(root).joinpath("video")),
-            video_sampler=RandomSampler,
         )
     )
 
     test_dataset = LimitDataset(
-        Hmdb51(
-            data_path=Path(root).joinpath("annotation"),
+        # Hmdb51(
+        #     data_path=Path(root).joinpath("annotation_org"),
+        Hmdb51_with_ucf101_list(
+            data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
             clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
-            split_id=fold,
-            split_type="test",
             transform=video_transform(mode="test"),
             video_path_prefix=str(Path(root).joinpath("video")),
-            video_sampler=RandomSampler,
         )
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
@@ -100,8 +116,8 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
 def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
     train_dataset = LimitDataset(
         Ucf101(
-            data_path=str(Path(root).joinpath("annotation")),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            data_path=str(Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold))),
+            clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
             transform=video_transform(mode="train"),
             video_path_prefix=str(Path(root).joinpath("video")),
@@ -110,7 +126,7 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
 
     test_dataset = LimitDataset(
         Ucf101(
-            data_path=str(Path(root).joinpath("annotation")),
+            data_path=str(Path(root).joinpath("annotation", "testlist0{}.txt".format(fold))),
             clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
             transform=video_transform(mode="test"),
@@ -122,18 +138,32 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
     return train_dataset, valid_dataset, test_dataset, num_classes
 
 
-def get_train_valid_test_loaders_ptvideo(train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size,
-                                         num_workers=0):
+def get_train_valid_test_loaders_ptvideo(
+    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
+):
     train_loader = DataLoader(train_dataset, batch_size=train_batch_size, num_workers=num_workers)
     valid_loader = DataLoader(valid_dataset, batch_size=test_batch_size, num_workers=num_workers)
     test_loader = DataLoader(test_dataset, batch_size=test_batch_size, num_workers=num_workers)
     return train_loader, valid_loader, test_loader
+
 
 # if __name__ == '__main__':
 #     root = Path("J:/Datasets/Video/")
 #     frame_per_segment = 16
 #     valid_ratio = 0.1
 #
-#     train_dataset, valid_dataset, test_dataset = get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio)
+#     # train_dataset, valid_dataset, test_dataset = get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio)
+#     # train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, num_workers=4)
+#     # test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, num_workers=4)
+#
+#     train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset_ptvideo(str(root.joinpath("ucf101")), frame_per_segment, valid_ratio)
 #     train_loader = torch.utils.data.DataLoader(train_dataset, batch_size=1, num_workers=4)
+#     valid_loader = torch.utils.data.DataLoader(valid_dataset, batch_size=1, num_workers=4)
 #     test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, num_workers=4)
+#
+#     print(f"Total number of train samples: {len(train_dataset)}")
+#     print(f"Total number of validation samples: {len(valid_dataset)}")
+#     print(f"Total number of test samples: {len(test_dataset)}")
+#     print(f"Total number of train batches: {len(train_loader)}")
+#     print(f"Total number of validation batches: {len(valid_loader)}")
+#     print(f"Total number of test batches: {len(test_loader)}")
