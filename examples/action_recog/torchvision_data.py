@@ -1,6 +1,6 @@
 import torch
+from torch.utils.data import DataLoader, random_split
 from torchvision.datasets import HMDB51, UCF101
-from torch.utils.data import random_split, DataLoader
 
 from kale.prepdata.video_transform import get_transform
 
@@ -35,7 +35,7 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
 
     train_dataset = HMDB51(
         root=root + "video/",
-        annotation_path=root + "annotation/",
+        annotation_path=root + "annotation_org/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
@@ -45,7 +45,7 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
 
     test_dataset = HMDB51(
         root=root + "video/",
-        annotation_path=root + "annotation/",
+        annotation_path=root + "annotation_org/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
@@ -86,7 +86,9 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     return train_dataset, valid_dataset, test_dataset, num_classes
 
 
-def get_train_valid_test_loaders(train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None):
+def get_train_valid_test_loaders(
+    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
+):
     """
     Get the dataloader from the dataset. HMDB51 and UCF101 are using collate_fn but others not.
     """
