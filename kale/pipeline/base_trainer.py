@@ -10,11 +10,12 @@ from kale.predict import losses
 
 
 class BaseTrainer(pl.LightningModule):
-    def __init__(self, optimizer, init_lr=0.001, adapt_lr=False):
+    def __init__(self, optimizer, max_epochs, init_lr=0.001, adapt_lr=False):
         super(BaseTrainer, self).__init__()
         self._init_lr = init_lr
-        self._adapt_lr = adapt_lr
         self._optimizer_params = optimizer
+        self._adapt_lr = adapt_lr
+        self._max_epochs = max_epochs
 
     def configure_optimizers(self):
         """
@@ -30,7 +31,7 @@ class BaseTrainer(pl.LightningModule):
             optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
-                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self.max_epochs, last_epoch=-1)
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs, last_epoch=-1)
                 return [optimizer], [scheduler]
             return [optimizer]
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")

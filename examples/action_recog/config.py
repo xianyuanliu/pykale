@@ -31,8 +31,8 @@ _C.SOLVER = CN()
 _C.SOLVER.SEED = 2020
 _C.SOLVER.NUM_WORKERS = 4
 _C.SOLVER.BASE_LR = 0.01  # learning rate
-# _C.SOLVER.MOMENTUM = 0.9
-# _C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
+_C.SOLVER.MOMENTUM = 0.9
+_C.SOLVER.WEIGHT_DECAY = 0.0005  # 1e-4
 # _C.SOLVER.NESTEROV = True
 
 _C.SOLVER.TYPE = "SGD"
@@ -40,6 +40,8 @@ _C.SOLVER.MAX_EPOCHS = 30
 # _C.SOLVER.WARMUP = True
 _C.SOLVER.TRAIN_BATCH_SIZE = 16  # 150
 _C.SOLVER.TEST_BATCH_SIZE = 32
+
+_C.SOLVER.AD_LR = True
 
 # ---------------------------------------------------------------------------- #
 # Network configs

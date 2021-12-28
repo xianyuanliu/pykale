@@ -26,13 +26,15 @@ def get_config(cfg):
     config_params = {
         "train_params": {
             "init_lr": cfg.SOLVER.BASE_LR,
+            "adapt_lr": cfg.SOLVER.AD_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
             "image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "max_epochs": cfg.SOLVER.MAX_EPOCHS,
             "optimizer": {
                 "type": cfg.SOLVER.TYPE,
                 "optim_params": {
-                    #     "momentum": cfg.SOLVER.MOMENTUM,
-                    #     "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
+                        "momentum": cfg.SOLVER.MOMENTUM,
+                        "weight_decay": cfg.SOLVER.WEIGHT_DECAY,
                     #     "nesterov": cfg.SOLVER.NESTEROV,
                 },
             },
