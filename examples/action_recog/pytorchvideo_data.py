@@ -39,9 +39,10 @@ class LimitDataset(torch.utils.data.Dataset):
     number of steps per epoch.
     """
 
-    def __init__(self, dataset):
+    def __init__(self, dataset, clips_per_video=1):
         super().__init__()
         self.dataset = dataset
+        self.clips_per_video = clips_per_video
 
         self.dataset_iter = itertools.chain.from_iterable(itertools.repeat(iter(dataset), 2))
 
@@ -49,7 +50,7 @@ class LimitDataset(torch.utils.data.Dataset):
         return next(self.dataset_iter)
 
     def __len__(self):
-        return self.dataset.num_videos
+        return self.dataset.num_videos * self.clips_per_video
 
 
 def video_transform(mode, dataset):
@@ -98,13 +99,14 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
         # Hmdb51(
         #     data_path=Path(root).joinpath("annotation_org"),
         Hmdb51_with_ucf101_list(
-            # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
-            data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
+            # data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
+            clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             decode_audio=False,
             transform=video_transform("train", "hmdb51"),
             video_path_prefix=str(Path(root).joinpath("video")),
-        )
+        ),
+        5,
     )
 
     test_dataset = LimitDataset(
@@ -113,11 +115,12 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
         Hmdb51_with_ucf101_list(
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
             data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             decode_audio=False,
             transform=video_transform("test", "hmdb51"),
             video_path_prefix=str(Path(root).joinpath("video")),
-        )
+        ),
+        5,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 51
@@ -125,24 +128,27 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
 
 
 def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
+    frame_per_segment = frame_per_segment / 30
     train_dataset = LimitDataset(
         Ucf101(
             data_path=str(Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold))),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             decode_audio=False,
             transform=video_transform("train", "ucf101"),
             video_path_prefix=str(Path(root).joinpath("video")),
-        )
+        ),
+        5,
     )
 
     test_dataset = LimitDataset(
         Ucf101(
             data_path=str(Path(root).joinpath("annotation", "testlist0{}.txt".format(fold))),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             decode_audio=False,
             transform=video_transform("test", "ucf101"),
             video_path_prefix=str(Path(root).joinpath("video")),
-        )
+        ),
+        5,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 101
