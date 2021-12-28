@@ -99,8 +99,8 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
         # Hmdb51(
         #     data_path=Path(root).joinpath("annotation_org"),
         Hmdb51_with_ucf101_list(
-            data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
-            # data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
+            # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
+            data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
             clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             decode_audio=False,
             transform=video_transform("train", "hmdb51"),
