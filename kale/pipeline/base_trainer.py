@@ -10,13 +10,10 @@ from kale.predict import losses
 
 
 class BaseTrainer(pl.LightningModule):
-    def __init__(self, feature_extractor, task_classifier, batch_size, optimizer, init_lr=0.001, image_modality=None):
+    def __init__(self, optimizer, init_lr=0.001, adapt_lr=False):
         super(BaseTrainer, self).__init__()
-        self.feat = feature_extractor
-        self.classifier = task_classifier
-        self.image_modality = image_modality
         self._init_lr = init_lr
-        self._batch_size = batch_size
+        self._adapt_lr = adapt_lr
         self._optimizer_params = optimizer
 
     def configure_optimizers(self):
@@ -31,6 +28,10 @@ class BaseTrainer(pl.LightningModule):
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
             optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+
+            if self._adapt_lr:
+                scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self.max_epochs, last_epoch=-1)
+                return [optimizer], [scheduler]
             return [optimizer]
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
 
@@ -71,8 +72,12 @@ class BaseTrainer(pl.LightningModule):
 
 
 class ActionRecogTrainer(BaseTrainer):
-    def __init__(self, feature_extractor, task_classifier, **kwargs):
-        super(ActionRecogTrainer, self).__init__(feature_extractor, task_classifier, **kwargs)
+    def __init__(self, feature_extractor, task_classifier, image_modality, batch_size, **kwargs):
+        super(ActionRecogTrainer, self).__init__(**kwargs)
+        self.feat = feature_extractor
+        self.classifier = task_classifier
+        self.image_modality = image_modality
+        self._batch_size = batch_size
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
 
@@ -91,6 +96,7 @@ class ActionRecogTrainer(BaseTrainer):
         elif len(batch) > 3:
             x = batch["video"]
             y = batch["label"]
+            print(batch["clip_index"], batch["video_name"])
         else:  # Video, labels
             x, y = batch
         y_hat = self.forward(x)
