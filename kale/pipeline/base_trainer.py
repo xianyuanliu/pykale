@@ -97,7 +97,6 @@ class ActionRecogTrainer(BaseTrainer):
         elif len(batch) > 3:
             x = batch["video"]
             y = batch["label"]
-            print(batch["clip_index"], batch["video_name"])
         else:  # Video, labels
             x, y = batch
         y_hat = self.forward(x)
