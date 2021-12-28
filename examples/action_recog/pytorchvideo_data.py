@@ -106,7 +106,7 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             transform=video_transform("train", "hmdb51"),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        5,
+        clips_per_video=5,
     )
 
     test_dataset = LimitDataset(
@@ -120,7 +120,7 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             transform=video_transform("test", "hmdb51"),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        5,
+        clips_per_video=5,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 51
@@ -137,7 +137,7 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             transform=video_transform("train", "ucf101"),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        5,
+        clips_per_video=5,
     )
 
     test_dataset = LimitDataset(
@@ -148,7 +148,7 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             transform=video_transform("test", "ucf101"),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        5,
+        clips_per_video=5,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 101
