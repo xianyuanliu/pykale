@@ -145,7 +145,6 @@ def main():
             gpus=args.gpus,
             logger=tb_logger,
             callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            log_every_n_steps=10,
             # limit_train_batches=0.005,
             # limit_val_batches=0.1,
             # limit_test_batches=0.06,
