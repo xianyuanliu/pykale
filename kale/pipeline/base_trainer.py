@@ -97,6 +97,7 @@ class ActionRecogTrainer(BaseTrainer):
         elif len(batch) > 3:
             x = batch["video"]
             y = batch["label"]
+            # print(batch["clip_index"], batch["video_name"]) # for debugging
         else:  # Video, labels
             x, y = batch
         y_hat = self.forward(x)
@@ -107,8 +108,10 @@ class ActionRecogTrainer(BaseTrainer):
     def training_step(self, batch, batch_idx):
         loss, log_metrics = self.compute_loss(batch, "train")
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
-        # log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
         log_metrics["train_loss"] = loss
+
+        for key in log_metrics:
+            self.log(key, log_metrics[key])
         return loss
 
     def validation_step(self, batch, batch_idx):
@@ -119,8 +122,6 @@ class ActionRecogTrainer(BaseTrainer):
     def validation_epoch_end(self, outputs):
         metrics_to_log = self.create_metrics_log("valid")
         log_dict = get_aggregated_metrics(metrics_to_log, outputs)
-        # device = outputs[0].get("valid_loss").device
-        # log_dict.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), device))
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
@@ -140,9 +141,9 @@ class ActionRecogTrainer(BaseTrainer):
     def create_metrics_log(self, split_name):
         metrics_to_log = (
             "{}_loss".format(split_name),
-            "{}_acc".format(split_name),
+            # "{}_acc".format(split_name),
             "{}_top1_acc".format(split_name),
-            "{}_top3_acc".format(split_name),
+            "{}_top5_acc".format(split_name),
         )
         return metrics_to_log
 
@@ -150,11 +151,11 @@ class ActionRecogTrainer(BaseTrainer):
         """Get the loss, top-k accuracy and metrics for a given split."""
 
         task_loss, ok = losses.cross_entropy_logits(y_hat, y)
-        prec1, prec3 = losses.topk_accuracy(y_hat, y, topk=(1, 3))
+        prec1, prec5 = losses.topk_accuracy(y_hat, y, topk=(1, 5))
 
         log_metrics = {
-            f"{split_name}_acc": ok,
+            # f"{split_name}_acc": ok,
             f"{split_name}_top1_acc": prec1,
-            f"{split_name}_top3_acc": prec3,
+            f"{split_name}_top5_acc": prec5,
         }
         return task_loss, log_metrics
