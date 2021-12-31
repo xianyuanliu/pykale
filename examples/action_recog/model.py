@@ -57,7 +57,7 @@ def get_model(cfg, num_classes):
         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier
-    if cfg.MODEL.METHOD.upper() == "C3D":
+    if cfg.MODEL.METHOD.upper() in ["C3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]:
         classifier_network = ClassNetVideoC3D(input_size=class_feature_dim, n_class=num_classes)
     elif cfg.MODEL.METHOD.upper() == "I3D":
         classifier_network = ClassNetVideoI3D(input_size=class_feature_dim, n_class=num_classes)
