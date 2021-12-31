@@ -72,8 +72,8 @@ def video_transform(mode, dataset):
                 UniformTemporalSubsample(16),
                 Lambda(lambda x: x / 255.0),
                 Normalize(mean, std),
-                RandomShortSideScale(min_size=256, max_size=320),
-                RandomCrop(224),
+                RandomShortSideScale(min_size=128),
+                RandomCrop(112),
                 RandomHorizontalFlip(p=0.5),
                 # RemoveKey("audio"),
             ]
@@ -84,8 +84,8 @@ def video_transform(mode, dataset):
                 UniformTemporalSubsample(16),
                 Lambda(lambda x: x / 255.0),
                 Normalize(mean, std),
-                ShortSideScale(size=256),
-                CenterCrop(224),
+                ShortSideScale(size=128),
+                CenterCrop(112),
                 # RemoveKey("audio"),
             ]
         )
