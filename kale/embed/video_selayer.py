@@ -121,7 +121,8 @@ class SRMLayerVideo(SELayer):
         z = self.bn(z)
         g = self.sigmoid(z)
         g = g.view(b, c, 1, 1, 1)
-        out = x + x * g.expand_as(x)
+        out = x * g.expand_as(x)
+        # out = x + x * g.expand_as(x)
         return out
 
 
