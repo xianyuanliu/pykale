@@ -132,13 +132,13 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
             data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
-            # clip_sampler=make_clip_sampler("uniform", frame_per_segment),
+            # clip_sampler=make_clip_sampler("random", frame_per_segment),
+            clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
             transform=video_transform("test", "hmdb51", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        # clips_per_video=6,
+        clips_per_video=6,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 51
@@ -163,12 +163,13 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
         Ucf101(
             data_path=str(Path(root).joinpath("annotation", "testlist0{}.txt".format(fold))),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
-            clip_sampler=make_clip_sampler("random", frame_per_segment),
+            # clip_sampler=make_clip_sampler("random", frame_per_segment),
+            clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
             transform=video_transform("test", "ucf101", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        # clips_per_video=5,
+        clips_per_video=11,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 101
