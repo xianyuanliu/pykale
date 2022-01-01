@@ -78,7 +78,7 @@ def main():
             # )
 
             train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset_ptvideo(
-                cfg.DATASET.ROOT + "hmdb51/", cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
+                cfg.DATASET.ROOT + "hmdb51/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
             )
 
         else:
@@ -91,7 +91,7 @@ def main():
             # )
 
             train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset_ptvideo(
-                cfg.DATASET.ROOT + "ucf101/", cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
+                cfg.DATASET.ROOT + "ucf101/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
             )
 
         # train_loader, valid_loader, test_loader = get_train_valid_test_loaders(

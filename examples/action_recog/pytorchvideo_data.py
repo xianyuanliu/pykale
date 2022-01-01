@@ -18,13 +18,13 @@ from examples.action_recog.torchvision_data import get_validation_dataset
 
 
 def Hmdb51_with_ucf101_list(
-    data_path,
-    clip_sampler,
-    video_sampler=torch.utils.data.RandomSampler,
-    transform=None,
-    video_path_prefix="",
-    decode_audio=True,
-    decoder="pyav",
+        data_path,
+        clip_sampler,
+        video_sampler=torch.utils.data.RandomSampler,
+        transform=None,
+        video_path_prefix="",
+        decode_audio=True,
+        decoder="pyav",
 ) -> LabeledVideoDataset:
     return labeled_video_dataset(
         data_path, clip_sampler, video_sampler, transform, video_path_prefix, decode_audio, decoder,
@@ -53,7 +53,7 @@ class LimitDataset(torch.utils.data.Dataset):
         return self.dataset.num_videos * self.clips_per_video
 
 
-def video_transform(mode, dataset):
+def video_transform(mode, dataset, method):
     """
     This function contains example transforms using both PyTorchVideo and TorchVision
     in the same Callable. For 'train' mode, we use augmentations (prepended with
@@ -65,6 +65,19 @@ def video_transform(mode, dataset):
     elif dataset == "hmdb51":
         mean = [0.43216, 0.394666, 0.37645]
         std = [0.22803, 0.22145, 0.216989]
+    else:
+        raise ValueError("Wrong DATASET.NAME. Current:{}".format(dataset))
+
+    if method.upper() == "I3D":
+        min_size = 256
+        max_size = 320
+        crop_size = 224
+    elif method.upper() in ["C3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]:
+        min_size = 128
+        max_size = 160
+        crop_size = 112
+    else:
+        raise ValueError("Wrong MODEL.METHOD. Current:{}".format(method))
 
     if mode == "train":
         transform = Compose(
@@ -72,10 +85,8 @@ def video_transform(mode, dataset):
                 UniformTemporalSubsample(16),
                 Lambda(lambda x: x / 255.0),
                 Normalize(mean, std),
-                RandomShortSideScale(min_size=256, max_size=320),
-                RandomCrop(224),
-                # RandomShortSideScale(min_size=128, max_size=160),
-                # RandomCrop(112),
+                RandomShortSideScale(min_size=min_size, max_size=max_size),
+                RandomCrop(crop_size),
                 RandomHorizontalFlip(p=0.5),
                 # RemoveKey("audio"),
             ]
@@ -86,8 +97,8 @@ def video_transform(mode, dataset):
                 UniformTemporalSubsample(16),
                 Lambda(lambda x: x / 255.0),
                 Normalize(mean, std),
-                ShortSideScale(size=256),
-                CenterCrop(224),
+                ShortSideScale(size=min_size),
+                CenterCrop(crop_size),
                 # ShortSideScale(size=128),
                 # CenterCrop(112),
                 # RemoveKey("audio"),
@@ -97,7 +108,7 @@ def video_transform(mode, dataset):
     return ApplyTransformToKey(key="video", transform=transform)
 
 
-def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
+def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fold=1):
     frame_per_segment = frame_per_segment / 30
     train_dataset = LimitDataset(
         # Hmdb51(
@@ -108,7 +119,7 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", frame_per_segment),
             decode_audio=False,
-            transform=video_transform("train", "hmdb51"),
+            transform=video_transform("train", "hmdb51", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
         # clips_per_video=5,
@@ -122,18 +133,19 @@ def get_hmdb51_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", frame_per_segment),
+            # clip_sampler=make_clip_sampler("uniform", frame_per_segment),
             decode_audio=False,
-            transform=video_transform("test", "hmdb51"),
+            transform=video_transform("test", "hmdb51", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        # clips_per_video=5,
+        # clips_per_video=6,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 51
     return train_dataset, valid_dataset, test_dataset, num_classes
 
 
-def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
+def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fold=1):
     frame_per_segment = frame_per_segment / 30
     train_dataset = LimitDataset(
         Ucf101(
@@ -141,7 +153,7 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", frame_per_segment),
             decode_audio=False,
-            transform=video_transform("train", "ucf101"),
+            transform=video_transform("train", "ucf101", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
         # clips_per_video=5,
@@ -153,7 +165,7 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", frame_per_segment),
             decode_audio=False,
-            transform=video_transform("test", "ucf101"),
+            transform=video_transform("test", "ucf101", method),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
         # clips_per_video=5,
@@ -164,13 +176,12 @@ def get_ucf101_dataset_ptvideo(root, frame_per_segment, valid_ratio, fold=1):
 
 
 def get_train_valid_test_loaders_ptvideo(
-    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
+        train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
 ):
     train_loader = DataLoader(train_dataset, batch_size=train_batch_size, num_workers=num_workers)
     valid_loader = DataLoader(valid_dataset, batch_size=test_batch_size, num_workers=num_workers)
     test_loader = DataLoader(test_dataset, batch_size=test_batch_size, num_workers=num_workers)
     return train_loader, valid_loader, test_loader
-
 
 # if __name__ == '__main__':
 #     root = Path("J:/Datasets/Video/")
