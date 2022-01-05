@@ -169,7 +169,7 @@ def main():
         # trainer.fit(model, train_dataloaders=train_loader)
 
         ### Evaluation
-        trainer.test(ckpt_path="best", dataloaders=test_loader)
+        # trainer.test(ckpt_path="best", dataloaders=test_loader)
         trainer.test(ckpt_path=checkpoint_callback.last_model_path, dataloaders=test_loader)
 
 
