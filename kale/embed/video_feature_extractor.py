@@ -42,7 +42,7 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
         "SELayerC",
         "SELayerT",
         "SRMLayerVideo",
-        "CSAMLayer",
+        "CBAMLayerVideo",
         "STAMLayer",
         "SELayerCoC",
         "SELayerMC",

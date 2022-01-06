@@ -48,7 +48,7 @@ _C.SOLVER.AD_LR = True
 # ---------------------------------------------------------------------------- #
 _C.MODEL = CN()
 _C.MODEL.METHOD = "i3d"  # options=["r3d_18", "r2plus1d_18", "mc3_18", "i3d", "c3d"]
-_C.MODEL.ATTENTION = "None"  # options=["None", "SELayerC", "SELayerC", "SELayerT", "SRMLayerVideo", "CSAMLayer"]
+_C.MODEL.ATTENTION = "None"  # options=["None", "SELayerC", "SELayerC", "SELayerT", "SRMLayerVideo", "CBAMLayerVideo"]
 
 # ---------------------------------------------------------------------------- #
 # Misc options
