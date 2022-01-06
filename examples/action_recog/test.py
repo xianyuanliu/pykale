@@ -7,7 +7,6 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
 from examples.action_recog.pytorchvideo_data import (
     get_hmdb51_dataset_ptvideo,
@@ -21,7 +20,6 @@ from examples.action_recog.torchvision_data import (
     get_ucf101_dataset,
 )
 from kale.loaddata.video_access import VideoDataset
-from kale.utils.seed import set_seed
 
 
 def arg_parse():
