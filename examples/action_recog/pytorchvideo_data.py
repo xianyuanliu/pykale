@@ -18,13 +18,13 @@ from examples.action_recog.torchvision_data import get_validation_dataset
 
 
 def Hmdb51_with_ucf101_list(
-        data_path,
-        clip_sampler,
-        video_sampler=torch.utils.data.RandomSampler,
-        transform=None,
-        video_path_prefix="",
-        decode_audio=True,
-        decoder="pyav",
+    data_path,
+    clip_sampler,
+    video_sampler=torch.utils.data.RandomSampler,
+    transform=None,
+    video_path_prefix="",
+    decode_audio=True,
+    decoder="pyav",
 ) -> LabeledVideoDataset:
     return labeled_video_dataset(
         data_path, clip_sampler, video_sampler, transform, video_path_prefix, decode_audio, decoder,
@@ -177,12 +177,13 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
 
 
 def get_train_valid_test_loaders_ptvideo(
-        train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
+    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
 ):
     train_loader = DataLoader(train_dataset, batch_size=train_batch_size, num_workers=num_workers)
     valid_loader = DataLoader(valid_dataset, batch_size=test_batch_size, num_workers=num_workers)
     test_loader = DataLoader(test_dataset, batch_size=test_batch_size, num_workers=num_workers)
     return train_loader, valid_loader, test_loader
+
 
 # if __name__ == '__main__':
 #     root = Path("J:/Datasets/Video/")

@@ -267,7 +267,7 @@ class CBAMChannelModuleVideo(CBAMChannelModule):
 
 class CBAMSpatialModuleVideo(CBAMSpatialModule):
     def __init__(self, kernel_size=7):
-        super(CBAMSpatialModuleVideo, self).__init__()
+        super(CBAMSpatialModuleVideo, self).__init__(kernel_size)
         self.conv = nn.Conv3d(2, 1, self.kernel_size, stride=1, padding=(self.kernel_size - 1) // 2)
 
     def forward(self, x):

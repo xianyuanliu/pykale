@@ -1,6 +1,6 @@
 import torch
 
-from kale.embed.video_selayer import CBAMVideo, SRM, SRMVideo, STAM, CBAM
+from kale.embed.video_selayer import CBAM, CBAMVideo, SRM, SRMVideo, STAM
 
 # Dummy data: [batch_size, time, channel, height, width]
 INPUT_5D = torch.randn(2, 4, 8, 16, 16)
