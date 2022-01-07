@@ -66,66 +66,6 @@ class SELayer(nn.Module):
         return NotImplementedError()
 
 
-class SRMLayer(SELayer):
-    """Construct Style-based Recalibration Module for images.
-
-    References:
-        Lee, HyunJae, Hyo-Eun Kim, and Hyeonseob Nam. "Srm: A style-based recalibration module for convolutional neural
-        networks." In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 1854-1862. 2019.
-    """
-
-    def __init__(self, channel, reduction=16):
-        # Reduction for compatibility with layer_block interface
-        super(SRMLayer, self).__init__(channel, reduction)
-
-        # CFC: channel-wise fully connected layer
-        self.cfc = nn.Conv1d(self.channel, self.channel, kernel_size=2, bias=False, groups=self.channel)
-        self.bn = nn.BatchNorm1d(self.channel)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        b, c, _, _ = x.size()
-
-        # Style pooling
-        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
-        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
-        u = torch.cat((mean, std), -1)  # (b, c, 2)
-
-        # Style integration
-        z = self.cfc(u)  # (b, c, 1)
-        z = self.bn(z)
-        g = self.sigmoid(z)
-        g = g.view(b, c, 1, 1)
-        # out = x * g.expand_as(x)
-        out = x + x * g.expand_as(x)
-        return out
-
-
-class SRMVideo(SELayer):
-    def __init__(self, channel, reduction=16):
-        super(SRMVideo, self).__init__(channel, reduction)
-        self.cfc = nn.Conv1d(self.channel, self.channel, kernel_size=2, bias=False, groups=self.channel)
-        self.bn = nn.BatchNorm1d(self.channel)
-        self.sigmoid = nn.Sigmoid()
-
-    def forward(self, x):
-        b, c, _, _, _ = x.size()
-
-        # Style pooling
-        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
-        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
-        u = torch.cat((mean, std), -1)  # (b, c, 2)
-
-        # Style integration
-        z = self.cfc(u)  # (b, c, 1)
-        z = self.bn(z)
-        g = self.sigmoid(z)
-        g = g.view(b, c, 1, 1, 1)
-        # out = x * g.expand_as(x)
-        out = x + x * g.expand_as(x)
-        return out
-
-
 class SELayerC(SELayer):
     """Construct channel-wise SELayer."""
 
@@ -174,20 +114,75 @@ class SELayerT(SELayer):
         return out
 
 
-class CBAMVideo(nn.Module):
-    """Construct Channel-Spatial Attention Module. This module [2] extends CBAM [1] by apply 3D layers.
+class SRM(SELayer):
+    """Construct Style-based Recalibration Module for images.
+
+    References:
+        Lee, HyunJae, Hyo-Eun Kim, and Hyeonseob Nam. "Srm: A style-based recalibration module for convolutional neural
+        networks." In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 1854-1862. 2019.
+    """
+
+    def __init__(self, channel, reduction=16):
+        # Reduction for compatibility with layer_block interface
+        super(SRM, self).__init__(channel, reduction)
+
+        # CFC: channel-wise fully connected layer
+        self.cfc = nn.Conv1d(self.channel, self.channel, kernel_size=2, bias=False, groups=self.channel)
+        self.bn = nn.BatchNorm1d(self.channel)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+
+        # Style pooling
+        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
+        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
+        u = torch.cat((mean, std), -1)  # (b, c, 2)
+
+        # Style integration
+        z = self.cfc(u)  # (b, c, 1)
+        z = self.bn(z)
+        g = self.sigmoid(z)
+        g = g.view(b, c, 1, 1)
+        out = x * g.expand_as(x)
+        return out
+
+
+class SRMVideo(SRM):
+    def __init__(self, channel, reduction=16):
+        super(SRMVideo, self).__init__(channel, reduction)
+
+    def forward(self, x):
+        b, c, _, _, _ = x.size()
+
+        # Style pooling
+        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
+        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
+        u = torch.cat((mean, std), -1)  # (b, c, 2)
+
+        # Style integration
+        z = self.cfc(u)  # (b, c, 1)
+        z = self.bn(z)
+        g = self.sigmoid(z)
+        g = g.view(b, c, 1, 1, 1)
+        # out = x * g.expand_as(x)
+        g = g - 0.5
+        out = x + x * g.expand_as(x)
+        return out
+
+
+class CBAM(nn.Module):
+    """Construct Convolutional block attention module.
 
     References:
         [1] Woo, Sanghyun, Jongchan Park, Joon-Young Lee, and In So Kweon. "Cbam: Convolutional block attention
         module." In Proceedings of the European conference on computer vision (ECCV), pp. 3-19. 2018.
-        [2] Yi, Ziwen, Zhonghua Sun, Jinchao Feng, and Kebin Jia. "3D Residual Networks with Channel-Spatial Attention
-        Module for Action Recognition." In 2020 Chinese Automation Congress (CAC), pp. 5171-5174. IEEE, 2020.
     """
 
     def __init__(self, channel, reduction=16):
-        super(CBAMVideo, self).__init__()
-        self.CAM = CSAMChannelModule(channel, reduction)
-        self.SAM = CSAMSpatialModule()
+        super(CBAM, self).__init__()
+        self.CAM = CBAMChannelModule(channel, reduction)
+        self.SAM = CBAMSpatialModule()
 
     def forward(self, x):
         y = self.CAM(x)
@@ -195,11 +190,11 @@ class CBAMVideo(nn.Module):
         return y
 
 
-class CSAMChannelModule(SELayer):
+class CBAMChannelModule(SELayer):
     def __init__(self, channel, reduction=16):
-        super(CSAMChannelModule, self).__init__(channel, reduction)
-        self.avg_pool = nn.AdaptiveAvgPool3d(1)
-        self.max_pool = nn.AdaptiveMaxPool3d(1)
+        super(CBAMChannelModule, self).__init__(channel, reduction)
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+        self.max_pool = nn.AdaptiveMaxPool2d(1)
         self.fc = nn.Sequential(
             nn.Linear(self.channel, self.channel // self.reduction, bias=False),
             nn.ReLU(inplace=True),
@@ -210,6 +205,55 @@ class CSAMChannelModule(SELayer):
         self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
+        b, c, _, _ = x.size()
+        y_avg = self.avg_pool(x).view(b, c)
+        y_max = self.max_pool(x).view(b, c)
+        y_avg = self.fc(y_avg).view(b, c, 1, 1)
+        y_max = self.fc(y_max).view(b, c, 1, 1)
+        y = torch.add(y_avg, y_max)
+        y = self.sigmoid(y)
+        out = x * y.expand_as(x)
+        return out
+
+
+class CBAMSpatialModule(nn.Module):
+    def __init__(self, kernel_size=7):
+        super(CBAMSpatialModule, self).__init__()
+        self.kernel_size = kernel_size
+        self.compress = CBAMChannelPool()
+        self.conv = nn.Conv2d(2, 1, self.kernel_size, stride=1, padding=(self.kernel_size - 1) // 2)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x_compress = self.compress(x)
+        y = self.conv(x_compress)
+        y = self.sigmoid(y)
+        out = x * y.expand_as(x)
+        return out
+
+
+class CBAMVideo(nn.Module):
+    """This module extends CBAM for videos by applying 3D layers.
+    """
+
+    def __init__(self, channel, reduction=16):
+        super(CBAMVideo, self).__init__()
+        self.CAM = CBAMChannelModuleVideo(channel, reduction)
+        self.SAM = CBAMSpatialModuleVideo()
+
+    def forward(self, x):
+        y = self.CAM(x)
+        y = self.SAM(y)
+        return y
+
+
+class CBAMChannelModuleVideo(CBAMChannelModule):
+    def __init__(self, channel, reduction=16):
+        super(CBAMChannelModuleVideo, self).__init__(channel, reduction)
+        self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.max_pool = nn.AdaptiveMaxPool3d(1)
+
+    def forward(self, x):
         b, c, _, _, _ = x.size()
         y_avg = self.avg_pool(x).view(b, c)
         y_max = self.max_pool(x).view(b, c)
@@ -217,27 +261,24 @@ class CSAMChannelModule(SELayer):
         y_max = self.fc(y_max).view(b, c, 1, 1, 1)
         y = torch.add(y_avg, y_max)
         y = self.sigmoid(y)
-        out = x + x * y.expand_as(x)
+        out = x * y.expand_as(x)
         return out
 
 
-class CSAMSpatialModule(nn.Module):
+class CBAMSpatialModuleVideo(CBAMSpatialModule):
     def __init__(self, kernel_size=7):
-        super(CSAMSpatialModule, self).__init__()
-        self.kernel_size = kernel_size
-        self.compress = CSAMChannelPool()
+        super(CBAMSpatialModuleVideo, self).__init__()
         self.conv = nn.Conv3d(2, 1, self.kernel_size, stride=1, padding=(self.kernel_size - 1) // 2)
-        self.sigmoid = nn.Sigmoid()
 
     def forward(self, x):
         x_compress = self.compress(x)
         y = self.conv(x_compress)
         y = self.sigmoid(y)
-        out = x + x * y.expand_as(x)
+        out = x * y.expand_as(x)
         return out
 
 
-class CSAMChannelPool(nn.Module):
+class CBAMChannelPool(nn.Module):
     def forward(self, x):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
 
