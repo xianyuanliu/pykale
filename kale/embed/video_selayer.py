@@ -12,6 +12,7 @@ channel-wise (SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
 
 import torch
 import torch.nn as nn
+from torch.nn import Parameter
 
 
 def get_attention(attention):
@@ -115,60 +116,73 @@ class SELayerT(SELayer):
         return out
 
 
-class SRM(SELayer):
+class SRM(nn.Module):
     """Construct Style-based Recalibration Module for images.
 
     References:
         Lee, HyunJae, Hyo-Eun Kim, and Hyeonseob Nam. "Srm: A style-based recalibration module for convolutional neural
         networks." In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 1854-1862. 2019.
+
+        https://github.com/hyunjaelee410/style-based-recalibration-module/blob/master/models/recalibration_modules.py
     """
 
-    def __init__(self, channel, reduction=16):
-        # Reduction for compatibility with layer_block interface
-        super(SRM, self).__init__(channel, reduction)
+    def __init__(self, channel):
+        super(SRM, self).__init__()
+        self.channel = channel
 
         # CFC: channel-wise fully connected layer
-        self.cfc = nn.Conv1d(self.channel, self.channel, kernel_size=2, bias=False, groups=self.channel)
-        self.bn = nn.BatchNorm1d(self.channel)
-        self.sigmoid = nn.Sigmoid()
+        self.cfc = Parameter(torch.Tensor(channel, 2))
+        self.cfc.data.fill_(0)
 
-    def forward(self, x):
+        self.bn = nn.BatchNorm2d(channel)
+        self.activation = nn.Sigmoid()
+
+        setattr(self.cfc, 'srm_param', True)
+        setattr(self.bn.weight, 'srm_param', True)
+        setattr(self.bn.bias, 'srm_param', True)
+
+    def forward(self, x, eps=1e-5):
         b, c, _, _ = x.size()
 
         # Style pooling
-        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
-        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
-        u = torch.cat((mean, std), -1)  # (b, c, 2)
+        mean = x.view(b, c, -1).mean(dim=2, keepdim=True)
+        var = x.view(b, c, -1).var(dim=2, keepdim=True) + eps
+        std = var.sqrt()
+
+        t = torch.cat((mean, std), dim=2)  # (b, c, 2)
 
         # Style integration
-        z = self.cfc(u)  # (b, c, 1)
-        z = self.bn(z)
-        g = self.sigmoid(z)
-        g = g.view(b, c, 1, 1)
+        z = t * self.cfc[None, :, :]  # B x C x 2
+        z = torch.sum(z, dim=2)[:, :, None, None]  # B x C x 1 x 1
+
+        z_hat = self.bn(z)
+        g = self.activation(z_hat)
         out = x * g.expand_as(x)
         return out
 
 
 class SRMVideo(SRM):
-    def __init__(self, channel, reduction=16):
-        super(SRMVideo, self).__init__(channel, reduction)
+    def __init__(self, channel):
+        super(SRMVideo, self).__init__(channel)
+        self.bn = nn.BatchNorm3d(self.channel)
 
-    def forward(self, x):
+    def forward(self, x, eps=1e-5):
         b, c, _, _, _ = x.size()
 
         # Style pooling
-        mean = x.view(b, c, -1).mean(-1).unsqueeze(-1)
-        std = x.view(b, c, -1).std(-1).unsqueeze(-1)
-        u = torch.cat((mean, std), -1)  # (b, c, 2)
+        mean = x.view(b, c, -1).mean(dim=2, keepdim=True)
+        var = x.view(b, c, -1).var(dim=2, keepdim=True) + eps
+        std = var.sqrt()
+
+        t = torch.cat((mean, std), dim=2)  # (b, c, 2)
 
         # Style integration
-        z = self.cfc(u)  # (b, c, 1)
-        z = self.bn(z)
-        g = self.sigmoid(z)
-        g = g.view(b, c, 1, 1, 1)
-        # out = x * g.expand_as(x)
-        g = g - 0.5
-        out = x + x * g.expand_as(x)
+        z = t * self.cfc[None, :, :]  # b x c x 2
+        z = torch.sum(z, dim=2)[:, :, None, None, None]  # b x c x 1 x 1 x 1
+
+        z_hat = self.bn(z)
+        g = self.activation(z_hat)
+        out = x * g.expand_as(x)
         return out
 
 
