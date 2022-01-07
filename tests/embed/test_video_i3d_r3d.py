@@ -19,9 +19,9 @@ INPUT_BATCH_FLOW = torch.randn(2, 2, 8, 112, 112)
 SE_LAYERS = [
     "SELayerC",
     "SELayerT",
-    "SRMLayerVideo",
-    "CSAMLayer",
-    "STAMLayer",
+    "SRMVideo",
+    "CBAMVideo",
+    "STAM",
     "SELayerCoC",
     "SELayerMC",
     "SELayerMAC",

@@ -43,7 +43,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SRMLayerVideo", "CSAMLayer", "STAMLayer", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SRMVideo", "CBAMVideo", "STAM", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
@@ -115,7 +115,7 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
     temporal_length = 16
 
     # Add channel-wise SELayer
-    if attention in ["SELayerC", "SRMLayerVideo", "CSAMLayer", "STAMLayer", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
+    if attention in ["SELayerC", "SRMVideo", "CBAMVideo", "STAM", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
         se_layer = get_selayer(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))

@@ -23,7 +23,7 @@ def get_selayer(attention):
 
     Args:
         attention (string): the name of the SELayer.
-            (Options: ["SELayerC", "SELayerT", "SRMLayerVideo", "CSAMLayer", "STAMLayer",
+            (Options: ["SELayerC", "SELayerT", "SRMVideo", "CBAMVideo", "STAM",
             "SELayerCoC", "SELayerMC", "SELayerMAC"])
 
     Returns:
@@ -34,12 +34,12 @@ def get_selayer(attention):
         se_layer = SELayerC
     elif attention == "SELayerT":
         se_layer = SELayerT
-    elif attention == "SRMLayerVideo":
-        se_layer = SRMLayerVideo
-    elif attention == "CSAMLayer":
-        se_layer = CSAMLayer
-    elif attention == "STAMLayer":
-        se_layer = STAMLayer
+    elif attention == "SRMVideo":
+        se_layer = SRMVideo
+    elif attention == "CBAMVideo":
+        se_layer = CBAMVideo
+    elif attention == "STAM":
+        se_layer = STAM
     elif attention == "SELayerCoC":
         se_layer = SELayerCoC
     elif attention == "SELayerMC":
@@ -101,9 +101,9 @@ class SRMLayer(SELayer):
         return out
 
 
-class SRMLayerVideo(SELayer):
+class SRMVideo(SELayer):
     def __init__(self, channel, reduction=16):
-        super(SRMLayerVideo, self).__init__(channel, reduction)
+        super(SRMVideo, self).__init__(channel, reduction)
         self.cfc = nn.Conv1d(self.channel, self.channel, kernel_size=2, bias=False, groups=self.channel)
         self.bn = nn.BatchNorm1d(self.channel)
         self.sigmoid = nn.Sigmoid()
@@ -174,7 +174,7 @@ class SELayerT(SELayer):
         return out
 
 
-class CSAMLayer(nn.Module):
+class CBAMVideo(nn.Module):
     """Construct Channel-Spatial Attention Module. This module [2] extends CBAM [1] by apply 3D layers.
 
     References:
@@ -185,7 +185,7 @@ class CSAMLayer(nn.Module):
     """
 
     def __init__(self, channel, reduction=16):
-        super(CSAMLayer, self).__init__()
+        super(CBAMVideo, self).__init__()
         self.CAM = CSAMChannelModule(channel, reduction)
         self.SAM = CSAMSpatialModule()
 
@@ -242,7 +242,7 @@ class CSAMChannelPool(nn.Module):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
 
 
-class STAMLayer(SELayer):
+class STAM(SELayer):
     """Construct Spatial-temporal Attention Module.
 
     References:
@@ -252,7 +252,7 @@ class STAMLayer(SELayer):
     """
 
     def __init__(self, channel, reduction=16):
-        super(STAMLayer, self).__init__(channel, reduction)
+        super(STAM, self).__init__(channel, reduction)
         self.kernel_size = 7
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
         self.fc = nn.Sequential(

@@ -38,9 +38,9 @@ class SEInceptionI3DRGB(nn.Module):
         # Add channel-wise SELayer
         if attention in [
             "SELayerC",
-            "SRMLayerVideo",
-            "CSAMLayer",
-            "STAMLayer",
+            "SRMVideo",
+            "CBAMVideo",
+            "STAM",
             "SELayerCoC",
             "SELayerMC",
             "SELayerMAC",
@@ -133,9 +133,9 @@ class SEInceptionI3DFlow(nn.Module):
         # Add channel-wise SELayer
         if attention in [
             "SELayerC",
-            "SRMLayerVideo",
-            "CSAMLayer",
-            "STAMLayer",
+            "SRMVideo",
+            "CBAMVideo",
+            "STAM",
             "SELayerCoC",
             "SELayerMC",
             "SELayerMAC",
