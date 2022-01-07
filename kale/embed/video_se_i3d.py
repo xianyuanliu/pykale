@@ -8,7 +8,7 @@ import torch.nn as nn
 from torch.hub import load_state_dict_from_url
 
 from kale.embed.video_i3d import InceptionI3d
-from kale.embed.video_selayer import get_selayer, SELayerC, SELayerT
+from kale.embed.video_selayer import get_attention, SELayerC, SELayerT
 
 model_urls = {
     "rgb_imagenet": "https://github.com/XianyuanLiu/pytorch-i3d/raw/master/models/rgb_imagenet.pt",
@@ -45,7 +45,7 @@ class SEInceptionI3DRGB(nn.Module):
             "SELayerMC",
             "SELayerMAC",
         ]:
-            se_layer = get_selayer(attention)
+            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))
             model.Mixed_4b.add_module(attention, se_layer(512))
@@ -58,7 +58,7 @@ class SEInceptionI3DRGB(nn.Module):
 
         # Add temporal-wise SELayer
         elif attention == "SELayerT":
-            se_layer = get_selayer(attention)
+            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(temporal_length // 2))
             model.Mixed_3c.add_module(attention, se_layer(temporal_length // 2))
             model.Mixed_4b.add_module(attention, se_layer(temporal_length // 4))
@@ -140,7 +140,7 @@ class SEInceptionI3DFlow(nn.Module):
             "SELayerMC",
             "SELayerMAC",
         ]:
-            se_layer = get_selayer(attention)
+            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))
             model.Mixed_4b.add_module(attention, se_layer(512))
@@ -153,7 +153,7 @@ class SEInceptionI3DFlow(nn.Module):
 
         # Add temporal-wise SELayer
         elif attention == "SELayerT":
-            se_layer = get_selayer(attention)
+            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_3c.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_4b.add_module(attention, se_layer(temporal_length // 8))

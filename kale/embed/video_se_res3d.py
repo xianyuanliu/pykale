@@ -17,7 +17,7 @@ from kale.embed.video_res3d import (
     R2Plus1dStem,
     VideoResNet,
 )
-from kale.embed.video_selayer import get_selayer, SELayerC, SELayerT
+from kale.embed.video_selayer import get_attention, SELayerC, SELayerT
 
 model_urls = {
     "r3d_18": "https://download.pytorch.org/models/r3d_18-b3b3357e.pth",
@@ -44,7 +44,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
 
     # Add channel-wise SELayer
     if attention in ["SELayerC", "SRMVideo", "CBAMVideo", "STAM", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
-        se_layer = get_selayer(attention)
+        se_layer = get_attention(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
         model.layer2._modules["0"].add_module(attention, se_layer(128))
@@ -56,7 +56,7 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
 
     # Add temporal-wise SELayer
     elif attention == "SELayerT":
-        se_layer = get_selayer(attention)
+        se_layer = get_attention(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(temporal_length))
         model.layer1._modules["1"].add_module(attention, se_layer(temporal_length))
         model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 2))
@@ -116,7 +116,7 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
 
     # Add channel-wise SELayer
     if attention in ["SELayerC", "SRMVideo", "CBAMVideo", "STAM", "SELayerCoC", "SELayerMC", "SELayerMAC"]:
-        se_layer = get_selayer(attention)
+        se_layer = get_attention(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(64))
         model.layer1._modules["1"].add_module(attention, se_layer(64))
         model.layer2._modules["0"].add_module(attention, se_layer(128))
@@ -128,7 +128,7 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
 
     # Add temporal-wise SELayer
     elif attention == "SELayerT":
-        se_layer = get_selayer(attention)
+        se_layer = get_attention(attention)
         model.layer1._modules["0"].add_module(attention, se_layer(temporal_length // 2))
         model.layer1._modules["1"].add_module(attention, se_layer(temporal_length // 2))
         model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 4))

@@ -2,60 +2,61 @@
 # Author: Xianyuan Liu, xianyuan.liu@outlook.com
 # =============================================================================
 
-"""Python implementation of Squeeze-and-Excitation Layers (SELayer)
+"""Python implementation of variable attention modules, e.g. Squeeze-and-Excitation Layers (SELayer)
 Initial implementation: channel-wise (SELayerC)
 Improved implementation: temporal-wise (SELayerT), convolution-based channel-wise (SELayerCoC), max-pooling-based
 channel-wise (SELayerMC), multi-pooling-based channel-wise (SELayerMAC)
 
 [Redundancy and repeat of code will be reduced in the future.]
-
-References:
-    Hu Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." In CVPR, pp. 7132-7141. 2018.
-    For initial implementation, please go to https://github.com/hujie-frank/SENet
 """
 
 import torch
 import torch.nn as nn
 
 
-def get_selayer(attention):
-    """Get SELayers referring to attention.
+def get_attention(attention):
+    """Get attention modules.
 
     Args:
-        attention (string): the name of the SELayer.
+        attention (string): the name of the attention module.
             (Options: ["SELayerC", "SELayerT", "SRMVideo", "CBAMVideo", "STAM",
             "SELayerCoC", "SELayerMC", "SELayerMAC"])
 
     Returns:
-        se_layer (SELayer, optional): the SELayer.
+        module (nn.Module, optional): the attention module.
     """
 
     if attention == "SELayerC":
-        se_layer = SELayerC
+        module = SELayerC
     elif attention == "SELayerT":
-        se_layer = SELayerT
+        module = SELayerT
     elif attention == "SRMVideo":
-        se_layer = SRMVideo
+        module = SRMVideo
     elif attention == "CBAMVideo":
-        se_layer = CBAMVideo
+        module = CBAMVideo
     elif attention == "STAM":
-        se_layer = STAM
+        module = STAM
     elif attention == "SELayerCoC":
-        se_layer = SELayerCoC
+        module = SELayerCoC
     elif attention == "SELayerMC":
-        se_layer = SELayerMC
+        module = SELayerMC
     elif attention == "SELayerMAC":
-        se_layer = SELayerMAC
+        module = SELayerMAC
     elif attention == "SELayerCoC":
-        se_layer = SELayerCoC
+        module = SELayerCoC
 
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
-    return se_layer
+    return module
 
 
 class SELayer(nn.Module):
-    """Helper class for SELayer design."""
+    """Helper class for SELayer design.
+
+    References:
+    Hu Jie, Li Shen, and Gang Sun. "Squeeze-and-excitation networks." In CVPR, pp. 7132-7141. 2018.
+    For initial implementation, please go to https://github.com/hujie-frank/SENet
+    """
 
     def __init__(self, channel, reduction=16):
         super(SELayer, self).__init__()

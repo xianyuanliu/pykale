@@ -12,7 +12,7 @@ from pathlib import Path
 import torch
 import torch.nn as nn
 
-from kale.embed.video_selayer import get_selayer
+from kale.embed.video_selayer import get_attention
 
 model_urls = {
     "c3d_pretrained": "../../../examples/data/c3d-pretrained.pth",
@@ -191,7 +191,7 @@ def se_c3d(rgb, flow, attention, pretrained=False):
     if flow:
         c3d_flow = C3D(pretrained=pretrained, input_channel=2)
 
-    se_layer = get_selayer(attention)
+    se_layer = get_attention(attention)
     c3d_rgb.conv5b.add_module(attention, se_layer(512))
     c3d_flow.conv5b.add_module(attention, se_layer(512))
     models = {"rgb": c3d_rgb, "flow": c3d_flow}
