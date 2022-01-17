@@ -50,8 +50,10 @@ def main():
 
     # ---- setup output ----
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
-    logging.basicConfig(format=format_str, level=logging.DEBUG)
+    logging.basicConfig(format=format_str)
     # ---- setup dataset ----
+    # seed = cfg.SOLVER.SEED
+    # set_seed(seed)
     if cfg.DATASET.NAME in ["ADL", "KITCHEN", "GTEA", "EPIC"]:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
@@ -116,12 +118,12 @@ def main():
     else:
         raise ValueError("Dataset not supported")
 
-    logging.info(f"Total number of train samples: {len(train_dataset)}")
-    logging.info(f"Total number of validation samples: {len(valid_dataset)}")
-    logging.info(f"Total number of test samples: {len(test_dataset)}")
-    logging.info(f"Total number of train batches: {len(train_loader)}")
-    logging.info(f"Total number of validation batches: {len(valid_loader)}")
-    logging.info(f"Total number of test batches: {len(test_loader)}")
+    print(f"Total number of train samples: {len(train_dataset)}")
+    print(f"Total number of validation samples: {len(valid_dataset)}")
+    print(f"Total number of test samples: {len(test_dataset)}")
+    print(f"Total number of train batches: {len(train_loader)}")
+    print(f"Total number of validation batches: {len(valid_loader)}")
+    print(f"Total number of test batches: {len(test_loader)}")
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
@@ -149,9 +151,9 @@ def main():
             gpus=args.gpus,
             logger=tb_logger,
             callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.1,
-            # limit_test_batches=0.06,
+            # limit_train_batches=0.01,
+            # limit_val_batches=0.01,
+            # limit_test_batches=0.001,
         )
 
         ### Find learning_rate
