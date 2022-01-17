@@ -185,7 +185,10 @@ class SRMVideo(SRM):
 
         z_hat = self.bn(z)
         g = self.activation(z_hat)
-        out = x * g.expand_as(x)
+
+        g = g - 0.5
+        out = x + x * g.expand_as(x)
+        # out = x * g.expand_as(x)
         return out
 
 
