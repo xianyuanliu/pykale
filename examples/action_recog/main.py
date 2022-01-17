@@ -118,12 +118,12 @@ def main():
     else:
         raise ValueError("Dataset not supported")
 
-    print(f"Total number of train samples: {len(train_dataset)}")
-    print(f"Total number of validation samples: {len(valid_dataset)}")
-    print(f"Total number of test samples: {len(test_dataset)}")
-    print(f"Total number of train batches: {len(train_loader)}")
-    print(f"Total number of validation batches: {len(valid_loader)}")
-    print(f"Total number of test batches: {len(test_loader)}")
+    print(f"Train samples: {len(train_dataset)}")
+    print(f"Valid samples: {len(valid_dataset)}")
+    print(f"Test samples: {len(test_dataset)}")
+    print(f"Train batches: {len(train_loader)}")
+    print(f"Valid batches: {len(valid_loader)}")
+    print(f"Test batches: {len(test_loader)}")
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
