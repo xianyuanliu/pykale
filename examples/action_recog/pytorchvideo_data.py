@@ -39,7 +39,7 @@ class LimitDataset(torch.utils.data.Dataset):
     number of steps per epoch.
     """
 
-    def __init__(self, dataset, clips_per_video=1):
+    def __init__(self, dataset, clips_per_video=1.0):
         super().__init__()
         self.dataset = dataset
         self.clips_per_video = clips_per_video
@@ -50,7 +50,7 @@ class LimitDataset(torch.utils.data.Dataset):
         return next(self.dataset_iter)
 
     def __len__(self):
-        return self.dataset.num_videos * self.clips_per_video
+        return int(self.dataset.num_videos * self.clips_per_video)
 
 
 def video_transform(mode, dataset, method, frame_per_segment=16):
@@ -138,7 +138,7 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
             transform=video_transform("test", "hmdb51", method, frame_per_segment),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        clips_per_video=6,
+        clips_per_video=5.61,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 51
@@ -169,7 +169,7 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
             transform=video_transform("test", "ucf101", method, frame_per_segment),
             video_path_prefix=str(Path(root).joinpath("video")),
         ),
-        clips_per_video=11,
+        clips_per_video=11.05,
     )
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 101
