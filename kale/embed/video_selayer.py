@@ -496,9 +496,12 @@ class ECANet(nn.Module):
 class ECANetVideo(ECANet):
     """This module extends ECANet for videos."""
 
-    def __init__(self, kernel_size=3):
-        super(ECANetVideo, self).__init__(kernel_size)
+    def __init__(self, channel):
+        super(ECANetVideo, self).__init__(channel)
+        t = int(abs((math.log(channel, 2) + 1) / 2))
+        self.kernel_size = t if t % 2 else t + 1
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
+        self.conv = nn.Conv1d(1, 1, kernel_size=self.kernel_size, padding=(self.kernel_size - 1) // 2, bias=False)
 
     def forward(self, x):
         y = self.avg_pool(x)  # b x c x 1 x 1 x 1
