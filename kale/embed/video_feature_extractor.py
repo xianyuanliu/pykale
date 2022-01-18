@@ -13,6 +13,7 @@ from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint
 from kale.embed.video_se_res3d import se_mc3, se_r2plus1d, se_r3d
+from kale.embed.video_selayer import get_attention
 from kale.loaddata.video_access import get_image_modality
 
 
@@ -37,28 +38,9 @@ def get_video_feat_extractor(model_name, image_modality, attention, num_classes)
         domain_feature_dim (int): The dimension of the feature network output for DomainNet.
     """
     rgb, flow = get_image_modality(image_modality)
+    att = False if get_attention(attention) is None else True
 
-    attention_list = [
-        "SELayerC",
-        "SELayerT",
-        "SRMVideo",
-        "CBAMVideo",
-        "STAM",
-        "SELayerCoC",
-        "SELayerMC",
-        "SELayerCT",
-        "SELayerTC",
-        "SELayerMAC",
-    ]
     model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18", "C3D"]
-
-    if attention in attention_list:
-        att = True
-    elif attention == "None":
-        att = False
-    else:
-        raise ValueError("Wrong MODEL.ATTENTION. Current: {}".format(attention))
-
     if model_name not in model_list:
         raise ValueError("Wrong MODEL.METHOD. Current:{}".format(model_name))
 
