@@ -136,10 +136,10 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
-            filename="{epoch}-{step}-{train_loss:.4f}",
+            # filename="{epoch}-{step}-{train_loss:.4f}",
             save_last=True,
-            monitor="train_top1_acc",
-            mode="max",
+            # monitor="train_top1_acc",
+            # mode="max",
         )
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
