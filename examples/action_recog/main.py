@@ -134,13 +134,9 @@ def main():
         # ---- setup model and logger ----
         model = get_model(cfg, num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        checkpoint_callback = ModelCheckpoint(
+        # checkpoint_callback = ModelCheckpoint(
             # filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
-            # filename="{epoch}-{step}-{train_loss:.4f}",
-            save_last=True,
-            # monitor="train_top1_acc",
-            # mode="max",
-        )
+        # )
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
@@ -150,8 +146,9 @@ def main():
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             gpus=args.gpus,
             logger=tb_logger,
-            callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            # limit_train_batches=0.01,
+            # callbacks=[checkpoint_callback, lr_monitor, progress_bar],
+            callbacks=[lr_monitor, progress_bar],
+            # limit_train_batches=0.005,
             # limit_val_batches=0.01,
             # limit_test_batches=0.001,
         )
@@ -175,7 +172,8 @@ def main():
 
         ### Evaluation
         # trainer.test(ckpt_path="best", dataloaders=test_loader)
-        trainer.test(ckpt_path=checkpoint_callback.last_model_path, dataloaders=test_loader)
+        # trainer.test(ckpt_path=checkpoint_callback.last_model_path, dataloaders=test_loader)
+        trainer.test(dataloaders=test_loader)
 
 
 if __name__ == "__main__":
