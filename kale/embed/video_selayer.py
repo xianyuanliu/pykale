@@ -500,6 +500,13 @@ class ECANetVideo(ECANet):
         super(ECANetVideo, self).__init__(kernel_size)
         self.avg_pool = nn.AdaptiveAvgPool3d(1)
 
+    def forward(self, x):
+        y = self.avg_pool(x)  # b x c x 1 x 1 x 1
+        y = self.conv(y.squeeze(-1).squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1).unsqueeze(-1)
+        y = self.sigmoid(y)
+
+        return x * y.expand_as(x)
+
 
 class STAM(SELayer):
     """Construct Spatial-temporal Attention Module.
