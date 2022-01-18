@@ -134,6 +134,8 @@ class BasicBlock(nn.Module):
             out = self.SRMVideo(out)
         if "CBAMVideo" in dir(self):
             out = self.CBAMVideo(out)
+        if "ECANetVideo" in dir(self):
+            out = self.ECANetVideo(out)
         if "STAM" in dir(self):
             out = self.STAM(out)
 

@@ -36,6 +36,8 @@ def get_attention(attention):
         module = SRMVideo
     elif attention == "CBAMVideo":
         module = CBAMVideo
+    elif attention == "ECANetVideo":
+        module = ECANetVideo
     elif attention == "STAM":
         module = STAM
     elif attention == "SELayerCoC":
@@ -44,9 +46,9 @@ def get_attention(attention):
         module = SELayerMC
     elif attention == "SELayerMAC":
         module = SELayerMAC
-    elif attention == "SELayerCoC":
-        module = SELayerCoC
 
+    elif attention == "None":
+        module = None
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
     return module
