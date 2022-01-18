@@ -150,11 +150,11 @@ class SRM(nn.Module):
         var = x.view(b, c, -1).var(dim=2, keepdim=True) + eps
         std = var.sqrt()
 
-        t = torch.cat((mean, std), dim=2)  # (b, c, 2)
+        u = torch.cat((mean, std), dim=2)  # (b, c, 2)
 
         # Style integration
-        z = t * self.cfc[None, :, :]  # B x C x 2
-        z = torch.sum(z, dim=2)[:, :, None, None]  # B x C x 1 x 1
+        z = u * self.cfc[None, :, :]  # b x c x 2
+        z = torch.sum(z, dim=2)[:, :, None, None]  # b x c x 1 x 1
 
         z_hat = self.bn(z)
         g = self.activation(z_hat)
@@ -167,21 +167,32 @@ class SRMVideo(SRM):
 
     def __init__(self, channel):
         super(SRMVideo, self).__init__(channel)
-        self.bn = nn.BatchNorm3d(self.channel)
+        self.cfc = Parameter(torch.Tensor(channel, 2))
+        self.cfc.data.fill_(0)
+
+        self.bn = nn.BatchNorm3d(channel)
+        self.activation = nn.Sigmoid()
+
+        setattr(self.cfc, "srm_param", True)
+        setattr(self.bn.weight, "srm_param", True)
+        setattr(self.bn.bias, "srm_param", True)
+        # self.bn = nn.BatchNorm3d(self.channel)
 
     def forward(self, x, eps=1e-5):
-        b, c, _, _, _ = x.size()
+        b, c, t, _, _ = x.size()  # b x c x t x h x w
+        x_T = x.transpose(1, 2).contiguous()
 
         # Style pooling
-        mean = x.view(b, c, -1).mean(dim=2, keepdim=True)
-        var = x.view(b, c, -1).var(dim=2, keepdim=True) + eps
+        mean = x_T.view(b, t, c, -1).mean(dim=3, keepdim=True)
+        var = x_T.view(b, t, c, -1).var(dim=3, keepdim=True) + eps
         std = var.sqrt()
 
-        t = torch.cat((mean, std), dim=2)  # (b, c, 2)
+        u = torch.cat((mean, std), dim=-1)  # (b, t, c, 2)
 
         # Style integration
-        z = t * self.cfc[None, :, :]  # b x c x 2
-        z = torch.sum(z, dim=2)[:, :, None, None, None]  # b x c x 1 x 1 x 1
+        z = u * self.cfc[None, :, :]  # b x t x c x 2
+        z = torch.sum(z, dim=3)[:, :, :, None, None]  # b x t x c x 1 x 1
+        z = z.transpose(1, 2).contiguous()  # b x c x t x 1 x 1
 
         z_hat = self.bn(z)
         g = self.activation(z_hat)
@@ -469,7 +480,7 @@ class ECANet(nn.Module):
 
     def forward(self, x):
         # feature descriptor on the global spatial information
-        y = self.avg_pool(x)  # batch x channel x height x weight
+        y = self.avg_pool(x)  # b x c x h x w
 
         # Two different branches of ECA module
         y = self.conv(y.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
