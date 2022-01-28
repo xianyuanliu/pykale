@@ -18,7 +18,7 @@ from kale.embed.video_selayer import get_attention
 from kale.loaddata.video_access import get_image_modality
 
 
-def get_extractor_video(model_name, image_modality, attention, dict_num_classes):
+def get_extractor_video(model_name, image_modality, attention, num_classes):
     """
     Get the feature extractor w/o the pre-trained model and SELayers. The pre-trained models are saved in the path
     ``$XDG_CACHE_HOME/torch/hub/checkpoints/``. For Linux, default path is ``~/.cache/torch/hub/checkpoints/``.
@@ -30,7 +30,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
         attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SRMVideo", "CBAMVideo",
         "STAM", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        dict_num_classes (dict): The class number of specific dataset. (Default: No use)
+        num_classes (dict): The class number of specific dataset. (Default: No use)
 
     Returns:
         feature_network (dictionary): The network to extract features.
@@ -41,8 +41,6 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
 
     rgb, flow, audio = get_image_modality(image_modality)
     att = False if get_attention(attention) is None else True
-    # only use verb class when input is image.
-    num_classes = dict_num_classes["verb"]
 
     model_list = ["I3D", "R3D_18", "MC3_18", "R2PLUS1D_18", "C3D"]
     if model_name not in model_list:
