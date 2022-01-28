@@ -266,8 +266,8 @@ class TransformerSENet(nn.Module):
         # self.selayer = SELayerFeat(channel=8, reduction=2)
 
     def forward(self, x):
-        for layer in self.transformer:
-            x = layer(x)
+        # for layer in self.transformer:
+        #     x = layer(x)
         x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         # x = self.selayer(x)
         return x
