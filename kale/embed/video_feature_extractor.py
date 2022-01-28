@@ -30,7 +30,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
         image_modality (string): Image type. (Choices=["rgb", "flow", "joint"])
         attention (string): The attention type. (Choices=["SELayerC", "SELayerT", "SRMVideo", "CBAMVideo",
         "STAM", "SELayerCoC", "SELayerMC", "SELayerCT", "SELayerTC", "SELayerMAC"])
-        num_classes (int): The class number of specific dataset. (Default: No use)
+        dict_num_classes (dict): The class number of specific dataset. (Default: No use)
 
     Returns:
         feature_network (dictionary): The network to extract features.
@@ -122,6 +122,7 @@ def get_extractor_video(model_name, image_modality, attention, dict_num_classes)
         else:
             logging.info("{} with {}.".format(model_name, attention))
             feature_network = se_c3d(rgb=rgb, flow=flow, pretrained=True, attention=attention)
+    feature_network.update({"audio": None})
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
