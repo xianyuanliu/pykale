@@ -84,6 +84,7 @@ def get_action_recog_config(cfg):
             "dataset_trainlist": cfg.DATASET.TRAINLIST,
             "dataset_testlist": cfg.DATASET.TESTLIST,
             "dataset_image_modality": cfg.DATASET.IMAGE_MODALITY,
+            "dataset_num_segments": cfg.DATASET.NUM_SEGMENTS,
             "frames_per_segment": cfg.DATASET.FRAMES_PER_SEGMENT,
         },
     }
@@ -366,6 +367,7 @@ class VideoDataset(Enum):
         data_name = data_params_local["dataset_name"].upper()
         data_path, tr_listpath, te_listpath = generate_list(data_name, data_params_local)
         image_modality = data_params_local["dataset_image_modality"]
+        num_segments = data_params_local["dataset_num_segments"]
         frames_per_segment = data_params_local["frames_per_segment"]
 
         transform_names = {
@@ -390,14 +392,15 @@ class VideoDataset(Enum):
         }
 
         dataset = factories[name](
-            data_path,
-            tr_listpath,
-            te_listpath,
-            image_modality,
-            frames_per_segment,
-            class_numbers[name],
-            transform_names[name],
-            seed,
+            data_path=data_path,
+            train_list=tr_listpath,
+            test_list=te_listpath,
+            image_modality=image_modality,
+            num_segments=num_segments,
+            frames_per_segment=frames_per_segment,
+            n_classes=class_numbers[name],
+            transform=transform_names[name],
+            seed=seed,
         )
 
         return dataset, class_numbers[name]

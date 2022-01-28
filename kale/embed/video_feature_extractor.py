@@ -8,8 +8,8 @@ Define the feature extractor for video including I3D, R3D_18, MC3_18 and R2PLUS1
 
 import logging
 
-from kale.embed.video_c3d import c3d, se_c3d
 from kale.embed.attention_cnn import TransformerSENet
+from kale.embed.video_c3d import c3d, se_c3d
 from kale.embed.video_i3d import i3d_joint
 from kale.embed.video_res3d import mc3, r2plus1d, r3d
 from kale.embed.video_se_i3d import se_i3d_joint

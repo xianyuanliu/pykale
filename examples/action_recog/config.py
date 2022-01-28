@@ -21,6 +21,7 @@ _C.DATASET.NAME = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN"]
 _C.DATASET.TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.TESTLIST = "epic_D1_test.pkl"
 _C.DATASET.IMAGE_MODALITY = "rgb"  # mode options=["rgb", "flow", "joint"]
+_C.DATASET.NUM_SEGMENTS = 1  # = 1, if image input; = 8, if feature input.
 _C.DATASET.FRAMES_PER_SEGMENT = 16
 _C.DATASET.NUM_REPEAT = 5  # 10
 _C.DATASET.VALID_RATIO = 0.1

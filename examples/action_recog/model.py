@@ -10,7 +10,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
-from kale.embed.video_feature_extractor import get_video_feat_extractor
+from kale.embed.video_feature_extractor import get_extractor_video
 from kale.pipeline.base_trainer import ActionRecogTrainer
 from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D, ClassNetVideoI3D
 
@@ -53,7 +53,7 @@ def get_model(cfg, num_classes):
     """
 
     # setup feature extractor
-    feature_network, class_feature_dim, _ = get_video_feat_extractor(
+    feature_network, class_feature_dim, _ = get_extractor_video(
         cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, num_classes
     )
     # setup classifier

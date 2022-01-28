@@ -2,7 +2,7 @@ from math import log
 
 import torch
 
-from kale.embed.video_selayer import CBAM, CBAMVideo, FCANet, SRM, SRMVideo, STAM, ECANet, ECANetVideo
+from kale.embed.video_selayer import CBAM, CBAMVideo, ECANet, ECANetVideo, FCANet, SRM, SRMVideo, STAM
 
 # Dummy data: [batch_size, channel, time, height, width]
 INPUT_5D = torch.randn(2, 64, 16, 32, 32)
