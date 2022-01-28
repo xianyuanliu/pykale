@@ -72,14 +72,14 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        # checkpoint_callback = ModelCheckpoint(
+        checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
-            # filename="{epoch}-{step}-{valid_loss:.4f}",
+            filename="{epoch}-{step}-{valid_loss:.4f}",
             # save_last=True,
             # save_top_k=1,
-            # monitor="valid_loss",
-            # mode="min",
-        # )
+            monitor="valid_loss",
+            mode="min",
+        )
 
         ### Set early stopping
         # early_stop_callback = EarlyStopping(monitor="valid_target_acc", min_delta=0.0000, patience=100, mode="max")
@@ -99,12 +99,12 @@ def main():
             logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            # callbacks=[lr_monitor, checkpoint_callback, progress_bar],
-            callbacks=[lr_monitor, progress_bar],
+            callbacks=[lr_monitor, checkpoint_callback, progress_bar],
+            # callbacks=[lr_monitor, progress_bar],
             # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.05,
+            # limit_train_batches=0.005,
             # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
+            # limit_test_batches=0.02,
         )
 
         ### Find learning_rate
