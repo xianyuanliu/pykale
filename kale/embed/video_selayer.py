@@ -122,7 +122,7 @@ class SELayerT(SELayer):
 class SELayerFeat(SELayer):
     """Construct channel-wise SELayer for feature vector input."""
 
-    def __init__(self, channel, reduction=4):
+    def __init__(self, channel, reduction=2):
         super(SELayerFeat, self).__init__(channel, reduction)
         self.avg_pool = nn.AdaptiveAvgPool1d(1)
         self.fc = nn.Sequential(
