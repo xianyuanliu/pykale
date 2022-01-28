@@ -214,26 +214,28 @@ class ToTensorVideo(torch.nn.Module):
         return tensor.float().permute(0, 3, 1, 2) / 255.0
 
 
-def get_dataset_mean_std(dataset):
+def get_dataset_mean_std(kind):
     """Get mean and std of a dataset for normalization."""
-    if dataset == "epic":
+    if kind == "epic":
         mean = [0.412773, 0.316411, 0.278039]
         std = [0.222826, 0.215075, 0.202924]
-    elif dataset == "gtea":
+    elif kind == "gtea":
         mean = [0.555380, 0.430436, 0.183021]
         std = [0.132028, 0.139590, 0.123337]
-    elif dataset == "adl":
+    elif kind == "adl":
         mean = [0.411622, 0.354001, 0.246640]
         std = [0.181746, 0.185856, 0.162441]
-    elif dataset == "kitchen":
+    elif kind == "kitchen":
         mean = [0.252758, 0.243761, 0.268163]
         std = [0.188945, 0.186148, 0.191553]
-    elif dataset == "ucf101":
+    elif kind == "ucf101":
         mean = [0.485, 0.456, 0.406]
         std = [0.229, 0.224, 0.225]
-    elif dataset == "hmdb51":
+    elif kind == "hmdb51":
         mean = [0.43216, 0.394666, 0.37645]
         std = [0.22803, 0.22145, 0.216989]
+    elif kind is None:
+        mean = std = None
     else:
-        raise ValueError(f"Unknown transform for dataset '{dataset}'")
+        raise ValueError(f"Unknown transform for dataset '{kind}'")
     return mean, std
