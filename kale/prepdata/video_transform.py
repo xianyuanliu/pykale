@@ -142,6 +142,8 @@ def get_transform(kind, image_modality):
                 ]
             ),
         }
+    elif kind is None:
+        return
     else:
         raise ValueError(f"Unknown transform kind '{kind}'")
     return transform
