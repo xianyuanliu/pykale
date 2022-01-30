@@ -24,7 +24,7 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         target_access_dict,
         image_modality,
         config_weight_type="natural",
-        config_size_type=DatasetSizeType.Max,
+        config_size_type="max",
         valid_split_ratio=0.1,
         num_workers=0,
         source_sampling_config=None,
@@ -40,8 +40,8 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             target_access_dict (dictionary): dictionary of target RGB and flow dataset accessors
             image_modality (string): image type (RGB or Optical Flow)
             config_weight_type (WeightingType, optional): The weight type for sampling. Defaults to 'natural'.
-            config_size_type (DatasetSizeType, optional): Which dataset size to use to define the number of epochs vs
-                batch_size. Defaults to DatasetSizeType.Max.
+            config_size_type (string, optional): Which dataset size to use to define the number of epochs vs
+                batch_size. Defaults to "max".
             valid_split_ratio (float, optional): ratio for the validation part of the train dataset. Defaults to 0.1.
             num_workers (int, optional): number of workers for data loading. Defaults to 1.
             source_sampling_config (SamplingConfig, optional): How to sample from the source. Defaults to None
@@ -84,8 +84,12 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
         elif weight_type not in WeightingType:
             raise ValueError(f"Unknown weighting method {weight_type}.")
         else:
-            self._source_sampling_config = FixedSeedSamplingConfig(seed=random_state, num_workers=num_workers)
-            self._target_sampling_config = FixedSeedSamplingConfig(seed=random_state, num_workers=num_workers)
+            self._source_sampling_config = FixedSeedSamplingConfig(
+                seed=random_state, num_workers=num_workers, size_type=config_size_type
+            )
+            self._target_sampling_config = FixedSeedSamplingConfig(
+                seed=random_state, num_workers=num_workers, size_type=config_size_type
+            )
 
         self._source_access_dict = source_access_dict
         self._target_access_dict = target_access_dict

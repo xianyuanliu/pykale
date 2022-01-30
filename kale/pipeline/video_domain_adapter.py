@@ -24,7 +24,6 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLTrainer,
 )
-
 from kale.utils.logger import save_results_to_json
 
 

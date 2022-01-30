@@ -54,11 +54,13 @@ class SamplingConfig:
 
 
 class FixedSeedSamplingConfig(SamplingConfig):
-    def __init__(self, seed=1, num_workers=0, balance=False, class_weights=None, balance_domain=False):
-        """Sampling with fixed seed."""
+    def __init__(self, seed=1, num_workers=0, size_type="max", balance=False, class_weights=None, balance_domain=False):
+        """Sampling with fixed seed. If size_type in ["max", "source"], set drop_last is True.
+        If size_type is "adaptive", set drop_last is False. No drop_last is for EPIC UDA challenge."""
         super(FixedSeedSamplingConfig, self).__init__(balance, class_weights, balance_domain)
         self._seed = seed
         self._num_workers = num_workers
+        self._size_type = size_type
 
     def create_loader(self, dataset, batch_size):
         """Create the data loader with fixed seed."""
@@ -78,7 +80,10 @@ class FixedSeedSamplingConfig(SamplingConfig):
                 )
             else:
                 sub_sampler = RandomSampler(dataset, generator=torch.Generator().manual_seed(self._seed))
-            sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
+            if self._size_type == "adaptive":
+                sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=False)
+            else:
+                sampler = BatchSampler(sub_sampler, batch_size=batch_size, drop_last=True)
         return torch.utils.data.DataLoader(dataset=dataset, batch_sampler=sampler, num_workers=self._num_workers)
 
 
