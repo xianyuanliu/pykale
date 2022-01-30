@@ -152,14 +152,14 @@ class ClassNetVideo(nn.Module):
             self.n_verb_class = dict_n_class["verb"]
             self.fc1 = nn.Linear(input_size, n_verb_channel)
             self.bn1 = nn.BatchNorm1d(n_verb_channel)
-            self.relu1 = nn.ReLU()
+            self.relu1 = nn.PReLU()
             self.dp1 = nn.Dropout(dropout_keep_prob)
             self.fc11 = nn.Linear(n_verb_channel, self.n_verb_class)
         if self.noun:
             self.n_noun_class = dict_n_class["noun"]
             self.fc2 = nn.Linear(input_size, n_noun_channel)
             self.bn2 = nn.BatchNorm1d(n_noun_channel)
-            self.relu2 = nn.ReLU()
+            self.relu2 = nn.PReLU()
             self.dp2 = nn.Dropout(dropout_keep_prob)
             self.fc21 = nn.Linear(n_noun_channel, self.n_noun_class)
 
