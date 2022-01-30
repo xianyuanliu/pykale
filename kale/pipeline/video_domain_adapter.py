@@ -8,6 +8,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 """
 
 import torch
+from torch import nn
 
 import kale.predict.losses as losses
 from kale.loaddata.video_access import get_class_type, get_image_modality
@@ -110,6 +111,29 @@ def create_dann_like_video(
         raise ValueError(f"Unsupported method: {method}")
 
 
+class AutomaticWeightedLoss(nn.Module):
+    """automatically weighted multi-task loss
+    Params：
+        num: int，the number of loss
+        x: multi-task loss
+    Examples：
+        loss1=1
+        loss2=2
+        awl = AutomaticWeightedLoss(2)
+        loss_sum = awl(loss1, loss2)
+    """
+    def __init__(self, num=2):
+        super(AutomaticWeightedLoss, self).__init__()
+        params = torch.ones(num, requires_grad=True)
+        self.params = torch.nn.Parameter(params)
+
+    def forward(self, *x):
+        loss_sum = 0
+        for i, loss in enumerate(x):
+            loss_sum += 0.5 / (self.params[i] ** 2) * loss + torch.log(1 + self.params[i] ** 2)
+        return loss_sum
+
+
 class BaseAdaptTrainerVideo(BaseAdaptTrainer):
     """Base class for all domain adaptation architectures on videos. Inherited from BaseAdaptTrainer."""
 
@@ -137,7 +161,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             loss = task_loss
         else:
             # loss = task_loss + self.lamb_da * adv_loss
-            loss = task_loss + adv_loss / (adv_loss/task_loss).detach()
+            # loss = task_loss + adv_loss / (adv_loss/task_loss).detach()
+            loss = self.awl(task_loss, adv_loss)
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -532,6 +557,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
+
+        self.awl = AutomaticWeightedLoss(2)
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
         # self.y_hat = []
