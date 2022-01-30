@@ -347,10 +347,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             task_loss = loss_cls_verb + loss_cls_noun
 
             log_metrics = {
-                f"{split_name}_verb_source_acc": ok_src_verb,
-                f"{split_name}_noun_source_acc": ok_src_noun,
-                f"{split_name}_verb_target_acc": ok_tgt_verb,
-                f"{split_name}_noun_target_acc": ok_tgt_noun,
+                # f"{split_name}_verb_source_acc": ok_src_verb,
+                # f"{split_name}_noun_source_acc": ok_src_noun,
+                # f"{split_name}_verb_target_acc": ok_tgt_verb,
+                # f"{split_name}_noun_target_acc": ok_tgt_noun,
                 f"{split_name}_verb_source_top1_acc": prec1_src_verb,
                 f"{split_name}_verb_source_top5_acc": prec5_src_verb,
                 f"{split_name}_noun_source_top1_acc": prec1_src_noun,
