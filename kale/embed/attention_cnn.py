@@ -268,6 +268,6 @@ class TransformerSENet(nn.Module):
     def forward(self, x):
         for layer in self.transformer:
             x = layer(x)
-        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
+        # x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         x = self.selayer(x)
         return x
