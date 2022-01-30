@@ -256,7 +256,7 @@ class TransformerSENet(nn.Module):
                     causal=False,
                 )
                 for _ in range(self.num_layers)
-            ]
+            ] * 3
         )
 
         self.fc1 = nn.Linear(input_size, n_channel)
