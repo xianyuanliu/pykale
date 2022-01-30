@@ -157,9 +157,9 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         metrics_at_test = self.create_metrics_log("test")
 
         # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
-        save_results_to_json(
-            self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
-        )
+        # save_results_to_json(
+        #     self.y_hat, self.y_t_hat, self.s_id, self.tu_id, self.y_hat_noun, self.y_t_hat_noun, self.verb, self.noun
+        # )
 
         log_dict = get_aggregated_metrics(metrics_at_test, outputs)
 
@@ -533,12 +533,12 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.audio_feat = self.feat["audio"]
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
-        self.y_hat = []
-        self.y_hat_noun = []
-        self.y_t_hat = []
-        self.y_t_hat_noun = []
-        self.s_id = []
-        self.tu_id = []
+        # self.y_hat = []
+        # self.y_hat_noun = []
+        # self.y_t_hat = []
+        # self.y_t_hat_noun = []
+        # self.s_id = []
+        # self.tu_id = []
 
     def forward(self, x):
         if self.feat is not None:
@@ -664,13 +664,13 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
-        if split_name == "test":
-            self.y_hat.extend(y_hat[0].tolist())
-            self.y_hat_noun.extend(y_hat[1].tolist())
-            self.y_t_hat.extend(y_t_hat[0].tolist())
-            self.y_t_hat_noun.extend(y_t_hat[1].tolist())
-            self.s_id.extend(s_id)
-            self.tu_id.extend(tu_id)
+        # if split_name == "test":
+        #     self.y_hat.extend(y_hat[0].tolist())
+        #     self.y_hat_noun.extend(y_hat[1].tolist())
+        #     self.y_t_hat.extend(y_t_hat[0].tolist())
+        #     self.y_t_hat_noun.extend(y_t_hat[1].tolist())
+        #     self.s_id.extend(s_id)
+        #     self.tu_id.extend(tu_id)
 
         return task_loss, adv_loss, log_metrics
 
