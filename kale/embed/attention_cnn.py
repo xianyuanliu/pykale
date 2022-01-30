@@ -259,10 +259,10 @@ class TransformerSENet(nn.Module):
             ] * 3
         )
 
-        self.fc1 = nn.Linear(input_size, n_channel)
-        self.relu1 = nn.ReLU()
-        self.dp1 = nn.Dropout(dropout_keep_prob)
-        self.fc2 = nn.Linear(n_channel, output_size)
+        # self.fc1 = nn.Linear(input_size, n_channel)
+        # self.relu1 = nn.ReLU()
+        # self.dp1 = nn.Dropout(dropout_keep_prob)
+        # self.fc2 = nn.Linear(n_channel, output_size)
         self.selayer = SELayerFeat(channel=8, reduction=2)
 
     def forward(self, x):
