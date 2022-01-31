@@ -151,24 +151,26 @@ class ClassNetVideo(nn.Module):
         if self.verb:
             self.n_verb_class = dict_n_class["verb"]
             self.fc1 = nn.Linear(input_size, n_verb_channel)
-            self.bn1 = nn.BatchNorm1d(n_verb_channel)
+            # self.bn1 = nn.BatchNorm1d(n_verb_channel)
             self.relu1 = nn.ReLU()
             self.dp1 = nn.Dropout(dropout_keep_prob)
             self.fc11 = nn.Linear(n_verb_channel, self.n_verb_class)
         if self.noun:
             self.n_noun_class = dict_n_class["noun"]
             self.fc2 = nn.Linear(input_size, n_noun_channel)
-            self.bn2 = nn.BatchNorm1d(n_noun_channel)
+            # self.bn2 = nn.BatchNorm1d(n_noun_channel)
             self.relu2 = nn.ReLU()
             self.dp2 = nn.Dropout(dropout_keep_prob)
             self.fc21 = nn.Linear(n_noun_channel, self.n_noun_class)
 
     def forward(self, input):
-        x_verb = self.fc11(self.dp1(self.relu1(self.bn1(self.fc1(input)))))
+        # x_verb = self.fc11(self.dp1(self.relu1(self.bn1(self.fc1(input)))))
+        x_verb = self.fc11(self.dp1(self.relu1(self.fc1(input))))
         if self.verb and not self.noun:
             x_noun = None
         if self.verb and self.noun:
-            x_noun = self.fc21(self.dp2(self.relu2(self.bn2(self.fc2(input)))))
+            # x_noun = self.fc21(self.dp2(self.relu2(self.bn2(self.fc2(input)))))
+            x_noun = self.fc21(self.dp2(self.relu2(self.fc2(input))))
         return [x_verb, x_noun]
 
 
