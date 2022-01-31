@@ -344,7 +344,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
             )
 
-            task_loss = loss_cls_verb + loss_cls_noun
+            # task_loss = loss_cls_verb + loss_cls_noun
+            task_loss = loss_cls_verb
 
             log_metrics = {
                 # f"{split_name}_verb_source_acc": ok_src_verb,
