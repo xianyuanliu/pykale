@@ -240,7 +240,7 @@ class TransformerSENet(nn.Module):
 
     def __init__(self, input_size=512, n_channel=512, output_size=256, dropout_keep_prob=0.5):
         super(TransformerSENet, self).__init__()
-        self.hidden_sizes = 512
+        self.hidden_sizes = 256
         self.num_layers = 4
 
         self.transformer = nn.ModuleList(
