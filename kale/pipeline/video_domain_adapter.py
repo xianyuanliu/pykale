@@ -345,7 +345,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             )
 
             # task_loss = loss_cls_verb + loss_cls_noun
-            task_loss = loss_cls_verb
+            task_loss = self.awl(loss_cls_verb, loss_cls_noun)
 
             log_metrics = {
                 # f"{split_name}_verb_source_acc": ok_src_verb,
