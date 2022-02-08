@@ -628,7 +628,6 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_train(self):
         return VideoFrameDataset(
             root_path=Path(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            # root_path=Path(self._data_path, self._input_type, "target_val.pkl"),
             # Uncomment to run on train subset for EPIC UDA 2021 challenge
             # root_path=Path(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._train_list,
@@ -647,7 +646,6 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     def get_test(self):
         return VideoFrameDataset(
             root_path=Path(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
-            # root_path=Path(self._data_path, self._input_type, "target_val.pkl"),
             # Uncomment to run on test subset for EPIC UDA 2021 challenge
             # root_path=Path(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,

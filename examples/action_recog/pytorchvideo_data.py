@@ -17,7 +17,7 @@ from torchvision.transforms import CenterCrop, Compose, Lambda, RandomCrop, Rand
 from examples.action_recog.torchvision_data import get_validation_dataset
 
 
-def Hmdb51_with_ucf101_list(
+def hmdb51_with_ucf101_list(
     data_path,
     clip_sampler,
     video_sampler=torch.utils.data.RandomSampler,
@@ -113,7 +113,7 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
     train_dataset = LimitDataset(
         # Hmdb51(
         #     data_path=Path(root).joinpath("annotation_org"),
-        Hmdb51_with_ucf101_list(
+        hmdb51_with_ucf101_list(
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
             data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
@@ -128,7 +128,7 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
     test_dataset = LimitDataset(
         # Hmdb51(
         #     data_path=Path(root).joinpath("annotation_org"),
-        Hmdb51_with_ucf101_list(
+        hmdb51_with_ucf101_list(
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
             data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
