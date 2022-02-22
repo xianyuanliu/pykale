@@ -32,7 +32,7 @@ def get_config(cfg):
             "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY,},},
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY, }, },
         }
     }
     data_params = {
@@ -84,7 +84,7 @@ def get_model(cfg, dataset, dict_num_classes):
             cfg.DAN.METHOD.upper(),
             cfg.DATASET.IMAGE_MODALITY,
             input_size=1024,
-            output_size=256,
+            output_size=1024,
             num_segments=cfg.DATASET.NUM_SEGMENTS,
         )
 
@@ -116,7 +116,10 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
-        critic_network = DomainNetVideo(input_size=critic_input_size)
+        critic_network = {"rgb": DomainNetVideo(input_size=critic_input_size),
+                          "flow": DomainNetVideo(input_size=critic_input_size),
+                          "audio": DomainNetVideo(input_size=critic_input_size),
+        }
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
