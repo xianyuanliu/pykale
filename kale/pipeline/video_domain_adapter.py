@@ -285,6 +285,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 "{}_loss".format(split_name),
                 "{}_task_loss".format(split_name),
                 "{}_adv_loss".format(split_name),
+                "{}_loss_cls_verb".format(split_name),
+                "{}_loss_cls_noun".format(split_name),
                 # "{}_verb_source_acc".format(split_name),
                 "{}_verb_source_top1_acc".format(split_name),
                 "{}_verb_source_top5_acc".format(split_name),
@@ -346,12 +348,15 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
             # task_loss = loss_cls_verb + loss_cls_noun
             task_loss = self.awl(loss_cls_verb, loss_cls_noun)
+            # print(f"loss_cls_verb: {loss_cls_verb}, loss_cls_noun: {loss_cls_noun}")
 
             log_metrics = {
                 # f"{split_name}_verb_source_acc": ok_src_verb,
                 # f"{split_name}_noun_source_acc": ok_src_noun,
                 # f"{split_name}_verb_target_acc": ok_tgt_verb,
                 # f"{split_name}_noun_target_acc": ok_tgt_noun,
+                f"{split_name}_loss_cls_verb": loss_cls_verb,
+                f"{split_name}_loss_cls_noun": loss_cls_noun,
                 f"{split_name}_verb_source_top1_acc": prec1_src_verb,
                 f"{split_name}_verb_source_top5_acc": prec5_src_verb,
                 f"{split_name}_noun_source_top1_acc": prec1_src_noun,
@@ -371,6 +376,23 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         else:
             log_metrics.update({f"{split_name}_domain_acc": dok})
         return task_loss, log_metrics
+
+    def _configure_optimizer(self, parameters):
+        if self._optimizer_params is None:
+            optimizer = torch.optim.Adam(parameters, lr=self._init_lr, betas=(0.8, 0.999), weight_decay=1e-5,)
+            return [optimizer]
+        if self._optimizer_params["type"] == "Adam":
+            optimizer = torch.optim.Adam(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            return [optimizer]
+        if self._optimizer_params["type"] == "SGD":
+            optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+
+            if self._adapt_lr:
+                feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10], gamma=0.1)
+                # feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
+                return [optimizer], [feature_sched]
+            return [optimizer]
+        raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
 
 
 class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
@@ -558,6 +580,9 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
+        self.rgb_domain_clf = self.domain_classifier["rgb"]
+        self.flow_domain_clf = self.domain_classifier["flow"]
+        self.audio_domain_clf = self.domain_classifier["audio"]
 
         self.awl = AutomaticWeightedLoss(2)
 
@@ -579,17 +604,17 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
                 reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
-                adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
+                adversarial_output_rgb = self.rgb_domain_clf(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
                 reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
-                adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
+                adversarial_output_flow = self.flow_domain_clf(reverse_feature_flow)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio = x_audio.view(x_audio.size(0), -1)
                 reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
-                adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
+                adversarial_output_audio = self.audio_domain_clf(reverse_feature_audio)
 
             x = self.concatenate(x_rgb, x_flow, x_audio)
 
