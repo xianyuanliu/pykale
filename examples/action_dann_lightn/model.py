@@ -11,6 +11,7 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
+from kale.loaddata.video_access import get_image_modality
 from kale.pipeline import domain_adapter, video_domain_adapter
 from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
 
@@ -45,6 +46,7 @@ def get_config(cfg):
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
             "input_type": cfg.DATASET.INPUT_TYPE,
             "class_type": cfg.DATASET.CLASS_TYPE,
+            "image_modality": cfg.DATASET.IMAGE_MODALITY,
         }
     }
     config_params.update(data_params)
@@ -73,16 +75,18 @@ def get_model(cfg, dataset, dict_num_classes):
     data_params_local = deepcopy(data_params)
     input_type = data_params_local["input_type"]
     class_type = data_params_local["class_type"]
+    image_modality = data_params_local["image_modality"]
+    rgb, flow, audio = get_image_modality(image_modality)
 
     # setup feature extractor
     if input_type == "image":
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_video(
-            cfg.MODEL.METHOD.upper(), cfg.DATASET.IMAGE_MODALITY, cfg.MODEL.ATTENTION, dict_num_classes["verb"]
+            cfg.MODEL.METHOD.upper(), image_modality, cfg.MODEL.ATTENTION, dict_num_classes["verb"]
         )
     else:
         feature_network, class_feature_dim, domain_feature_dim = get_extractor_feat(
             cfg.DAN.METHOD.upper(),
-            cfg.DATASET.IMAGE_MODALITY,
+            image_modality,
             input_size=1024,
             output_size=1024,
             num_segments=cfg.DATASET.NUM_SEGMENTS,
@@ -101,7 +105,7 @@ def get_model(cfg, dataset, dict_num_classes):
         model = video_domain_adapter.create_mmd_based_video(
             method=method,
             dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            image_modality=image_modality,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             class_type=class_type,
@@ -116,10 +120,13 @@ def get_model(cfg, dataset, dict_num_classes):
                 critic_input_size = cfg.DAN.RANDOM_DIM
             else:
                 critic_input_size = domain_feature_dim * dict_num_classes["verb"]
-        critic_network = {"rgb": DomainNetVideo(input_size=critic_input_size),
-                          "flow": DomainNetVideo(input_size=critic_input_size),
-                          "audio": DomainNetVideo(input_size=critic_input_size),
-        }
+        critic_network = {}
+        if rgb:
+            critic_network["rgb"] = DomainNetVideo(input_size=critic_input_size)
+        if flow:
+            critic_network["flow"] = DomainNetVideo(input_size=critic_input_size)
+        if audio:
+            critic_network["audio"] = DomainNetVideo(input_size=critic_input_size)
 
         if cfg.DAN.METHOD == "CDAN":
             method_params["use_random"] = cfg.DAN.USERANDOM
@@ -128,7 +135,7 @@ def get_model(cfg, dataset, dict_num_classes):
         model = video_domain_adapter.create_dann_like_video(
             method=method,
             dataset=dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            image_modality=image_modality,
             feature_extractor=feature_network,
             task_classifier=classifier_network,
             critic=critic_network,
