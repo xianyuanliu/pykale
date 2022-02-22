@@ -666,23 +666,23 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         if self.rgb:
             if self.flow:
                 if self.audio:  # For all inputs
-                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow + loss_dmn_src_audio
-                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_flow, loss_dmn_src_audio]).mean()
+                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_flow, loss_dmn_tgt_audio]).mean()
                     dok = torch.cat(
                         (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
                     )
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
                 else:  # For joint(rgb+flow) input
-                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
-                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
+                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_flow]).mean()
+                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_flow]).mean()
                     dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
             else:
                 if self.audio:  # For rgb+audio input
-                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_audio
-                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_audio
+                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_audio]).mean()
+                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_audio]).mean()
                     dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
                     dok_src = torch.cat((dok_src_rgb, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
@@ -695,8 +695,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         else:
             if self.flow:
                 if self.audio:  # For flow+audio input
-                    loss_dmn_src = loss_dmn_src_flow + loss_dmn_src_audio
-                    loss_dmn_tgt = loss_dmn_tgt_flow + loss_dmn_tgt_audio
+                    loss_dmn_src = torch.stack([loss_dmn_src_flow, loss_dmn_src_audio]).mean()
+                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_flow, loss_dmn_tgt_audio]).mean()
                     dok = torch.cat((dok_src_flow, dok_src_audio, dok_tgt_flow, dok_tgt_audio))
                     dok_src = torch.cat((dok_src_flow, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_flow, dok_tgt_audio))
