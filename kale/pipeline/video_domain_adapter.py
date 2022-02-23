@@ -160,9 +160,9 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
-            # loss = task_loss + self.lamb_da * adv_loss
+            loss = task_loss + self.lamb_da * adv_loss
             # loss = task_loss + adv_loss / (adv_loss/task_loss).detach()
-            loss = self.awl(task_loss, adv_loss)
+            # loss = self.awl(task_loss, adv_loss)
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
@@ -346,8 +346,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
                 (y_t_hat[0], y_t_hat[1]), (y_tu[0], y_tu[1]), topk=(1, 5)
             )
 
-            # task_loss = loss_cls_verb + loss_cls_noun
-            task_loss = self.awl(loss_cls_verb, loss_cls_noun)
+            task_loss = loss_cls_verb + loss_cls_noun
+            # task_loss = self.awl(loss_cls_verb, loss_cls_noun)
             # print(f"loss_cls_verb: {loss_cls_verb}, loss_cls_noun: {loss_cls_noun}")
 
             log_metrics = {
@@ -388,7 +388,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
-                feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[10], gamma=0.1)
+                feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)
                 # feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
                 return [optimizer], [feature_sched]
             return [optimizer]
