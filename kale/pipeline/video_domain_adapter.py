@@ -584,7 +584,7 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.flow_domain_clf = self.domain_classifier["flow"]
         self.audio_domain_clf = self.domain_classifier["audio"]
 
-        self.awl = AutomaticWeightedLoss(2)
+        # self.awl = AutomaticWeightedLoss(2)
 
         # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
         # self.y_hat = []
