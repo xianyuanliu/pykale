@@ -755,6 +755,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
+        self.rgb_domain_clf = self.domain_classifier["rgb"]
+        self.flow_domain_clf = self.domain_classifier["flow"]
+        self.audio_domain_clf = self.domain_classifier["audio"]
 
     def forward(self, x):
         if self.feat is not None:
@@ -787,29 +790,29 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 feature_rgb = feature_rgb.view(-1, reverse_out.size(1) * reverse_feature_rgb.size(1))
                 if self.random_layer:
                     random_out_rgb = self.random_layer.forward(feature_rgb)
-                    adversarial_output_rgb = self.domain_classifier(random_out_rgb.view(-1, random_out_rgb.size(1)))
+                    adversarial_output_rgb = self.rgb_domain_clf(random_out_rgb.view(-1, random_out_rgb.size(1)))
                 else:
-                    adversarial_output_rgb = self.domain_classifier(feature_rgb)
+                    adversarial_output_rgb = self.rgb_domain_clf(feature_rgb)
 
             if self.flow:
                 feature_flow = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
                 feature_flow = feature_flow.view(-1, reverse_out.size(1) * reverse_feature_flow.size(1))
                 if self.random_layer:
                     random_out_flow = self.random_layer.forward(feature_flow)
-                    adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
+                    adversarial_output_flow = self.flow_domain_clf(random_out_flow.view(-1, random_out_flow.size(1)))
                 else:
-                    adversarial_output_flow = self.domain_classifier(feature_flow)
+                    adversarial_output_flow = self.flow_domain_clf(feature_flow)
 
             if self.audio:
                 feature_audio = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
                 feature_audio = feature_audio.view(-1, reverse_out.size(1) * reverse_feature_audio.size(1))
                 if self.random_layer:
                     random_out_audio = self.random_layer.forward(feature_audio)
-                    adversarial_output_audio = self.domain_classifier(
+                    adversarial_output_audio = self.audio_domain_clf(
                         random_out_audio.view(-1, random_out_audio.size(1))
                     )
                 else:
-                    adversarial_output_audio = self.domain_classifier(feature_audio)
+                    adversarial_output_audio = self.audio_domain_clf(feature_audio)
 
             return (
                 [x_rgb, x_flow, x_audio],
