@@ -6,15 +6,18 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 
+from comet_ml import Experiment
 import pytorch_lightning as pl
-from config import get_cfg_defaults
-from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
+from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
+from pytorch_lightning.loggers import CometLogger
 
+from config import get_cfg_defaults
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.seed import set_seed
+from model import get_model
+
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
@@ -27,7 +30,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()
@@ -37,6 +40,12 @@ def arg_parse():
 def main():
     """The main for this domain adaptation example, showing the workflow"""
     args = arg_parse()
+
+    # Create an experiment with your api key
+    experiment = Experiment(
+        api_key="hXBdBG8FvfWxyLYwJRZlHi9GB",
+        project_name="general",
+    )
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
@@ -72,13 +81,15 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        comet_logger = CometLogger(api_key="hXBdBG8FvfWxyLYwJRZlHi9GB")
+
         # checkpoint_callback = ModelCheckpoint(
-            # dirpath=full_checkpoint_dir,
-            # filename="{epoch}-{step}-{valid_loss:.4f}",
-            # save_last=True,
-            # save_top_k=1,
-            # monitor="valid_loss",
-            # mode="min",
+        # dirpath=full_checkpoint_dir,
+        # filename="{epoch}-{step}-{valid_loss:.4f}",
+        # save_last=True,
+        # save_top_k=1,
+        # monitor="valid_loss",
+        # mode="min",
         # )
 
         ### Set early stopping
@@ -96,7 +107,8 @@ def main():
             log_every_n_steps=10,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
-            logger=tb_logger,  # logger,
+            logger=comet_logger,  # logger,
+            # logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             # callbacks=[lr_monitor, checkpoint_callback, progress_bar],
