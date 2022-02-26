@@ -6,7 +6,6 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 import argparse
 import logging
 
-from comet_ml import Experiment
 import pytorch_lightning as pl
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
@@ -40,12 +39,6 @@ def arg_parse():
 def main():
     """The main for this domain adaptation example, showing the workflow"""
     args = arg_parse()
-
-    # Create an experiment with your api key
-    experiment = Experiment(
-        api_key="hXBdBG8FvfWxyLYwJRZlHi9GB",
-        project_name="general",
-    )
 
     # ---- setup configs ----
     cfg = get_cfg_defaults()
@@ -81,7 +74,7 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        comet_logger = CometLogger(api_key="hXBdBG8FvfWxyLYwJRZlHi9GB")
+        comet_logger = CometLogger(api_key="hXBdBG8FvfWxyLYwJRZlHi9GB", save_dir=cfg.OUTPUT.TB_DIR)
 
         # checkpoint_callback = ModelCheckpoint(
         # dirpath=full_checkpoint_dir,
