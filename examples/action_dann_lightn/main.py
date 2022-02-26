@@ -73,7 +73,7 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         comet_logger = CometLogger(api_key="hXBdBG8FvfWxyLYwJRZlHi9GB", save_dir=cfg.OUTPUT.TB_DIR)
 
         # checkpoint_callback = ModelCheckpoint(
