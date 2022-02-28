@@ -33,7 +33,7 @@ def get_config(cfg):
             "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY, }, },
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY,},},
         }
     }
     data_params = {

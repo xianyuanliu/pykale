@@ -6,7 +6,8 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 from kale.embed.positional_encoding import PositionalEncoding
-from kale.embed.video_selayer import SELayerFeat
+
+# from kale.embed.video_selayer import SELayerFeat
 from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
 
 

@@ -7,16 +7,15 @@ import argparse
 import logging
 
 import pytorch_lightning as pl
+from config import get_cfg_defaults
+from model import get_model
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
 from pytorch_lightning.loggers import CometLogger
 
-from config import get_cfg_defaults
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
 from kale.utils.seed import set_seed
-from model import get_model
-
 
 # from pytorch_lightning.callbacks.early_stopping import EarlyStopping
 
@@ -29,7 +28,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
     args = parser.parse_args()

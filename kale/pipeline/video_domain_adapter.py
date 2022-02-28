@@ -25,7 +25,8 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLTrainer,
 )
-from kale.utils.logger import save_results_to_json
+
+# from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_video(
@@ -122,6 +123,7 @@ class AutomaticWeightedLoss(nn.Module):
         awl = AutomaticWeightedLoss(2)
         loss_sum = awl(loss1, loss2)
     """
+
     def __init__(self, num=2):
         super(AutomaticWeightedLoss, self).__init__()
         params = torch.ones(num, requires_grad=True)
