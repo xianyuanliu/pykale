@@ -390,8 +390,8 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
-                feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)
-                # feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
+                # feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)
+                feature_sched = torch.optim.lr_scheduler.LambdaLR(optimizer, lr_lambda=lambda epoch: self._lr_fact)
                 return [optimizer], [feature_sched]
             return [optimizer]
         raise NotImplementedError(f"Unknown optimizer type {self._optimizer_params['type']}")
