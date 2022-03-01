@@ -65,7 +65,7 @@ def main():
     )
 
     # ---- training/test process ----
-    ### Repeat multiple times to get std
+    # # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
         seed = cfg.SOLVER.SEED + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
@@ -84,13 +84,13 @@ def main():
         # mode="min",
         # )
 
-        ### Set early stopping
+        # # Set early stopping
         # early_stop_callback = EarlyStopping(monitor="valid_target_acc", min_delta=0.0000, patience=100, mode="max")
 
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
-        ### Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
+        # # Set the lightning trainer. Comment `limit_train_batches`, `limit_val_batches`, `limit_test_batches` when
         # training. Uncomment and change the ratio to test the code on the smallest sub-dataset for efficiency in
         # debugging. Uncomment early_stop_callback to activate early stopping.
         trainer = pl.Trainer(
@@ -111,16 +111,16 @@ def main():
             # limit_test_batches=0.02,
         )
 
-        ### Find learning_rate
+        # # Find learning_rate
         # lr_finder = trainer.tuner.lr_find(model, max_lr=0.1, min_lr=1e-6)
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
         # print(lr_finder.suggestion())
 
-        ### Training/validation process
+        # # Training/validation process
         trainer.fit(model)
 
-        ### Test process
+        # # Test process
         trainer.test()
         # trainer.test(ckpt_path=checkpoint_callback.last_model_path)
 

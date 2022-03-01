@@ -643,6 +643,11 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             num_data_load=self._num_train_dataload,
         )
 
+    def get_train_valid(self, valid_ratio):
+        train_dataset = self.get_train()
+        valid_dataset = self.get_test()
+        return train_dataset, valid_dataset
+
     def get_test(self):
         return VideoFrameDataset(
             root_path=Path(self._data_path, self._input_type, "{}_val.pkl".format(self._domain)),
