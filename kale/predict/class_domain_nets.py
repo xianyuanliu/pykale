@@ -153,22 +153,25 @@ class ClassNetVideo(nn.Module):
             self.fc1 = nn.Linear(input_size, n_verb_channel)
             self.bn1 = nn.BatchNorm1d(n_verb_channel)
             self.relu1 = nn.ReLU()
-            self.dp1 = nn.Dropout(dropout_keep_prob)
+            # self.dp1 = nn.Dropout(dropout_keep_prob)
             self.fc11 = nn.Linear(n_verb_channel, self.n_verb_class)
         if self.noun:
             self.n_noun_class = dict_n_class["noun"]
             self.fc2 = nn.Linear(input_size, n_noun_channel)
             self.bn2 = nn.BatchNorm1d(n_noun_channel)
             self.relu2 = nn.ReLU()
-            self.dp2 = nn.Dropout(dropout_keep_prob)
+            # self.dp2 = nn.Dropout(dropout_keep_prob)
             self.fc21 = nn.Linear(n_noun_channel, self.n_noun_class)
 
+    def n_classes(self):
+        return self.n_verb_class
+
     def forward(self, input):
-        x_verb = self.fc11(self.dp1(self.relu1(self.bn1(self.fc1(input)))))
+        x_verb = self.fc11(self.relu1(self.bn1(self.fc1(input))))
         if self.verb and not self.noun:
             x_noun = None
         if self.verb and self.noun:
-            x_noun = self.fc21(self.dp2(self.relu2(self.bn2(self.fc2(input)))))
+            x_noun = self.fc21(self.relu2(self.bn2(self.fc2(input))))
         return [x_verb, x_noun]
 
 
@@ -220,7 +223,29 @@ class ClassNetVideoC3D(nn.Module):
 
 
 # For Video/Action Recognition, DomainClassifier.
-class DomainNetVideo(nn.Module):
+# class DomainNetVideo(nn.Module):
+#     """Regular domain classifier network for video input.
+#
+#     Args:
+#         input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+#         n_channel (int, optional): the number of channel for Linear and BN layers.
+#     """
+#
+#     def __init__(self, input_size=128, n_channel=100):
+#         super(DomainNetVideo, self).__init__()
+#
+#         self.fc1 = nn.Linear(input_size, n_channel)
+#         self.bn1 = nn.BatchNorm1d(n_channel)
+#         self.relu1 = nn.ReLU()
+#         self.fc2 = nn.Linear(n_channel, 2)
+#
+#     def forward(self, input):
+#         x = self.relu1(self.bn1(self.fc1(input)))
+#         x = self.fc2(x)
+#         return x
+
+
+class DomainNetVideo(nn.Sequential):
     """Regular domain classifier network for video input.
 
     Args:
@@ -229,14 +254,16 @@ class DomainNetVideo(nn.Module):
     """
 
     def __init__(self, input_size=128, n_channel=100):
-        super(DomainNetVideo, self).__init__()
+        super(DomainNetVideo, self).__init__(
+            nn.Linear(input_size, n_channel),
+            nn.BatchNorm1d(n_channel),
+            nn.ReLU(),
+            nn.Linear(n_channel, n_channel),
+            nn.BatchNorm1d(n_channel),
+            nn.ReLU(),
+            nn.Linear(n_channel, 2),
+            # nn.Sigmoid()
+        )
 
-        self.fc1 = nn.Linear(input_size, n_channel)
-        self.bn1 = nn.BatchNorm1d(n_channel)
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(n_channel, 2)
-
-    def forward(self, input):
-        x = self.relu1(self.bn1(self.fc1(input)))
-        x = self.fc2(x)
-        return x
+    def get_parameters(self):
+        return [{"params": self.parameters(), "lr": 1.0}]

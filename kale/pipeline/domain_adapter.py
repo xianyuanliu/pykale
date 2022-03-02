@@ -7,10 +7,12 @@ This module uses `PyTorch Lightning <https://github.com/PyTorchLightning/pytorch
 """
 
 from enum import Enum
+from typing import Any, Optional, Tuple
 
 import numpy as np
 import pytorch_lightning as pl
 import torch
+from torch import nn
 from torch.autograd import Function
 
 import kale.predict.losses as losses
@@ -27,16 +29,72 @@ class GradReverse(Function):
     From https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/layers.py
     """
 
-    @staticmethod
-    def forward(ctx, x, alpha):
-        ctx.alpha = alpha
+    # @staticmethod
+    # def forward(ctx, x, alpha):
+    #     ctx.alpha = alpha
+    #
+    #     return x.view_as(x)
+    #
+    # @staticmethod
+    # def backward(ctx, grad_output):
+    #     output = grad_output.neg() * ctx.alpha
+    #     return output, None
 
-        return x.view_as(x)
+    @staticmethod
+    def forward(ctx: Any, input: torch.Tensor, coeff: Optional[float] = 1.0) -> torch.Tensor:
+        ctx.coeff = coeff
+        output = input * 1.0
+        return output
 
     @staticmethod
-    def backward(ctx, grad_output):
-        output = grad_output.neg() * ctx.alpha
-        return output, None
+    def backward(ctx: Any, grad_output: torch.Tensor) -> Tuple[torch.Tensor, Any]:
+        return grad_output.neg() * ctx.coeff, None
+
+
+class GradReverseLayer(nn.Module):
+    def __init__(self):
+        super(GradReverseLayer, self).__init__()
+
+    def forward(self, *input):
+        return GradReverse.apply(*input)
+
+
+class WarmStartGradReverseLayer(nn.Module):
+    """
+        Args:
+            alpha (float, optional): :math:`α`. Default: 1.0
+            lo (float, optional): Initial value. Default: 0.0
+            hi (float, optional): Final value. Default: 1.0
+            max_iters (float, optional): :math:`N`. Default: 1000
+            auto_step (bool, optional): If True, increase :math:`i` each time `forward` is called.
+              Otherwise use function `step` to increase :math:`i`. Default: False
+        """
+
+    def __init__(
+        self, alpha=1.0, lo=0.0, hi=1.0, max_iters=1000.0, auto_step=False,
+    ):
+        super(WarmStartGradReverseLayer, self).__init__()
+        self.alpha = alpha
+        self.lo = lo
+        self.hi = hi
+        self.iter_num = 0
+        self.max_iters = max_iters
+        self.auto_step = auto_step
+
+    def forward(self, input: torch.Tensor) -> torch.Tensor:
+        """"""
+        coeff = np.float(
+            2.0 * (self.hi - self.lo) / (1.0 + np.exp(-self.alpha * self.iter_num / self.max_iters))
+            - (self.hi - self.lo)
+            + self.lo
+        )
+        if self.auto_step:
+            self.step()
+        return GradReverse.apply(input, coeff)
+
+    def step(self):
+        """Increase iteration number :math:`i` by 1"""
+        self.iter_num += 1
 
 
 def set_requires_grad(model, requires_grad=True):
