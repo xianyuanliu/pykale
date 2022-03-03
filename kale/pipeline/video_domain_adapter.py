@@ -417,9 +417,12 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.class_type = class_type
         self.verb, self.noun = get_class_type(self.class_type)
-        self.rgb_feat = self.feat["rgb"]
-        self.flow_feat = self.feat["flow"]
-        self.audio_feat = self.feat["audio"]
+        if self.rgb:
+            self.rgb_feat = self.feat["rgb"]
+        if self.flow:
+            self.flow_feat = self.feat["flow"]
+        if self.audio:
+            self.audio_feat = self.feat["audio"]
 
     def forward(self, x):
         if self.feat is not None:
@@ -580,12 +583,15 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.class_type = class_type
         self.verb, self.noun = get_class_type(self.class_type)
-        self.rgb_feat = self.feat["rgb"]
-        self.flow_feat = self.feat["flow"]
-        self.audio_feat = self.feat["audio"]
-        self.rgb_domain_clf = self.domain_classifier["rgb"]
-        self.flow_domain_clf = self.domain_classifier["flow"]
-        self.audio_domain_clf = self.domain_classifier["audio"]
+        if self.rgb:
+            self.rgb_feat = self.feat["rgb"]
+            self.rgb_domain_clf = self.domain_classifier["rgb"]
+        if self.flow:
+            self.flow_feat = self.feat["flow"]
+            self.flow_domain_clf = self.domain_classifier["flow"]
+        if self.audio:
+            self.audio_feat = self.feat["audio"]
+            self.audio_domain_clf = self.domain_classifier["audio"]
         self.grl = WarmStartGradReverseLayer(alpha=self.alpha, lo=0.0, hi=1.0, max_iters=1000, auto_step=True)
 
         # self.awl = AutomaticWeightedLoss(2)
@@ -759,12 +765,15 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.class_type = class_type
         self.verb, self.noun = get_class_type(self.class_type)
-        self.rgb_feat = self.feat["rgb"]
-        self.flow_feat = self.feat["flow"]
-        self.audio_feat = self.feat["audio"]
-        self.rgb_domain_clf = self.domain_classifier["rgb"]
-        self.flow_domain_clf = self.domain_classifier["flow"]
-        self.audio_domain_clf = self.domain_classifier["audio"]
+        if self.rgb:
+            self.rgb_feat = self.feat["rgb"]
+            self.rgb_domain_clf = self.domain_classifier["rgb"]
+        if self.flow:
+            self.flow_feat = self.feat["flow"]
+            self.flow_domain_clf = self.domain_classifier["flow"]
+        if self.audio:
+            self.audio_feat = self.feat["audio"]
+            self.audio_domain_clf = self.domain_classifier["audio"]
 
     def forward(self, x):
         if self.feat is not None:
@@ -966,9 +975,12 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
         self.rgb, self.flow, self.audio = get_image_modality(self.image_modality)
         self.class_type = class_type
         self.verb, self.noun = get_class_type(self.class_type)
-        self.rgb_feat = self.feat["rgb"]
-        self.flow_feat = self.feat["flow"]
-        self.audio_feat = self.feat["audio"]
+        if self.rgb:
+            self.rgb_feat = self.feat["rgb"]
+        if self.flow:
+            self.flow_feat = self.feat["flow"]
+        if self.audio:
+            self.audio_feat = self.feat["audio"]
 
     def forward(self, x):
         if self.feat is not None:
