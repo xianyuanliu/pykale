@@ -23,6 +23,7 @@ from kale.pipeline.domain_adapter import (
     GradReverse,
     Method,
     set_requires_grad,
+    WarmStartGradReverseLayer,
     WDGRLTrainer,
 )
 
@@ -585,6 +586,7 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.rgb_domain_clf = self.domain_classifier["rgb"]
         self.flow_domain_clf = self.domain_classifier["flow"]
         self.audio_domain_clf = self.domain_classifier["audio"]
+        self.grl = WarmStartGradReverseLayer(alpha=self.alpha, lo=0.0, hi=1.0, max_iters=1000, auto_step=True)
 
         # self.awl = AutomaticWeightedLoss(2)
 
@@ -605,17 +607,20 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
+                reverse_feature_rgb = self.grl(x_rgb)
+                # reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.rgb_domain_clf(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
+                reverse_feature_flow = self.grl(x_flow)
+                # reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
                 adversarial_output_flow = self.flow_domain_clf(reverse_feature_flow)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
+                reverse_feature_audio = self.grl(x_audio)
+                # reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
                 adversarial_output_audio = self.audio_domain_clf(reverse_feature_audio)
 
             x = self.concatenate(x_rgb, x_flow, x_audio)
