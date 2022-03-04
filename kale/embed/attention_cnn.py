@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from kale.embed.positional_encoding import PositionalEncoding
 
-# from kale.embed.video_selayer import SELayerFeat
+from kale.embed.video_selayer import SELayerFeat
 from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
 
 
@@ -233,16 +233,16 @@ class TransformerBlock(nn.Module):
 class TransformerSENet(nn.Module):
     """Regular simple network for video input.
     Args:
-        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        input_size (int, optional): the dimension of the final feature vector.
         n_channel (int, optional): the number of channel for Linear and BN layers.
         output_size (int, optional): the dimension of output.
         dropout_keep_prob (int, optional): the dropout probability for keeping the parameters.
     """
 
-    def __init__(self, input_size=512, n_channel=512, output_size=256, dropout_keep_prob=0.5):
+    def __init__(self, input_size=1024, n_channel=256, output_size=1024, dropout_keep_prob=0.5):
         super(TransformerSENet, self).__init__()
         self.hidden_sizes = 512
-        self.num_layers = 12
+        self.num_layers = 4
 
         self.transformer = nn.ModuleList(
             [
@@ -265,12 +265,12 @@ class TransformerSENet(nn.Module):
         # self.dp1 = nn.Dropout(dropout_keep_prob)
         # self.fc2 = nn.Linear(n_channel, output_size)
         # self.fc3 = nn.Linear(input_size, output_size)
-        # self.selayer = SELayerFeat(channel=8, reduction=2)
+        self.selayer = SELayerFeat(channel=16, reduction=4)
 
     def forward(self, x):
         for layer in self.transformer:
             x = layer(x)
         # x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         # x = self.fc3(x)
-        # x = self.selayer(x)
+        x = self.selayer(x)
         return x

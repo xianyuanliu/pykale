@@ -124,7 +124,7 @@ def get_extractor_video(model_name, image_modality, attention, num_classes):
     return feature_network, int(class_feature_dim), int(domain_feature_dim)
 
 
-def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=256, num_segments=8):
+def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=1024, num_segments=8):
     """Get the extractor for feature input.
     """
     logging.info("{}".format(model_name))
