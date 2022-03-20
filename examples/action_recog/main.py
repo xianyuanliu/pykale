@@ -32,7 +32,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     args = parser.parse_args()
     return args
@@ -106,7 +106,7 @@ def main():
         #     collate_fn=collate_video_label,
         # )
 
-        train_loader, valid_loader, test_loader = get_train_valid_test_loaders_ptvideo(
+        train_loader, _, test_loader = get_train_valid_test_loaders_ptvideo(
             train_dataset,
             valid_dataset,
             test_dataset,
@@ -119,10 +119,10 @@ def main():
         raise ValueError("Dataset not supported")
 
     print(f"Train samples: {len(train_dataset)}")
-    print(f"Valid samples: {len(valid_dataset)}")
+    # print(f"Valid samples: {len(valid_dataset)}")
     print(f"Test samples: {len(test_dataset)}")
     print(f"Train batches: {len(train_loader)}")
-    print(f"Valid batches: {len(valid_loader)}")
+    # print(f"Valid batches: {len(valid_loader)}")
     print(f"Test batches: {len(test_loader)}")
 
     # ---- training and evaluation ----
@@ -133,7 +133,10 @@ def main():
 
         # ---- setup model and logger ----
         model = get_model(cfg, num_classes)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        if cfg.COMET.ENABLE:
+            logger = pl_loggers.CometLogger(api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.TB_DIR)
+        else:
+            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         # checkpoint_callback = ModelCheckpoint(
         # filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
         # )
@@ -145,7 +148,7 @@ def main():
         trainer = pl.Trainer(
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             gpus=args.gpus,
-            logger=tb_logger,
+            logger=logger,
             # callbacks=[checkpoint_callback, lr_monitor, progress_bar],
             callbacks=[lr_monitor, progress_bar],
             # limit_train_batches=0.005,
@@ -167,7 +170,7 @@ def main():
         # print(lr_finder.suggestion())
 
         ### Training/validation process
-        trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=valid_loader)
+        trainer.fit(model, train_dataloaders=train_loader, val_dataloaders=test_loader)
         # trainer.fit(model, train_dataloaders=train_loader)
 
         ### Evaluation

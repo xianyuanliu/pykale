@@ -60,6 +60,14 @@ _C.OUTPUT.FAST_DEV_RUN = False  # True for debug
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
 _C.OUTPUT.TB_DIR = os.path.join("tb_logs", _C.DATASET.NAME)
 
+# -----------------------------------------------------------------------------
+# Comet
+# -----------------------------------------------------------------------------
+_C.COMET = CN()
+_C.COMET.ENABLE = True
+_C.COMET.API_KEY = "hXBdBG8FvfWxyLYwJRZlHi9GB"
+_C.COMET.PROJECT_NAME = "Action Recognition"
+
 
 def get_cfg_defaults():
     return _C.clone()
