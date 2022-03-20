@@ -140,7 +140,8 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
         ),
         clips_per_video=5.61,
     )
-    train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
+    # train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
+    valid_dataset = None
     num_classes = 51
     return train_dataset, valid_dataset, test_dataset, num_classes
 
@@ -171,7 +172,8 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
         ),
         clips_per_video=11.05,
     )
-    train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
+    # train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
+    valid_dataset = None
     num_classes = 101
     return train_dataset, valid_dataset, test_dataset, num_classes
 
@@ -180,8 +182,9 @@ def get_train_valid_test_loaders_ptvideo(
     train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0
 ):
     train_loader = DataLoader(train_dataset, batch_size=train_batch_size, num_workers=num_workers)
-    valid_loader = DataLoader(valid_dataset, batch_size=test_batch_size, num_workers=num_workers)
     test_loader = DataLoader(test_dataset, batch_size=test_batch_size, num_workers=num_workers)
+    # valid_loader = DataLoader(valid_dataset, batch_size=test_batch_size, num_workers=num_workers)
+    valid_loader = None
     return train_loader, valid_loader, test_loader
 
 
