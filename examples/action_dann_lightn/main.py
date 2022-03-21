@@ -9,7 +9,7 @@ import logging
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
-from pytorch_lightning import loggers as pl_loggers
+# from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
 from pytorch_lightning.loggers import CometLogger
 
@@ -73,7 +73,7 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
         # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        comet_logger = CometLogger(api_key="hXBdBG8FvfWxyLYwJRZlHi9GB", save_dir=cfg.OUTPUT.TB_DIR)
+        comet_logger = CometLogger(api_key="fwDWzM3HmQuZuFGFS2q90vLT3", save_dir=cfg.OUTPUT.TB_DIR)
 
         # checkpoint_callback = ModelCheckpoint(
         # dirpath=full_checkpoint_dir,

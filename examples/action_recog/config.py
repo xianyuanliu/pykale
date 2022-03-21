@@ -65,7 +65,7 @@ _C.OUTPUT.TB_DIR = os.path.join("tb_logs", _C.DATASET.NAME)
 # -----------------------------------------------------------------------------
 _C.COMET = CN()
 _C.COMET.ENABLE = True
-_C.COMET.API_KEY = "hXBdBG8FvfWxyLYwJRZlHi9GB"
+_C.COMET.API_KEY = "fwDWzM3HmQuZuFGFS2q90vLT3"
 _C.COMET.PROJECT_NAME = "Action Recognition"
 
 
