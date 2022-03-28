@@ -136,10 +136,10 @@ def main():
         model = get_model(cfg, num_classes)
         if cfg.COMET.ENABLE:
             logger = pl_loggers.CometLogger(
-                api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.TB_DIR
+                api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.OUT_DIR
             )
         else:
-            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
         # checkpoint_callback = ModelCheckpoint(
         # filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
         # )
