@@ -136,7 +136,10 @@ def main():
         model = get_model(cfg, num_classes)
         if cfg.COMET.ENABLE:
             logger = pl_loggers.CometLogger(
-                api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.OUT_DIR, experiment_name=cfg.COMET.EXPERIMENT_NAME,
+                api_key=cfg.COMET.API_KEY,
+                project_name=cfg.COMET.PROJECT_NAME,
+                save_dir=cfg.OUTPUT.OUT_DIR,
+                experiment_name=cfg.COMET.EXPERIMENT_NAME,
             )
         else:
             logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
