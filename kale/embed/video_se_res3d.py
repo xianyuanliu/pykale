@@ -71,8 +71,8 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
         model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 2))
         model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 4))
         model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 4))
-        model.layer4._modules["0"].add_module(attention, se_layer(512, temporal_length // 8))
-        model.layer4._modules["1"].add_module(attention, se_layer(512, temporal_length // 8))
+        model.layer4._modules["0"].add_module(attention, se_layer(temporal_length // 8))
+        model.layer4._modules["1"].add_module(attention, se_layer(temporal_length // 8))
 
     # Add channel-temporal-wise SELayer
     elif attention == "SELayerCT":
