@@ -58,7 +58,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.FAST_DEV_RUN = False  # True for debug
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.TB_DIR = os.path.join("tb_logs", _C.DATASET.NAME)
+_C.OUTPUT.OUT_DIR = os.path.join("logs", _C.DATASET.NAME)
 
 # -----------------------------------------------------------------------------
 # Comet

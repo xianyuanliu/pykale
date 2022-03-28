@@ -214,14 +214,16 @@ class InceptionModule(nn.Module):
             out = self.SELayerMC(out)
         if "SELayerMAC" in dir(self):
             out = self.SELayerMAC(out)
+        if "SELayerCT" in dir(self):
+            out = self.SELayerCT(out)
 
         if "SELayerT" in dir(self):  # check temporal-wise
             out = self.SELayerT(out)
 
-        if "SELayerCTc" in dir(self):  # check channel-temporal-wise
-            out = self.SELayerCTc(out)
-        if "SELayerCTt" in dir(self):
-            out = self.SELayerCTt(out)
+        # if "SELayerCTc" in dir(self):  # check channel-temporal-wise
+        #     out = self.SELayerCTc(out)
+        # if "SELayerCTt" in dir(self):
+        #     out = self.SELayerCTt(out)
 
         if "SELayerTCt" in dir(self):  # check temporal-channel-wise
             out = self.SELayerTCt(out)
