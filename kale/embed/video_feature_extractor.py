@@ -137,7 +137,8 @@ def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=
     if audio:
         feature_network_audio = TransformerSENet(input_size=input_size, output_size=output_size)
 
-    domain_feature_dim = int(output_size * num_segments)
+    # domain_feature_dim = int(output_size * num_segments)
+    domain_feature_dim = int(output_size)
     if rgb:
         if flow:
             if audio:  # For all inputs
