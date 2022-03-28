@@ -24,7 +24,7 @@ from kale.pipeline.domain_adapter import (
     Method,
     set_requires_grad,
     WarmStartGradReverseLayer,
-    WDGRLTrainer,
+    WDGRLTrainer, GradReverseLayer,
 )
 
 # from kale.utils.logger import save_results_to_json
@@ -173,6 +173,12 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         log_metrics["train_adv_loss"] = adv_loss
         log_metrics["train_task_loss"] = task_loss
 
+        # for p in self.parameters():
+        #     if p.grad is not None:
+        #         print("p", p.grad.norm())
+        #     else:
+        #         print("p", p.grad)
+
         for key in log_metrics:
             self.log(key, log_metrics[key])
 
@@ -194,6 +200,21 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
+
+    def on_after_backward(self):
+        # example to inspect gradient information in tensorboard
+        if self.current_epoch >= 0:
+            for k, v in self.named_parameters():
+                grads = v.grad
+                name = k
+                # self.logger.experiment.log_histogram_3d(name=name, values=grads)
+                # if grads is not None:
+                    # print(name, grads.requires_grad, grads.mean().item())
+                    # self.logger.experiment.log_histogram_3d(name=name, values=grads)
+                # else:
+                    # print(name, grads)
+                    # continue
+    #             # self.logger.experiment.log_histogram_3d(name=name, values=grads)
 
     def concatenate(self, x_rgb, x_flow, x_audio):
         if self.rgb:
@@ -388,7 +409,11 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             optimizer = torch.optim.Adam(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            # optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.SGD(
+                self.rgb_feat.get_parameters()
+                + self.rgb_domain_clf.get_parameters()
+                + self.classifier.get_parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
                 # feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)
@@ -592,7 +617,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         if self.audio:
             self.audio_feat = self.feat["audio"]
             self.audio_domain_clf = self.domain_classifier["audio"]
-        self.grl = WarmStartGradReverseLayer(alpha=self.alpha, lo=0.0, hi=1.0, max_iters=1000, auto_step=True)
+        # self.grl = WarmStartGradReverseLayer(alpha=self.alpha, lo=0.0, hi=1.0, max_iters=1000, auto_step=True)
+        self.grl = GradReverseLayer()
 
         # self.awl = AutomaticWeightedLoss(2)
 
@@ -613,8 +639,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = self.grl(x_rgb)
-                # reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
+                # reverse_feature_rgb = self.grl(x_rgb)
+                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
                 adversarial_output_rgb = self.rgb_domain_clf(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
@@ -679,23 +705,23 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         if self.rgb:
             if self.flow:
                 if self.audio:  # For all inputs
-                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_flow, loss_dmn_src_audio]).mean()
-                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_flow, loss_dmn_tgt_audio]).mean()
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow + loss_dmn_tgt_audio
                     dok = torch.cat(
                         (dok_src_rgb, dok_src_flow, dok_src_audio, dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio)
                     )
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow, dok_tgt_audio))
                 else:  # For joint(rgb+flow) input
-                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_flow]).mean()
-                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_flow]).mean()
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_flow
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_flow
                     dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_flow))
             else:
                 if self.audio:  # For rgb+audio input
-                    loss_dmn_src = torch.stack([loss_dmn_src_rgb, loss_dmn_src_audio]).mean()
-                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_rgb, loss_dmn_tgt_audio]).mean()
+                    loss_dmn_src = loss_dmn_src_rgb + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_rgb + loss_dmn_tgt_audio
                     dok = torch.cat((dok_src_rgb, dok_src_audio, dok_tgt_rgb, dok_tgt_audio))
                     dok_src = torch.cat((dok_src_rgb, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_rgb, dok_tgt_audio))
@@ -708,8 +734,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         else:
             if self.flow:
                 if self.audio:  # For flow+audio input
-                    loss_dmn_src = torch.stack([loss_dmn_src_flow, loss_dmn_src_audio]).mean()
-                    loss_dmn_tgt = torch.stack([loss_dmn_tgt_flow, loss_dmn_tgt_audio]).mean()
+                    loss_dmn_src = loss_dmn_src_flow + loss_dmn_src_audio
+                    loss_dmn_tgt = loss_dmn_tgt_flow + loss_dmn_tgt_audio
                     dok = torch.cat((dok_src_flow, dok_src_audio, dok_tgt_flow, dok_tgt_audio))
                     dok_src = torch.cat((dok_src_flow, dok_src_audio))
                     dok_tgt = torch.cat((dok_tgt_flow, dok_tgt_audio))
