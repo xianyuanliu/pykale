@@ -9,6 +9,7 @@ import logging
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
+
 # from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
 from pytorch_lightning.loggers import CometLogger

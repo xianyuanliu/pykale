@@ -12,7 +12,7 @@ from torch import nn
 
 import kale.predict.losses as losses
 from kale.loaddata.video_access import get_class_type, get_image_modality
-from kale.pipeline.domain_adapter import (
+from kale.pipeline.domain_adapter import (  # WarmStartGradReverseLayer,
     BaseAdaptTrainer,
     BaseMMDLike,
     CDANTrainer,
@@ -21,10 +21,10 @@ from kale.pipeline.domain_adapter import (
     get_aggregated_metrics_from_dict,
     get_metrics_from_parameter_dict,
     GradReverse,
+    GradReverseLayer,
     Method,
     set_requires_grad,
-    WarmStartGradReverseLayer,
-    WDGRLTrainer, GradReverseLayer,
+    WDGRLTrainer,
 )
 
 # from kale.utils.logger import save_results_to_json
@@ -201,20 +201,20 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
 
-    def on_after_backward(self):
-        # example to inspect gradient information in tensorboard
-        if self.current_epoch >= 0:
-            for k, v in self.named_parameters():
-                grads = v.grad
-                name = k
-                # self.logger.experiment.log_histogram_3d(name=name, values=grads)
-                # if grads is not None:
-                    # print(name, grads.requires_grad, grads.mean().item())
-                    # self.logger.experiment.log_histogram_3d(name=name, values=grads)
-                # else:
-                    # print(name, grads)
-                    # continue
-    #             # self.logger.experiment.log_histogram_3d(name=name, values=grads)
+    # def on_after_backward(self):
+    #     # example to inspect gradient information in tensorboard
+    #     if self.current_epoch >= 0:
+    #         for k, v in self.named_parameters():
+    #             grads = v.grad
+    #             name = k
+    #             self.logger.experiment.log_histogram_3d(name=name, values=grads)
+    #             if grads is not None:
+    #                 print(name, grads.requires_grad, grads.mean().item())
+    #                 self.logger.experiment.log_histogram_3d(name=name, values=grads)
+    #             else:
+    #                 print(name, grads)
+    #                 continue
+    #             self.logger.experiment.log_histogram_3d(name=name, values=grads)
 
     def concatenate(self, x_rgb, x_flow, x_audio):
         if self.rgb:
@@ -413,7 +413,10 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             optimizer = torch.optim.SGD(
                 self.rgb_feat.get_parameters()
                 + self.rgb_domain_clf.get_parameters()
-                + self.classifier.get_parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+                + self.classifier.get_parameters(),
+                lr=self._init_lr,
+                **self._optimizer_params["optim_params"],
+            )
 
             if self._adapt_lr:
                 # feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)

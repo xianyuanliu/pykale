@@ -201,6 +201,7 @@ class ClassNetVideo(nn.Module):
         ]
         return params
 
+
 class ClassNetVideoI3D(nn.Module):
     """Classifier network for video input for I3D refer to MMSADA.
 

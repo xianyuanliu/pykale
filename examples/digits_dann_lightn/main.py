@@ -66,7 +66,9 @@ def main():
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, num_channels)
         # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        comet_logger = pl_loggers.CometLogger(api_key="fwDWzM3HmQuZuFGFS2q90vLT3", project_name="Digits DA", save_dir=cfg.OUTPUT.TB_DIR)
+        comet_logger = pl_loggers.CometLogger(
+            api_key="fwDWzM3HmQuZuFGFS2q90vLT3", project_name="Digits DA", save_dir=cfg.OUTPUT.TB_DIR
+        )
         checkpoint_callback = ModelCheckpoint(
             filename="{epoch}-{step}-{valid_loss:.4f}", monitor="valid_loss", mode="min",
         )
