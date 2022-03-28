@@ -34,6 +34,7 @@ class SEInceptionI3DRGB(nn.Module):
         super(SEInceptionI3DRGB, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
         temporal_length = 16
+        se_layer = get_attention(attention)
 
         # Add channel-wise SELayer
         if attention in [
@@ -46,7 +47,6 @@ class SEInceptionI3DRGB(nn.Module):
             "SELayerMC",
             "SELayerMAC",
         ]:
-            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))
             model.Mixed_4b.add_module(attention, se_layer(512))
@@ -59,7 +59,6 @@ class SEInceptionI3DRGB(nn.Module):
 
         # Add temporal-wise SELayer
         elif attention == "SELayerT":
-            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(temporal_length // 2))
             model.Mixed_3c.add_module(attention, se_layer(temporal_length // 2))
             model.Mixed_4b.add_module(attention, se_layer(temporal_length // 4))
@@ -72,7 +71,6 @@ class SEInceptionI3DRGB(nn.Module):
 
         # Add channel-temporal-wise SELayer
         elif attention == "SELayerCT":
-            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(256, temporal_length // 2))
             model.Mixed_3c.add_module(attention, se_layer(480, temporal_length // 2))
             model.Mixed_4b.add_module(attention, se_layer(512, temporal_length // 4))
@@ -83,47 +81,17 @@ class SEInceptionI3DRGB(nn.Module):
             # model.Mixed_5b.add_module(attention, se_layer(832, temporal_length // 8))
             # model.Mixed_5c.add_module(attention, se_layer(1024, temporal_length // 8))
 
-            # model.Mixed_3b.add_module(attention + "c", SELayerC(256))
-            # model.Mixed_3c.add_module(attention + "c", SELayerC(480))
-            # model.Mixed_4b.add_module(attention + "c", SELayerC(512))
-            # model.Mixed_4c.add_module(attention + "c", SELayerC(512))
-            # model.Mixed_4d.add_module(attention + "c", SELayerC(512))
-            # model.Mixed_4e.add_module(attention + "c", SELayerC(528))
-            # model.Mixed_4f.add_module(attention + "c", SELayerC(832))
-            # model.Mixed_5b.add_module(attention + "c", SELayerC(832))
-            # model.Mixed_5c.add_module(attention + "c", SELayerC(1024))
-            #
-            # model.Mixed_3b.add_module(attention + "t", SELayerT(temporal_length // 2))
-            # model.Mixed_3c.add_module(attention + "t", SELayerT(temporal_length // 2))
-            # model.Mixed_4b.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # model.Mixed_4c.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # model.Mixed_4d.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # model.Mixed_4e.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # model.Mixed_4f.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # # model.Mixed_5b.add_module(attention + "t", SELayerT(temporal_length // 8))
-            # # model.Mixed_5c.add_module(attention + "t", SELayerT(temporal_length // 8))
-
         # Add temporal-channel-wise SELayer
         elif attention == "SELayerTC":
-            model.Mixed_3b.add_module(attention + "t", SELayerT(temporal_length // 2))
-            model.Mixed_3c.add_module(attention + "t", SELayerT(temporal_length // 2))
-            model.Mixed_4b.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4c.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4d.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4e.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4f.add_module(attention + "t", SELayerT(temporal_length // 4))
-            # model.Mixed_5b.add_module(attention + "t", SELayerT(temporal_length // 8))
-            # model.Mixed_5c.add_module(attention + "t", SELayerT(temporal_length // 8))
-
-            model.Mixed_3b.add_module(attention + "c", SELayerC(256))
-            model.Mixed_3c.add_module(attention + "c", SELayerC(480))
-            model.Mixed_4b.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4c.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4d.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4e.add_module(attention + "c", SELayerC(528))
-            model.Mixed_4f.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5b.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5c.add_module(attention + "c", SELayerC(1024))
+            model.Mixed_3b.add_module(attention, se_layer(temporal_length // 2, 256))
+            model.Mixed_3c.add_module(attention, se_layer(temporal_length // 2, 480))
+            model.Mixed_4b.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4c.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4d.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4e.add_module(attention, se_layer(temporal_length // 4, 528))
+            model.Mixed_4f.add_module(attention, se_layer(temporal_length // 4, 832))
+            # model.Mixed_5b.add_module(attention, se_layer(temporal_length // 8, 832))
+            # model.Mixed_5c.add_module(attention, se_layer(temporal_length // 8, 1024))
 
         else:
             raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
@@ -141,6 +109,7 @@ class SEInceptionI3DFlow(nn.Module):
         super(SEInceptionI3DFlow, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
         temporal_length = 16
+        se_layer = get_attention(attention)
 
         # Add channel-wise SELayer
         if attention in [
@@ -153,7 +122,6 @@ class SEInceptionI3DFlow(nn.Module):
             "SELayerMC",
             "SELayerMAC",
         ]:
-            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(256))
             model.Mixed_3c.add_module(attention, se_layer(480))
             model.Mixed_4b.add_module(attention, se_layer(512))
@@ -166,7 +134,6 @@ class SEInceptionI3DFlow(nn.Module):
 
         # Add temporal-wise SELayer
         elif attention == "SELayerT":
-            se_layer = get_attention(attention)
             model.Mixed_3b.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_3c.add_module(attention, se_layer(temporal_length // 4))
             model.Mixed_4b.add_module(attention, se_layer(temporal_length // 8))
@@ -178,44 +145,29 @@ class SEInceptionI3DFlow(nn.Module):
             # model.Mixed_5c.add_module(attention, se_layer(temporal_length // 16))
 
         # Add channel-temporal-wise SELayer
+        # Add channel-temporal-wise SELayer
         elif attention == "SELayerCT":
-            model.Mixed_3b.add_module(attention + "c", SELayerC(256))
-            model.Mixed_3c.add_module(attention + "c", SELayerC(480))
-            model.Mixed_4b.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4c.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4d.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4e.add_module(attention + "c", SELayerC(528))
-            model.Mixed_4f.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5b.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5c.add_module(attention + "c", SELayerC(1024))
-
-            model.Mixed_3b.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_3c.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4b.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4c.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4d.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4e.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4f.add_module(attention + "t", SELayerT(temporal_length // 8))
+            model.Mixed_3b.add_module(attention, se_layer(256, temporal_length // 2))
+            model.Mixed_3c.add_module(attention, se_layer(480, temporal_length // 2))
+            model.Mixed_4b.add_module(attention, se_layer(512, temporal_length // 4))
+            model.Mixed_4c.add_module(attention, se_layer(512, temporal_length // 4))
+            model.Mixed_4d.add_module(attention, se_layer(512, temporal_length // 4))
+            model.Mixed_4e.add_module(attention, se_layer(528, temporal_length // 4))
+            model.Mixed_4f.add_module(attention, se_layer(832, temporal_length // 4))
+            # model.Mixed_5b.add_module(attention, se_layer(832, temporal_length // 8))
+            # model.Mixed_5c.add_module(attention, se_layer(1024, temporal_length // 8))
 
         # Add temporal-channel-wise SELayer
         elif attention == "SELayerTC":
-            model.Mixed_3b.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_3c.add_module(attention + "t", SELayerT(temporal_length // 4))
-            model.Mixed_4b.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4c.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4d.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4e.add_module(attention + "t", SELayerT(temporal_length // 8))
-            model.Mixed_4f.add_module(attention + "t", SELayerT(temporal_length // 8))
-
-            model.Mixed_3b.add_module(attention + "c", SELayerC(256))
-            model.Mixed_3c.add_module(attention + "c", SELayerC(480))
-            model.Mixed_4b.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4c.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4d.add_module(attention + "c", SELayerC(512))
-            model.Mixed_4e.add_module(attention + "c", SELayerC(528))
-            model.Mixed_4f.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5b.add_module(attention + "c", SELayerC(832))
-            model.Mixed_5c.add_module(attention + "c", SELayerC(1024))
+            model.Mixed_3b.add_module(attention, se_layer(temporal_length // 2, 256))
+            model.Mixed_3c.add_module(attention, se_layer(temporal_length // 2, 480))
+            model.Mixed_4b.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4c.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4d.add_module(attention, se_layer(temporal_length // 4, 512))
+            model.Mixed_4e.add_module(attention, se_layer(temporal_length // 4, 528))
+            model.Mixed_4f.add_module(attention, se_layer(temporal_length // 4, 832))
+            # model.Mixed_5b.add_module(attention, se_layer(temporal_length // 8, 832))
+            # model.Mixed_5c.add_module(attention, se_layer(temporal_length // 8, 1024))
 
         else:
             raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))

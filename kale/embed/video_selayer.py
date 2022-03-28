@@ -34,6 +34,8 @@ def get_attention(attention):
         module = SELayerT
     elif attention == "SELayerCT":
         module = SELayerCT
+    elif attention == "SELayerTC":
+        module = SELayerTC
     elif attention == "SRMVideo":
         module = SRMVideo
     elif attention == "CBAMVideo":
@@ -133,6 +135,21 @@ class SELayerCT(SELayer):
     def forward(self, x):
         out = self.se_c(x)
         out = self.se_t(out)
+        return out
+
+
+class SELayerTC(SELayer):
+    """Construct channel-wise and temporal-wise SELayer."""
+
+    def __init__(self, channel, time, reduction=16):
+        super(SELayerTC, self).__init__(channel, reduction)
+        self.temporal = time
+        self.se_t = SELayerT(channel, reduction)
+        self.se_c = SELayerC(time, reduction)
+
+    def forward(self, x):
+        out = self.se_t(x)
+        out = self.se_c(out)
         return out
 
 
