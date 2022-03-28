@@ -32,7 +32,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     args = parser.parse_args()
     return args
@@ -52,8 +52,9 @@ def main():
     format_str = "@%(asctime)s %(name)s [%(levelname)s] - (%(message)s)"
     logging.basicConfig(format=format_str)
     # ---- setup dataset ----
-    # seed = cfg.SOLVER.SEED
-    # set_seed(seed)
+    seed = cfg.SOLVER.SEED
+    set_seed(seed)
+
     if cfg.DATASET.NAME in ["ADL", "KITCHEN", "GTEA", "EPIC"]:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
@@ -134,7 +135,9 @@ def main():
         # ---- setup model and logger ----
         model = get_model(cfg, num_classes)
         if cfg.COMET.ENABLE:
-            logger = pl_loggers.CometLogger(api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.TB_DIR)
+            logger = pl_loggers.CometLogger(
+                api_key=cfg.COMET.API_KEY, project_name=cfg.COMET.PROJECT_NAME, save_dir=cfg.OUTPUT.TB_DIR
+            )
         else:
             logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         # checkpoint_callback = ModelCheckpoint(
