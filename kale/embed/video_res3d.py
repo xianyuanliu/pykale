@@ -110,33 +110,34 @@ class BasicBlock(nn.Module):
         # Check if SELayer is used.
         if "SELayerC" in dir(self):  # check channel-wise
             out = self.SELayerC(out)
-        if "SELayerCoC" in dir(self):
+        elif "SELayerCoC" in dir(self):
             out = self.SELayerCoC(out)
-        if "SELayerMC" in dir(self):
+        elif "SELayerMC" in dir(self):
             out = self.SELayerMC(out)
-        if "SELayerMAC" in dir(self):
+        elif "SELayerMAC" in dir(self):
             out = self.SELayerMAC(out)
 
-        if "SELayerT" in dir(self):  # check temporal-wise
+        elif "SELayerT" in dir(self):  # check temporal-wise
             out = self.SELayerT(out)
 
-        if "SELayerCT" in dir(self):  # check channel-temporal-wise
+        elif "SELayerCT" in dir(self):  # check channel-temporal-wise
             out = self.SELayerCT(out)
-        if "SELayerTC" in dir(self):  # check temporal-channel-wise
+        elif "SELayerTC" in dir(self):  # check temporal-channel-wise
             out = self.SELayerTC(out)
-        if "SELayerCTParl" in dir(self):
+        elif "SELayerCTParl" in dir(self):
             out = self.SELayerCTParl(out)
 
-        if "SRMVideo" in dir(self):
+        elif "SRMVideo" in dir(self):
             out = self.SRMVideo(out)
-        if "CBAMVideo" in dir(self):
+        elif "CBAMVideo" in dir(self):
             out = self.CBAMVideo(out)
-        if "ECANetVideo" in dir(self):
+        elif "ECANetVideo" in dir(self):
             out = self.ECANetVideo(out)
-        if "STAM" in dir(self):
+        elif "STAM" in dir(self):
             out = self.STAM(out)
 
-        out += residual
+        else:
+            out += residual
         out = self.relu(out)
 
         return out
