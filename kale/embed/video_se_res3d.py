@@ -74,8 +74,8 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
         model.layer4._modules["0"].add_module(attention, se_layer(temporal_length // 8))
         model.layer4._modules["1"].add_module(attention, se_layer(temporal_length // 8))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
+    # Add channel-temporal-wise SELayer & temporal-channel-wise SELayer
+    elif attention in ["SELayerCT", "SELayerCTParl", "SELayerTC"]:
         model.layer1._modules["0"].add_module(attention, se_layer(64, temporal_length))
         model.layer1._modules["1"].add_module(attention, se_layer(64, temporal_length))
         model.layer2._modules["0"].add_module(attention, se_layer(128, temporal_length // 2))
@@ -84,17 +84,6 @@ def _se_video_resnet_rgb(arch, attention, pretrained=False, progress=True, **kwa
         model.layer3._modules["1"].add_module(attention, se_layer(256, temporal_length // 4))
         model.layer4._modules["0"].add_module(attention, se_layer(512, temporal_length // 8))
         model.layer4._modules["1"].add_module(attention, se_layer(512, temporal_length // 8))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
-        model.layer1._modules["0"].add_module(attention, se_layer(temporal_length, 64))
-        model.layer1._modules["1"].add_module(attention, se_layer(temporal_length, 64))
-        model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 2, 128))
-        model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 2, 128))
-        model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 4, 256))
-        model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 4, 256))
-        model.layer4._modules["0"].add_module(attention, se_layer(temporal_length // 8, 512))
-        model.layer4._modules["1"].add_module(attention, se_layer(temporal_length // 8, 512))
 
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))
@@ -132,8 +121,8 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
         model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 8))
         model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 8))
 
-    # Add channel-temporal-wise SELayer
-    elif attention == "SELayerCT":
+    # Add channel-temporal-wise SELayer & temporal-channel-wise SELayer
+    elif attention in ["SELayerCT", "SELayerCTParl", "SELayerTC"]:
         model.layer1._modules["0"].add_module(attention, se_layer(64, temporal_length // 2))
         model.layer1._modules["1"].add_module(attention, se_layer(64, temporal_length // 2))
         model.layer2._modules["0"].add_module(attention, se_layer(128, temporal_length // 4))
@@ -142,17 +131,6 @@ def _se_video_resnet_flow(arch, attention, pretrained=False, progress=True, **kw
         model.layer3._modules["1"].add_module(attention, se_layer(256, temporal_length // 8))
         # model.layer4._modules["0"].add_module(attention, se_layer(512, temporal_length // 16))
         # model.layer4._modules["1"].add_module(attention, se_layer(512, temporal_length // 16))
-
-    # Add temporal-channel-wise SELayer
-    elif attention == "SELayerTC":
-        model.layer1._modules["0"].add_module(attention, se_layer(temporal_length // 2, 64))
-        model.layer1._modules["1"].add_module(attention, se_layer(temporal_length // 2, 64))
-        model.layer2._modules["0"].add_module(attention, se_layer(temporal_length // 4, 128))
-        model.layer2._modules["1"].add_module(attention, se_layer(temporal_length // 4, 128))
-        model.layer3._modules["0"].add_module(attention, se_layer(temporal_length // 8, 256))
-        model.layer3._modules["1"].add_module(attention, se_layer(temporal_length // 8, 256))
-        # model.layer4._modules["0"].add_module(attention, se_layer(temporal_length // 16, 512))
-        # model.layer4._modules["1"].add_module(attention, se_layer(temporal_length // 16, 512))
 
     else:
         raise ValueError("Wrong MODEL.ATTENTION. Current:{}".format(attention))

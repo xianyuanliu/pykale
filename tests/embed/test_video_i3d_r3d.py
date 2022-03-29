@@ -27,6 +27,7 @@ SE_LAYERS = [
     "SELayerMAC",
     "SELayerCT",
     "SELayerTC",
+    "SELayerCTParl",
 ]
 
 
