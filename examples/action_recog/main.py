@@ -2,6 +2,7 @@
 
 import argparse
 import logging
+import time
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
@@ -128,6 +129,8 @@ def main():
 
     # ---- training and evaluation ----
     for i in range(0, cfg.DATASET.NUM_REPEAT):
+        suffix = str(int(time.time() * 1000))[6:]
+
         seed = cfg.SOLVER.SEED + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
@@ -139,7 +142,7 @@ def main():
                 api_key=cfg.COMET.API_KEY,
                 project_name=cfg.COMET.PROJECT_NAME,
                 save_dir=cfg.OUTPUT.OUT_DIR,
-                experiment_name=cfg.COMET.EXPERIMENT_NAME,
+                experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, suffix),
             )
         else:
             logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
