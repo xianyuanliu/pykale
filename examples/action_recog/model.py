@@ -59,10 +59,8 @@ def get_model(cfg, num_classes):
     # setup classifier
     if cfg.MODEL.METHOD.upper() in ["C3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]:
         classifier_network = ClassNetVideoC3D(input_size=class_feature_dim, n_class=num_classes)
-    elif cfg.MODEL.METHOD.upper() == "I3D":
-        classifier_network = ClassNetVideoI3D(input_size=class_feature_dim, n_class=num_classes)
     else:
-        classifier_network = ClassNetVideo(input_size=class_feature_dim, n_class=num_classes)
+        classifier_network = ClassNetVideoI3D(input_size=class_feature_dim, n_class=num_classes)
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]

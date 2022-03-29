@@ -36,6 +36,8 @@ def get_attention(attention):
         module = SELayerCT
     elif attention == "SELayerTC":
         module = SELayerTC
+    elif attention == "SELayerCTParl":
+        module = SELayerCTParl
     elif attention == "SRMVideo":
         module = SRMVideo
     elif attention == "CBAMVideo":
@@ -126,11 +128,11 @@ class SELayerT(SELayer):
 class SELayerCT(SELayer):
     """Construct channel-wise and temporal-wise SELayer."""
 
-    def __init__(self, channel, time, reduction=16):
-        super(SELayerCT, self).__init__(channel, reduction)
+    def __init__(self, channel, time, channel_reduction=16, time_reduction=2):
+        super(SELayerCT, self).__init__(channel, channel_reduction)
         self.temporal = time
-        self.se_c = SELayerC(channel, reduction)
-        self.se_t = SELayerT(time, reduction)
+        self.se_c = SELayerC(channel, channel_reduction)
+        self.se_t = SELayerT(time, time_reduction)
 
     def forward(self, x):
         out = self.se_c(x)
@@ -141,15 +143,31 @@ class SELayerCT(SELayer):
 class SELayerTC(SELayer):
     """Construct channel-wise and temporal-wise SELayer."""
 
-    def __init__(self, channel, time, reduction=16):
-        super(SELayerTC, self).__init__(channel, reduction)
+    def __init__(self, channel, time, channel_reduction=16, time_reduction=2):
+        super(SELayerTC, self).__init__(channel, channel_reduction)
         self.temporal = time
-        self.se_t = SELayerT(channel, reduction)
-        self.se_c = SELayerC(time, reduction)
+        self.se_t = SELayerT(time, time_reduction)
+        self.se_c = SELayerC(channel, channel_reduction)
 
     def forward(self, x):
         out = self.se_t(x)
         out = self.se_c(out)
+        return out
+
+
+class SELayerCTParl(SELayer):
+    """Construct channel-wise and temporal-wise parallel SELayer."""
+
+    def __init__(self, channel, time, channel_reduction=16, time_reduction=2):
+        super(SELayerCTParl, self).__init__(channel, channel_reduction)
+        self.temporal = time
+        self.se_c = SELayerC(channel, channel_reduction)
+        self.se_t = SELayerT(time, time_reduction)
+
+    def forward(self, x):
+        out_c = self.se_c(x)
+        out_t = self.se_t(x)
+        out = out_c + out_t
         return out
 
 
