@@ -102,42 +102,42 @@ class BasicBlock(nn.Module):
     def forward(self, x):
         residual = x
 
+        # Check if SELayer is used.
+        if "SELayerC" in dir(self):  # check channel-wise
+            x = self.SELayerC(x)
+        elif "SELayerCoC" in dir(self):
+            x = self.SELayerCoC(x)
+        elif "SELayerMC" in dir(self):
+            x = self.SELayerMC(x)
+        elif "SELayerMAC" in dir(self):
+            x = self.SELayerMAC(x)
+
+        elif "SELayerT" in dir(self):  # check temporal-wise
+            x = self.SELayerT(x)
+
+        elif "SELayerCT" in dir(self):  # check channel-temporal-wise
+            x = self.SELayerCT(x)
+        elif "SELayerTC" in dir(self):  # check temporal-channel-wise
+            x = self.SELayerTC(x)
+        elif "SELayerCTParl" in dir(self):
+            x = self.SELayerCTParl(x)
+
+        elif "SRMVideo" in dir(self):
+            x = self.SRMVideo(x)
+        elif "CBAMVideo" in dir(self):
+            x = self.CBAMVideo(x)
+        elif "ECANetVideo" in dir(self):
+            x = self.ECANetVideo(x)
+        elif "STAM" in dir(self):
+            x = self.STAM(x)
+
         out = self.conv1(x)
         out = self.conv2(out)
+
         if self.downsample is not None:
             residual = self.downsample(x)
 
-        # Check if SELayer is used.
-        if "SELayerC" in dir(self):  # check channel-wise
-            out = self.SELayerC(out)
-        elif "SELayerCoC" in dir(self):
-            out = self.SELayerCoC(out)
-        elif "SELayerMC" in dir(self):
-            out = self.SELayerMC(out)
-        elif "SELayerMAC" in dir(self):
-            out = self.SELayerMAC(out)
-
-        elif "SELayerT" in dir(self):  # check temporal-wise
-            out = self.SELayerT(out)
-
-        elif "SELayerCT" in dir(self):  # check channel-temporal-wise
-            out = self.SELayerCT(out)
-        elif "SELayerTC" in dir(self):  # check temporal-channel-wise
-            out = self.SELayerTC(out)
-        elif "SELayerCTParl" in dir(self):
-            out = self.SELayerCTParl(out)
-
-        elif "SRMVideo" in dir(self):
-            out = self.SRMVideo(out)
-        elif "CBAMVideo" in dir(self):
-            out = self.CBAMVideo(out)
-        elif "ECANetVideo" in dir(self):
-            out = self.ECANetVideo(out)
-        elif "STAM" in dir(self):
-            out = self.STAM(out)
-
-        else:
-            out += residual
+        out += residual
         out = self.relu(out)
 
         return out
