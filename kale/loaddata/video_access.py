@@ -107,13 +107,13 @@ def generate_list(data_name, data_params_local, domain=None):
 
     if data_name == "EPIC":
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name, "EPIC_KITCHENS_2018")
-    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC100"]:
+    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC100", "HMDB51", "UCF101"]:
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name)
     else:
         raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC100]")
 
     data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
-
+    
     if domain is None:
         train_listpath = Path.joinpath(
             dataset_path, "annotations", "labels_train_test", data_params_local["dataset_trainlist"]
@@ -602,6 +602,40 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
 
 class HMDB51DatasetAccess(VideoDatasetAccess):
     """HMDB51 data loader"""
+
+    def get_train(self):
+        return BasicVideoDataset(
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=self._num_segments,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template="img_{:05d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:05d}.jpg",
+            transform=self._transform["train"],
+            random_shift=False,
+            test_mode=False,
+            image_modality=self._image_modality,
+            dataset_split="train",
+            n_classes=self._n_classes,
+        )
+
+    def get_test(self):
+        return BasicVideoDataset(
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=self._num_segments,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template="img_{:05d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:05d}.jpg",
+            transform=self._transform["test"],
+            random_shift=False,
+            test_mode=True,
+            image_modality=self._image_modality,
+            dataset_split="test",
+            n_classes=self._n_classes,
+        )
+
+
+class UCF101DatasetAccess(VideoDatasetAccess):
+    """UCF101 data loader"""
 
     def get_train(self):
         return BasicVideoDataset(
