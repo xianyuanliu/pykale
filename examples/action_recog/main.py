@@ -72,31 +72,45 @@ def main():
         )
 
     elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:
-        if cfg.DATASET.NAME == "HMDB51":
-            # train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset(
-            #     cfg.DATASET.ROOT + "hmdb51/",
-            #     cfg.DATASET.FRAMES_PER_SEGMENT,
-            #     cfg.DATASET.VALID_RATIO,
-            #     step_between_clips=16,
-            #     fold=1,
-            # )
+        dataset, num_classes = VideoDataset.get_dataset(
+            VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
+        )
+        train_dataset = dataset.get_train()
+        test_dataset = dataset.get_test()
+        train_loader, _, test_loader = get_train_valid_test_loaders(
+            train_dataset,
+            "None",
+            test_dataset,
+            cfg.SOLVER.TRAIN_BATCH_SIZE,
+            cfg.SOLVER.TEST_BATCH_SIZE,
+            cfg.SOLVER.NUM_WORKERS,
+        )
 
-            train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset_ptvideo(
-                cfg.DATASET.ROOT + "hmdb51/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
-            )
-
-        else:
-            # train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset(
-            #     cfg.DATASET.ROOT + "ucf101/",
-            #     cfg.DATASET.FRAMES_PER_SEGMENT,
-            #     cfg.DATASET.VALID_RATIO,
-            #     step_between_clips=16,
-            #     fold=1,
-            # )
-
-            train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset_ptvideo(
-                cfg.DATASET.ROOT + "ucf101/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
-            )
+        # if cfg.DATASET.NAME == "HMDB51":
+        #     # train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset(
+        #     #     cfg.DATASET.ROOT + "hmdb51/",
+        #     #     cfg.DATASET.FRAMES_PER_SEGMENT,
+        #     #     cfg.DATASET.VALID_RATIO,
+        #     #     step_between_clips=16,
+        #     #     fold=1,
+        #     # )
+        #
+        #     train_dataset, valid_dataset, test_dataset, num_classes = get_hmdb51_dataset_ptvideo(
+        #         cfg.DATASET.ROOT + "hmdb51/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
+        #     )
+        #
+        # else:
+        #     # train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset(
+        #     #     cfg.DATASET.ROOT + "ucf101/",
+        #     #     cfg.DATASET.FRAMES_PER_SEGMENT,
+        #     #     cfg.DATASET.VALID_RATIO,
+        #     #     step_between_clips=16,
+        #     #     fold=1,
+        #     # )
+        #
+        #     train_dataset, valid_dataset, test_dataset, num_classes = get_ucf101_dataset_ptvideo(
+        #         cfg.DATASET.ROOT + "ucf101/", cfg.MODEL.METHOD, cfg.DATASET.FRAMES_PER_SEGMENT, cfg.DATASET.VALID_RATIO,
+        #     )
 
         # train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
         #     train_dataset,
@@ -108,14 +122,14 @@ def main():
         #     collate_fn=collate_video_label,
         # )
 
-        train_loader, _, test_loader = get_train_valid_test_loaders_ptvideo(
-            train_dataset,
-            valid_dataset,
-            test_dataset,
-            cfg.SOLVER.TRAIN_BATCH_SIZE,
-            cfg.SOLVER.TEST_BATCH_SIZE,
-            cfg.SOLVER.NUM_WORKERS,
-        )
+        # train_loader, _, test_loader = get_train_valid_test_loaders_ptvideo(
+        #     train_dataset,
+        #     valid_dataset,
+        #     test_dataset,
+        #     cfg.SOLVER.TRAIN_BATCH_SIZE,
+        #     cfg.SOLVER.TEST_BATCH_SIZE,
+        #     cfg.SOLVER.NUM_WORKERS,
+        # )
 
     else:
         raise ValueError("Dataset not supported")
@@ -146,10 +160,10 @@ def main():
             )
         else:
             logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
-        # checkpoint_callback = ModelCheckpoint(
-        # filename="{epoch}-{step}-{val_loss:.4f}", save_last=True, monitor="valid_loss", mode="min",
-        # )
 
+        checkpoint_callback = ModelCheckpoint(
+            filename="{epoch}-{step}-{val_acc:.4f}", save_last=True, monitor="valid_acc", mode="max",
+        )
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
 
@@ -158,8 +172,8 @@ def main():
             max_epochs=cfg.SOLVER.MAX_EPOCHS,
             gpus=args.gpus,
             logger=logger,
-            # callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            callbacks=[lr_monitor, progress_bar],
+            callbacks=[checkpoint_callback, lr_monitor, progress_bar],
+            # callbacks=[lr_monitor, progress_bar],
             # limit_train_batches=0.005,
             # limit_val_batches=0.01,
             # limit_test_batches=0.001,
@@ -183,9 +197,9 @@ def main():
         # trainer.fit(model, train_dataloaders=train_loader)
 
         ### Evaluation
-        # trainer.test(ckpt_path="best", dataloaders=test_loader)
+        trainer.test(ckpt_path="best", dataloaders=test_loader)
         # trainer.test(ckpt_path=checkpoint_callback.last_model_path, dataloaders=test_loader)
-        trainer.test(dataloaders=test_loader)
+        # trainer.test(dataloaders=test_loader)
 
 
 if __name__ == "__main__":

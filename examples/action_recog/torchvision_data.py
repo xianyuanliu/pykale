@@ -96,10 +96,13 @@ def get_train_valid_test_loaders(
     train_loader = DataLoader(
         train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn,
     )
-    valid_loader = DataLoader(
-        valid_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
-    )
     test_loader = DataLoader(
         test_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
     )
+    if valid_dataset is not None:
+        valid_loader = DataLoader(
+            valid_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
+        )
+    else:
+        valid_loader = None
     return train_loader, valid_loader, test_loader

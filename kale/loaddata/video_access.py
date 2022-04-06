@@ -138,6 +138,8 @@ class VideoDataset(Enum):
     GTEA = "GTEA"
     KITCHEN = "KITCHEN"
     EPIC100 = "EPIC100"
+    HMDB51 = "HMDB51"
+    UCF101 = "UCF101"
 
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", seed, params):
@@ -375,6 +377,8 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: "gtea",
             VideoDataset.ADL: "adl",
             VideoDataset.KITCHEN: "kitchen",
+            VideoDataset.HMDB51: "hmdb51",
+            VideoDataset.UCF101: "ucf101",
         }
 
         class_numbers = {
@@ -382,6 +386,8 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: 6,
             VideoDataset.ADL: 7,
             VideoDataset.KITCHEN: 6,
+            VideoDataset.HMDB51: 51,
+            VideoDataset.UCF101: 101,
         }
 
         factories = {
@@ -389,6 +395,8 @@ class VideoDataset(Enum):
             VideoDataset.GTEA: GTEADatasetAccess,
             VideoDataset.ADL: ADLDatasetAccess,
             VideoDataset.KITCHEN: KITCHENDatasetAccess,
+            VideoDataset.HMDB51: HMDB51DatasetAccess,
+            VideoDataset.UCF101: UCF101DatasetAccess,
         }
 
         dataset = factories[name](
@@ -423,16 +431,16 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
+            self,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -592,22 +600,56 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
         )
 
 
+class HMDB51DatasetAccess(VideoDatasetAccess):
+    """HMDB51 data loader"""
+
+    def get_train(self):
+        return BasicVideoDataset(
+            root_path=self._data_path,
+            annotationfile_path=self._train_list,
+            num_segments=self._num_segments,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template="img_{:05d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:05d}.jpg",
+            transform=self._transform["train"],
+            random_shift=False,
+            test_mode=False,
+            image_modality=self._image_modality,
+            dataset_split="train",
+            n_classes=self._n_classes,
+        )
+
+    def get_test(self):
+        return BasicVideoDataset(
+            root_path=self._data_path,
+            annotationfile_path=self._test_list,
+            num_segments=self._num_segments,
+            frames_per_segment=self._frames_per_segment,
+            imagefile_template="img_{:05d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:05d}.jpg",
+            transform=self._transform["test"],
+            random_shift=False,
+            test_mode=True,
+            image_modality=self._image_modality,
+            dataset_split="test",
+            n_classes=self._n_classes,
+        )
+
+
 class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-        self,
-        domain,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
-        input_type,
+            self,
+            domain,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+            input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
