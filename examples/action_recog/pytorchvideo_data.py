@@ -115,7 +115,7 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
         #     data_path=Path(root).joinpath("annotation_org"),
         hmdb51_with_ucf101_list(
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
-            data_path=Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold)),
+            data_path=Path(root).joinpath("annotations", "trainlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", second_per_segment),
             decode_audio=False,
@@ -130,7 +130,7 @@ def get_hmdb51_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
         #     data_path=Path(root).joinpath("annotation_org"),
         hmdb51_with_ucf101_list(
             # data_path=Path(root).joinpath("annotation", "dummy_trainlist0{}.txt".format(fold)),
-            data_path=Path(root).joinpath("annotation", "testlist0{}.txt".format(fold)),
+            data_path=Path(root).joinpath("annotations", "testlist0{}.txt".format(fold)),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             # clip_sampler=make_clip_sampler("random", frame_per_segment),
             clip_sampler=make_clip_sampler("uniform", second_per_segment),
@@ -150,7 +150,7 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
     second_per_segment = frame_per_segment / 30
     train_dataset = LimitDataset(
         Ucf101(
-            data_path=str(Path(root).joinpath("annotation", "trainlist0{}.txt".format(fold))),
+            data_path=str(Path(root).joinpath("annotations", "trainlist0{}.txt".format(fold))),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             clip_sampler=make_clip_sampler("random", second_per_segment),
             decode_audio=False,
@@ -162,7 +162,7 @@ def get_ucf101_dataset_ptvideo(root, method, frame_per_segment, valid_ratio, fol
 
     test_dataset = LimitDataset(
         Ucf101(
-            data_path=str(Path(root).joinpath("annotation", "testlist0{}.txt".format(fold))),
+            data_path=str(Path(root).joinpath("annotations", "testlist0{}.txt".format(fold))),
             # clip_sampler=make_clip_sampler("constant_clips_per_video", frame_per_segment, 5),
             # clip_sampler=make_clip_sampler("random", frame_per_segment),
             clip_sampler=make_clip_sampler("uniform", second_per_segment),

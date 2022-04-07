@@ -34,8 +34,8 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     """
 
     train_dataset = HMDB51(
-        root=root + "video/",
-        annotation_path=root + "annotation_org/",
+        root=root + "videos/",
+        annotation_path=root + "annotations_org/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
@@ -44,8 +44,8 @@ def get_hmdb51_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     )
 
     test_dataset = HMDB51(
-        root=root + "video/",
-        annotation_path=root + "annotation_org/",
+        root=root + "videos/",
+        annotation_path=root + "annotations_org/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
@@ -63,8 +63,8 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     """
 
     train_dataset = UCF101(
-        root=root + "video/",
-        annotation_path=root + "annotation/",
+        root=root + "videos/",
+        annotation_path=root + "annotations/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
@@ -73,8 +73,8 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     )
 
     test_dataset = UCF101(
-        root=root + "video/",
-        annotation_path=root + "annotation/",
+        root=root + "videos/",
+        annotation_path=root + "annotations/",
         frames_per_clip=frame_per_segment,
         step_between_clips=step_between_clips,
         fold=fold,
