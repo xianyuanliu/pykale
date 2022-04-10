@@ -30,18 +30,18 @@ class BasicVideoDataset(VideoFrameDataset):
     """
 
     def __init__(
-        self,
-        root_path: str,
-        annotationfile_path: str,
-        dataset_split: str,
-        image_modality: str,
-        num_segments: int = 1,
-        frames_per_segment: int = 16,
-        imagefile_template: str = "img_{:010d}.jpg",
-        transform=None,
-        random_shift: bool = True,
-        test_mode: bool = False,
-        n_classes: int = 8,
+            self,
+            root_path: str,
+            annotationfile_path: str,
+            dataset_split: str,
+            image_modality: str,
+            num_segments: int = 1,
+            frames_per_segment: int = 16,
+            imagefile_template: str = "img_{:010d}.jpg",
+            transform=None,
+            random_shift: bool = True,
+            test_mode: bool = False,
+            n_classes: int = 8,
     ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
@@ -65,7 +65,7 @@ class BasicVideoDataset(VideoFrameDataset):
 
     def make_dataset(self):
         """
-        Load data from the EPIC-Kitchen list file and make them into the united format.
+        Load data from list file and make them into the united format.
         Different datasets correspond to a different number of classes.
 
         Returns:
@@ -76,8 +76,8 @@ class BasicVideoDataset(VideoFrameDataset):
         i = 0
         input_file = pd.read_pickle(self.annotationfile_path)
         for line in input_file.values:
-            if 0 <= eval(line[5]) < self.n_classes:
-                data.append((line[0], eval(line[1]), eval(line[2]), eval(line[5])))
+            if 0 <= eval(line[-1]) < self.n_classes:
+                data.append((line[0], eval(line[1]), eval(line[2]), eval(line[-1])))
                 i = i + 1
         logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
@@ -89,18 +89,18 @@ class EPIC(VideoFrameDataset):
     """
 
     def __init__(
-        self,
-        root_path: str,
-        annotationfile_path: str,
-        dataset_split: str,
-        image_modality: str,
-        num_segments: int = 1,
-        frames_per_segment: int = 16,
-        imagefile_template: str = "img_{:010d}.jpg",
-        transform=None,
-        random_shift: bool = True,
-        test_mode: bool = False,
-        n_classes: int = 8,
+            self,
+            root_path: str,
+            annotationfile_path: str,
+            dataset_split: str,
+            image_modality: str,
+            num_segments: int = 1,
+            frames_per_segment: int = 16,
+            imagefile_template: str = "img_{:010d}.jpg",
+            transform=None,
+            random_shift: bool = True,
+            test_mode: bool = False,
+            n_classes: int = 8,
     ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
@@ -151,3 +151,39 @@ class EPIC(VideoFrameDataset):
                         i = i + 1
         logging.info("Number of {:5} action segments: {}".format(self.dataset, i))
         return data
+
+
+class HMDB51(BasicVideoDataset):
+    """
+
+    """
+
+    def __init__(
+            self,
+            root_path: str,
+            annotationfile_path: str,
+            dataset_split: str,
+            image_modality: str,
+            num_segments: int = 1,
+            frames_per_segment: int = 16,
+            imagefile_template: str = "img_{:010d}.jpg",
+            transform=None,
+            random_shift: bool = True,
+            test_mode: bool = False,
+            n_classes: int = 8,
+    ):
+        super(HMDB51, self).__init__(
+            root_path,
+            annotationfile_path,
+            dataset_split,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            imagefile_template,
+            transform,
+            random_shift,
+            test_mode,
+            n_classes,
+        )
+        self.img_path = self.root_path
+        print(self.img_path)

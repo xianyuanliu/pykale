@@ -17,7 +17,7 @@ import torch
 
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
-from kale.loaddata.video_datasets import BasicVideoDataset, EPIC
+from kale.loaddata.video_datasets import BasicVideoDataset, EPIC, HMDB51
 from kale.loaddata.videos import VideoFrameDataset
 
 
@@ -113,7 +113,7 @@ def generate_list(data_name, data_params_local, domain=None):
         raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC100]")
 
     data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
-    
+
     if domain is None:
         train_listpath = Path.joinpath(
             dataset_path, "annotations", "labels_train_test", data_params_local["dataset_trainlist"]
@@ -604,7 +604,7 @@ class HMDB51DatasetAccess(VideoDatasetAccess):
     """HMDB51 data loader"""
 
     def get_train(self):
-        return BasicVideoDataset(
+        return HMDB51(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
@@ -619,7 +619,7 @@ class HMDB51DatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return BasicVideoDataset(
+        return HMDB51(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
