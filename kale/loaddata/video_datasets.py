@@ -30,18 +30,18 @@ class BasicVideoDataset(VideoFrameDataset):
     """
 
     def __init__(
-            self,
-            root_path: str,
-            annotationfile_path: str,
-            dataset_split: str,
-            image_modality: str,
-            num_segments: int = 1,
-            frames_per_segment: int = 16,
-            imagefile_template: str = "img_{:010d}.jpg",
-            transform=None,
-            random_shift: bool = True,
-            test_mode: bool = False,
-            n_classes: int = 8,
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        dataset_split: str,
+        image_modality: str,
+        num_segments: int = 1,
+        frames_per_segment: int = 16,
+        imagefile_template: str = "img_{:010d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+        n_classes: int = 8,
     ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
@@ -89,18 +89,18 @@ class EPIC(VideoFrameDataset):
     """
 
     def __init__(
-            self,
-            root_path: str,
-            annotationfile_path: str,
-            dataset_split: str,
-            image_modality: str,
-            num_segments: int = 1,
-            frames_per_segment: int = 16,
-            imagefile_template: str = "img_{:010d}.jpg",
-            transform=None,
-            random_shift: bool = True,
-            test_mode: bool = False,
-            n_classes: int = 8,
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        dataset_split: str,
+        image_modality: str,
+        num_segments: int = 1,
+        frames_per_segment: int = 16,
+        imagefile_template: str = "img_{:010d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+        n_classes: int = 8,
     ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
@@ -159,18 +159,18 @@ class HMDB51(BasicVideoDataset):
     """
 
     def __init__(
-            self,
-            root_path: str,
-            annotationfile_path: str,
-            dataset_split: str,
-            image_modality: str,
-            num_segments: int = 1,
-            frames_per_segment: int = 16,
-            imagefile_template: str = "img_{:010d}.jpg",
-            transform=None,
-            random_shift: bool = True,
-            test_mode: bool = False,
-            n_classes: int = 8,
+        self,
+        root_path: str,
+        annotationfile_path: str,
+        dataset_split: str,
+        image_modality: str,
+        num_segments: int = 1,
+        frames_per_segment: int = 16,
+        imagefile_template: str = "img_{:010d}.jpg",
+        transform=None,
+        random_shift: bool = True,
+        test_mode: bool = False,
+        n_classes: int = 8,
     ):
         super(HMDB51, self).__init__(
             root_path,

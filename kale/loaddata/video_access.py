@@ -431,16 +431,16 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-            self,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -638,7 +638,7 @@ class UCF101DatasetAccess(VideoDatasetAccess):
     """UCF101 data loader"""
 
     def get_train(self):
-        return BasicVideoDataset(
+        return HMDB51(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
@@ -653,7 +653,7 @@ class UCF101DatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return BasicVideoDataset(
+        return HMDB51(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
@@ -672,18 +672,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-            self,
-            domain,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
-            input_type,
+        self,
+        domain,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
