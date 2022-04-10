@@ -92,14 +92,16 @@ class ActionRecogTrainer(BaseTrainer):
         return output
 
     def compute_loss(self, batch, split_name="valid"):
-        if len(batch) == 3:  # Video, audio, labels
-            x, _, y = batch
-        elif len(batch) > 3:
-            x = batch["video"]
-            y = batch["label"]
-            # print(split_name, batch["clip_index"], batch["video_name"])  # for debugging
-        else:  # Video, labels
-            x, y = batch
+        # if len(batch) == 3:  # Video, audio, labels
+        #     x, _, y = batch
+        # elif len(batch) > 3:
+        #     x = batch["video"]
+        #     y = batch["label"]
+        #     # print(split_name, batch["clip_index"], batch["video_name"])  # for debugging
+        # else:  # Video, labels
+        #     x, y = batch
+        x, y, _ = batch
+        y = y[0]  # only one label
         y_hat = self.forward(x)
 
         loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y)

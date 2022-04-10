@@ -60,7 +60,7 @@ def main():
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, cfg.SOLVER.SEED, cfg
         )
-        train_dataset, valid_dataset = dataset.get_train_val(val_ratio=cfg.DATASET.VALID_RATIO)
+        train_dataset, valid_dataset = dataset.get_train_valid(valid_ratio=cfg.DATASET.VALID_RATIO)
         test_dataset = dataset.get_test()
         train_loader, valid_loader, test_loader = get_train_valid_test_loaders(
             train_dataset,
