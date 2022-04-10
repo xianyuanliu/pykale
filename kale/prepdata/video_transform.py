@@ -121,7 +121,8 @@ def get_transform(kind, image_modality):
         transform = {
             "train": transforms.Compose(
                 [
-                    ToTensorVideo(),
+                    # ToTensorVideo(),
+                    ImglistToTensor(),
                     transforms.RandomHorizontalFlip(),
                     transforms.Normalize(mean=mean, std=std),
                     transforms.RandomCrop((112, 112)),
@@ -130,7 +131,8 @@ def get_transform(kind, image_modality):
             ),
             "valid": transforms.Compose(
                 [
-                    ToTensorVideo(),
+                    # ToTensorVideo(),
+                    ImglistToTensor(),
                     transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
@@ -138,7 +140,8 @@ def get_transform(kind, image_modality):
             ),
             "test": transforms.Compose(
                 [
-                    ToTensorVideo(),
+                    # ToTensorVideo(),
+                    ImglistToTensor(),
                     transforms.Normalize(mean=mean, std=std),
                     transforms.CenterCrop((112, 112)),
                     ConvertTCHWtoCTHW(),
