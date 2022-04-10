@@ -155,7 +155,7 @@ class EPIC(VideoFrameDataset):
 
 class HMDB51(BasicVideoDataset):
     """
-
+    Dataset for HMDB51.
     """
 
     def __init__(
@@ -186,4 +186,4 @@ class HMDB51(BasicVideoDataset):
             n_classes,
         )
         self.img_path = self.root_path
-        print(self.img_path)
+        self._parse_list()
