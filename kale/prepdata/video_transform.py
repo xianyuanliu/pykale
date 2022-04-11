@@ -1,21 +1,23 @@
 import torch
 from torchvision import transforms
 
+
 # from torchvision.transforms import _transforms_video as transforms_video
 
 
-def get_transform(kind, image_modality):
+def get_transform(kind, image_modality, method=None):
     """
     Define transforms (for commonly used datasets)
 
     Args:
         kind ([type]): the dataset (transformation) name
         image_modality (string): image type (RGB or Optical Flow)
+        method (string, optional): the method name. Defaults to None.
     """
 
     mean, std = get_dataset_mean_std(kind)
+
     if kind in ["epic", "gtea", "adl", "kitchen"]:
-        transform = dict()
         if image_modality == "rgb":
             transform = {
                 "train": transforms.Compose(
@@ -82,17 +84,18 @@ def get_transform(kind, image_modality):
             }
         else:
             raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(image_modality))
-    elif kind == "hmdb51":
+    elif kind in ["hmdb51", "ucf101"]:
+        min_size, max_size, crop_size = get_dataset_size(method)  # for hmdb51/ucf101 resizing and cropping
         transform = {
             "train": transforms.Compose(
                 [
                     # ConvertBHWCtoBCHW(),
                     # ToTensorVideo(),
                     ImglistToTensor(),
-                    transforms.Resize((128, 160)),
+                    transforms.Resize((min_size, max_size)),
                     transforms.RandomHorizontalFlip(),
                     transforms.Normalize(mean=mean, std=std),
-                    transforms.RandomCrop((112, 112)),
+                    transforms.RandomCrop((crop_size, crop_size)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -100,9 +103,9 @@ def get_transform(kind, image_modality):
                 [
                     # ToTensorVideo(),
                     ImglistToTensor(),
-                    transforms.Resize((128, 160)),
+                    transforms.Resize((min_size, max_size)),
                     transforms.Normalize(mean=mean, std=std),
-                    transforms.CenterCrop((112, 112)),
+                    transforms.CenterCrop((crop_size, crop_size)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -110,40 +113,9 @@ def get_transform(kind, image_modality):
                 [
                     # ToTensorVideo(),
                     ImglistToTensor(),
-                    transforms.Resize((128, 160)),
+                    transforms.Resize((min_size, max_size)),
                     transforms.Normalize(mean=mean, std=std),
-                    transforms.CenterCrop((112, 112)),
-                    ConvertTCHWtoCTHW(),
-                ]
-            ),
-        }
-    elif kind == "ucf101":
-        transform = {
-            "train": transforms.Compose(
-                [
-                    # ToTensorVideo(),
-                    ImglistToTensor(),
-                    transforms.RandomHorizontalFlip(),
-                    transforms.Normalize(mean=mean, std=std),
-                    transforms.RandomCrop((112, 112)),
-                    ConvertTCHWtoCTHW(),
-                ]
-            ),
-            "valid": transforms.Compose(
-                [
-                    # ToTensorVideo(),
-                    ImglistToTensor(),
-                    transforms.Normalize(mean=mean, std=std),
-                    transforms.CenterCrop((112, 112)),
-                    ConvertTCHWtoCTHW(),
-                ]
-            ),
-            "test": transforms.Compose(
-                [
-                    # ToTensorVideo(),
-                    ImglistToTensor(),
-                    transforms.Normalize(mean=mean, std=std),
-                    transforms.CenterCrop((112, 112)),
+                    transforms.CenterCrop((crop_size, crop_size)),
                     ConvertTCHWtoCTHW(),
                 ]
             ),
@@ -245,3 +217,21 @@ def get_dataset_mean_std(kind):
     else:
         raise ValueError(f"Unknown transform for dataset '{kind}'")
     return mean, std
+
+
+def get_dataset_size(method):
+    """Get the size of a dataset for resizing and cropping data."""
+
+    if method.upper() == "I3D":
+        min_size = 256
+        max_size = 320
+        crop_size = 224
+    elif method.upper() in ["C3D", "R3D_18", "R2PLUS1D_18", "MC3_18"]:
+        min_size = 128
+        max_size = 160
+        crop_size = 112
+    elif method is None:
+        pass
+    else:
+        raise ValueError("Wrong MODEL.METHOD. Current:{}".format(method))
+    return min_size, max_size, crop_size
