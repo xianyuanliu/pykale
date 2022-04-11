@@ -162,7 +162,7 @@ def main():
             logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
 
         checkpoint_callback = ModelCheckpoint(
-            filename="{epoch}-{step}-{val_acc:.4f}", save_last=True, monitor="valid_acc", mode="max",
+            filename="{epoch}-{step}-{val_acc:.4f}", save_last=False, monitor="valid_top1_acc", mode="max",
         )
         lr_monitor = LearningRateMonitor(logging_interval="epoch")
         progress_bar = TQDMProgressBar(cfg.OUTPUT.PB_FRESH)
