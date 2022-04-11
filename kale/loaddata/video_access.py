@@ -409,6 +409,7 @@ class VideoDataset(Enum):
             n_classes=class_numbers[name],
             transform=transform_names[name],
             seed=seed,
+            method=method,
         )
 
         return dataset, class_numbers[name]
@@ -428,6 +429,8 @@ class VideoDatasetAccess(DatasetAccess):
         n_classes (int): number of class
         transform (string): types of video transforms
         seed: (int): seed value set manually.
+        method (string): the method name. Defaults to None.
+
     """
 
     def __init__(
@@ -441,6 +444,7 @@ class VideoDatasetAccess(DatasetAccess):
         n_classes,
         transform,
         seed,
+        method=None,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -449,7 +453,7 @@ class VideoDatasetAccess(DatasetAccess):
         self._image_modality = image_modality
         self._num_segments = num_segments
         self._frames_per_segment = frames_per_segment
-        self._transform = video_transform.get_transform(transform, self._image_modality)
+        self._transform = video_transform.get_transform(transform, self._image_modality, method)
         self._seed = seed
 
     def get_train_valid(self, valid_ratio):
