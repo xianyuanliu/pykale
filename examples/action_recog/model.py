@@ -10,6 +10,8 @@ References from https://github.com/criteo-research/pytorch-ada/blob/master/adali
 
 from copy import deepcopy
 
+from torch.utils.data import DataLoader
+
 from kale.embed.video_feature_extractor import get_extractor_video
 from kale.pipeline.base_trainer import ActionRecogTrainer
 from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D, ClassNetVideoI3D
@@ -41,6 +43,28 @@ def get_config(cfg):
         },
     }
     return config_params
+
+
+def get_train_valid_test_loaders(
+        train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
+):
+    """
+    Get the dataloader from the dataset. HMDB51 and UCF101 are using collate_fn but others not.
+    """
+
+    train_loader = DataLoader(
+        train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn,
+    )
+    test_loader = DataLoader(
+        test_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
+    )
+    if valid_dataset is not None:
+        valid_loader = DataLoader(
+            valid_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
+        )
+    else:
+        valid_loader = None
+    return train_loader, valid_loader, test_loader
 
 
 def get_model(cfg, num_classes):

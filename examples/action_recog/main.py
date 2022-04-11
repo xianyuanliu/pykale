@@ -6,21 +6,21 @@ import time
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from model import get_model
+from model import get_model, get_train_valid_test_loaders
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
-from examples.action_recog.pytorchvideo_data import (
-    get_hmdb51_dataset_ptvideo,
-    get_train_valid_test_loaders_ptvideo,
-    get_ucf101_dataset_ptvideo,
-)
-from examples.action_recog.torchvision_data import (
-    collate_video_label,
-    get_hmdb51_dataset,
-    get_train_valid_test_loaders,
-    get_ucf101_dataset,
-)
+# from examples.action_recog.pytorchvideo_data import (
+#     get_hmdb51_dataset_ptvideo,
+#     get_train_valid_test_loaders_ptvideo,
+#     get_ucf101_dataset_ptvideo,
+# )
+# from examples.action_recog.torchvision_data import (
+#     collate_video_label,
+#     get_hmdb51_dataset,
+#     get_train_valid_test_loaders,
+#     get_ucf101_dataset,
+# )
 from kale.loaddata.video_access import VideoDataset
 from kale.utils.seed import set_seed
 
@@ -174,9 +174,9 @@ def main():
             logger=logger,
             callbacks=[checkpoint_callback, lr_monitor, progress_bar],
             # callbacks=[lr_monitor, progress_bar],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.01,
-            # limit_test_batches=0.001,
+            # limit_train_batches=0.05,
+            # limit_val_batches=0.05,
+            # limit_test_batches=0.05,
         )
 
         ### Find learning_rate

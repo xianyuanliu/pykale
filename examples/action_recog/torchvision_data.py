@@ -84,25 +84,3 @@ def get_ucf101_dataset(root, frame_per_segment, valid_ratio, step_between_clips=
     train_dataset, valid_dataset = get_validation_dataset(train_dataset, valid_ratio)
     num_classes = 101
     return train_dataset, valid_dataset, test_dataset, num_classes
-
-
-def get_train_valid_test_loaders(
-    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
-):
-    """
-    Get the dataloader from the dataset. HMDB51 and UCF101 are using collate_fn but others not.
-    """
-
-    train_loader = DataLoader(
-        train_dataset, batch_size=train_batch_size, shuffle=True, num_workers=num_workers, collate_fn=collate_fn,
-    )
-    test_loader = DataLoader(
-        test_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
-    )
-    if valid_dataset is not None:
-        valid_loader = DataLoader(
-            valid_dataset, batch_size=test_batch_size, shuffle=False, num_workers=num_workers, collate_fn=collate_fn,
-        )
-    else:
-        valid_loader = None
-    return train_loader, valid_loader, test_loader
