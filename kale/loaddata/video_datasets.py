@@ -153,9 +153,9 @@ class EPIC(VideoFrameDataset):
         return data
 
 
-class HMDB51(BasicVideoDataset):
+class HMDB51_UCF101(BasicVideoDataset):
     """
-    Dataset for HMDB51.
+    Dataset for HMDB51 and UCF101.
     """
 
     def __init__(
@@ -172,7 +172,7 @@ class HMDB51(BasicVideoDataset):
         test_mode: bool = False,
         n_classes: int = 8,
     ):
-        super(HMDB51, self).__init__(
+        super(HMDB51_UCF101, self).__init__(
             root_path,
             annotationfile_path,
             dataset_split,

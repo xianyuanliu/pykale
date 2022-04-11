@@ -17,7 +17,7 @@ import torch
 
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
-from kale.loaddata.video_datasets import BasicVideoDataset, EPIC, HMDB51
+from kale.loaddata.video_datasets import BasicVideoDataset, EPIC, HMDB51_UCF101
 from kale.loaddata.videos import VideoFrameDataset
 
 
@@ -604,7 +604,7 @@ class HMDB51DatasetAccess(VideoDatasetAccess):
     """HMDB51 data loader"""
 
     def get_train(self):
-        return HMDB51(
+        return HMDB51_UCF101(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
@@ -619,7 +619,7 @@ class HMDB51DatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return HMDB51(
+        return HMDB51_UCF101(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
@@ -638,7 +638,7 @@ class UCF101DatasetAccess(VideoDatasetAccess):
     """UCF101 data loader"""
 
     def get_train(self):
-        return HMDB51(
+        return HMDB51_UCF101(
             root_path=self._data_path,
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
@@ -653,7 +653,7 @@ class UCF101DatasetAccess(VideoDatasetAccess):
         )
 
     def get_test(self):
-        return HMDB51(
+        return HMDB51_UCF101(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
