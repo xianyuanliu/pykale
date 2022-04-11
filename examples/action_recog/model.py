@@ -46,7 +46,7 @@ def get_config(cfg):
 
 
 def get_train_valid_test_loaders(
-        train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
+    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
 ):
     """
     Get the dataloader from the dataset. HMDB51 and UCF101 are using collate_fn but others not.

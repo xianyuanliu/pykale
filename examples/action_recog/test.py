@@ -13,12 +13,12 @@ from examples.action_recog.pytorchvideo_data import (
     get_train_valid_test_loaders_ptvideo,
     get_ucf101_dataset_ptvideo,
 )
-from examples.action_recog.torchvision_data import (
-    collate_video_label,
-    get_hmdb51_dataset,
-    get_train_valid_test_loaders,
-    get_ucf101_dataset,
-)
+
+# from examples.action_recog.torchvision_data import (
+#     collate_video_label,
+#     get_hmdb51_dataset,
+#     get_ucf101_dataset,
+# )
 from kale.loaddata.video_access import VideoDataset
 
 
