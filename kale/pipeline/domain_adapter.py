@@ -30,7 +30,6 @@ class GradReverse(Function):
     @staticmethod
     def forward(ctx, x, alpha):
         ctx.alpha = alpha
-
         return x.view_as(x)
 
     @staticmethod
@@ -39,10 +38,22 @@ class GradReverse(Function):
         return output, None
 
 
+class GradScale(Function):
+    """The gradient scaling layer"""
+
+    @staticmethod
+    def forward(ctx, x, beta):
+        ctx.beta = beta
+        return x.view_as(x)
+
+    @staticmethod
+    def backward(ctx, grad_output):
+        grad_input = grad_output * ctx.beta
+        return grad_input, None
+
+
 def set_requires_grad(model, requires_grad=True):
-    """
-    Configure whether gradients are required for a model
-    """
+    """Configure whether gradients are required for a model"""
     for param in model.parameters():
         param.requires_grad = requires_grad
 
@@ -55,7 +66,11 @@ def get_aggregated_metrics(metric_name_list, metric_outputs):
         if metric_dim == 0:
             metric_value = torch.stack([x[metric_name] for x in metric_outputs]).mean()
         else:
-            metric_value = torch.cat([x[metric_name] for x in metric_outputs]).double().mean()
+            # # get the correct top5 accuracy
+            if "top5" in metric_name and "action" not in metric_name:
+                metric_value = torch.mul(torch.cat([x[metric_name] for x in metric_outputs]).double().mean(), 5)
+            else:
+                metric_value = torch.cat([x[metric_name] for x in metric_outputs]).double().mean()
         metric_dict[metric_name] = metric_value.item()
     return metric_dict
 
@@ -68,7 +83,11 @@ def get_aggregated_metrics_from_dict(input_metric_dict):
         if metric_dim == 0:
             metric_dict[metric_name] = metric_value
         else:
-            metric_dict[metric_name] = metric_value.double().mean()
+            # # get the correct top5 accuracy
+            if "top5" in metric_name and "action" not in metric_name:
+                metric_dict[metric_name] = torch.mul(metric_value.double().mean(), 5)
+            else:
+                metric_dict[metric_name] = metric_value.double().mean()
     return metric_dict
 
 
@@ -94,6 +113,7 @@ class Method(Enum):
     WDGRLMod = "WDGRLMod"
     DAN = "DAN"  # Deep Adaptation Networks
     JAN = "JAN"  # Joint Adaptation Networks
+    TA3N = "TA3N"  # Temporal Attentive Adversarial Adaptation Network
 
     def is_mmd_method(self):
         return self in (Method.DAN, Method.JAN)
@@ -106,6 +126,9 @@ class Method(Enum):
 
     def is_fewshot_method(self):
         return self in (Method.FSDANN, Method.MME, Method.Source)
+
+    def is_ta3n_method(self):
+        return self in (Method.TA3N,)
 
     def allow_supervised(self):
         return self.is_fewshot_method()
@@ -268,6 +291,7 @@ class BaseAdaptTrainer(pl.LightningModule):
         self._non_init_epochs = nb_adapt_epochs - self._init_epochs
         assert self._non_init_epochs > 0
         self._batch_size = batch_size
+        self._target_batch_size = None  # to be set by method train/val/test_dataloader
         self._init_lr = init_lr
         self._lr_fact = 1.0
         self._grow_fact = 0.0
@@ -326,9 +350,9 @@ class BaseAdaptTrainer(pl.LightningModule):
         """
         raise NotImplementedError("Loss needs to be defined.")
 
-    #########################################
+    ############################################################################
     # @profile  # For getting active GPU peak memory. Ignore this when training.
-    #########################################
+    ############################################################################
     def training_step(self, batch, batch_nb):
         """The most generic of training steps
 
@@ -398,9 +422,11 @@ class BaseAdaptTrainer(pl.LightningModule):
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_step(self, batch, batch_nb):
+        # print("te src{} tgt{}".format(len(batch[0][2]), len(batch[1][2])))
+
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="test")
         loss = task_loss + self.lamb_da * adv_loss
-        log_metrics["test_loss"] = loss
+        log_metrics["Te_loss"] = loss
         return log_metrics
 
     def test_epoch_end(self, outputs):
@@ -413,12 +439,6 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         for key in log_dict:
             self.log(key, log_dict[key], prog_bar=True)
-
-        # return {
-        #     "avg_test_loss": log_dict["test_loss"],
-        #     "progress_bar": log_dict,
-        #     "log": log_dict,
-        # }
 
     def _configure_optimizer(self, parameters):
         if self._optimizer_params is None:
@@ -544,7 +564,7 @@ class BaseDANNLike(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
         # return {
-        #     "avg_test_loss": log_dict["test_loss"],
+        #     "avg_test_loss": log_dict["Te_loss"],
         #     "progress_bar": log_dict,
         #     "log": log_dict,
         # }
@@ -1073,7 +1093,7 @@ class BaseMMDLike(BaseAdaptTrainer):
             self.log(key, log_dict[key], prog_bar=True)
 
         # return {
-        #     "avg_test_loss": log_dict["test_loss"],
+        #     "avg_test_loss": log_dict["Te_loss"],
         #     "progress_bar": log_dict,
         #     "log": log_dict,
         # }

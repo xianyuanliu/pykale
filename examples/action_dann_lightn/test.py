@@ -21,8 +21,9 @@ def arg_parse():
     parser.add_argument("--cfg", required=True, help="path to config file", type=str)
     parser.add_argument(
         "--gpus",
-        default=1,
-        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU. str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        default=[0],
+        help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--resume", default="", type=str)
     parser.add_argument("--ckpt", default="", help="pre-trained parameters for the model (ckpt files)", type=str)
@@ -61,7 +62,7 @@ def main():
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
