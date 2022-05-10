@@ -117,7 +117,7 @@ def main():
 
     # ---- setup model and logger ----
     model = get_model(cfg, num_classes)
-    tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(cfg.SOLVER.SEED))
+    tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(cfg.SOLVER.SEED))
 
     ### Set the lightning trainer.
     trainer = pl.Trainer(
