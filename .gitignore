@@ -27,7 +27,7 @@ examples/*/lightning_logs/
 examples/*/tb_logs/
 examples/*/logs/
 examples/*/demo*/
-examples/*/configs_xianyuan/
+examples/*/configs_experiment/
 
 # Logs
 log-*.txt
