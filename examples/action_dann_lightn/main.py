@@ -5,14 +5,14 @@ Reference: https://github.com/thuml/CDAN/blob/master/pytorch/train_image.py
 
 import argparse
 import logging
+import time
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 
-# from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
-from pytorch_lightning.loggers import CometLogger
+from pytorch_lightning import loggers as pl_loggers
 
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
@@ -68,13 +68,26 @@ def main():
     # ---- training/test process ----
     # # Repeat multiple times to get std
     for i in range(0, cfg.DATASET.NUM_REPEAT):
+        suffix = str(int(time.time() * 1000))[6:]
+
         seed = cfg.SOLVER.SEED + i * 10
         set_seed(seed)  # seed_everything in pytorch_lightning did not set torch.backends.cudnn
         print(f"==> Building model for seed {seed} ......")
+
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
-        # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
-        comet_logger = CometLogger(api_key="fwDWzM3HmQuZuFGFS2q90vLT3", save_dir=cfg.OUTPUT.TB_DIR)
+        # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
+        # comet_logger = CometLogger(api_key="fwDWzM3HmQuZuFGFS2q90vLT3", save_dir=cfg.OUTPUT.OUT_DIR)
+
+        if cfg.COMET.ENABLE:
+            logger = pl_loggers.CometLogger(
+                api_key=cfg.COMET.API_KEY,
+                project_name=cfg.COMET.PROJECT_NAME,
+                save_dir=cfg.OUTPUT.OUT_DIR,
+                experiment_name="{}_{}".format(cfg.COMET.EXPERIMENT_NAME, suffix),
+            )
+        else:
+            logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
 
         # checkpoint_callback = ModelCheckpoint(
         # dirpath=full_checkpoint_dir,
@@ -100,7 +113,7 @@ def main():
             log_every_n_steps=10,
             # resume_from_checkpoint=last_checkpoint_file,
             gpus=args.gpus,
-            logger=comet_logger,  # logger,
+            logger=logger,  # logger,
             # logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
