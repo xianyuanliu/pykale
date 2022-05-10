@@ -64,7 +64,7 @@ _C.OUTPUT.OUT_DIR = os.path.join("logs", _C.DATASET.NAME)
 # Comet
 # -----------------------------------------------------------------------------
 _C.COMET = CN()
-_C.COMET.ENABLE = True
+_C.COMET.ENABLE = False
 _C.COMET.API_KEY = "fwDWzM3HmQuZuFGFS2q90vLT3"
 _C.COMET.PROJECT_NAME = "Action Recognition"
 _C.COMET.EXPERIMENT_NAME = "ActionRecog"
