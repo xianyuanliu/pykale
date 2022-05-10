@@ -194,12 +194,12 @@ class ClassNetVideo(nn.Module):
             x_noun = self.noun_net(input)
         return [x_verb, x_noun]
 
-    def get_parameters(self, base_lr=1.0):
-        params = [
-            {"params": self.verb_net.parameters(), "lr": 0.01 * base_lr},
-            # {"params": self.noun_net.parameters(), "lr": 0.1 * base_lr},
-        ]
-        return params
+    # def get_parameters(self, base_lr=1.0):
+    #     params = [
+    #         {"params": self.verb_net.parameters(), "lr": 0.01 * base_lr},
+    #         # {"params": self.noun_net.parameters(), "lr": 0.1 * base_lr},
+    #     ]
+    #     return params
 
 
 class ClassNetVideoI3D(nn.Module):
@@ -275,11 +275,12 @@ class DomainNetVideo(nn.Module):
     def forward(self, x):
         return self.net(x)
 
-    def get_parameters(self, base_lr=1.0):
-        params = [
-            {"params": self.net.parameters(), "lr": 0.1 * base_lr},
-        ]
-        return params
+    #
+    # def get_parameters(self, base_lr=1.0):
+    #     params = [
+    #         {"params": self.net.parameters(), "lr": 0.1 * base_lr},
+    #     ]
+    #     return params
 
 
 # class DomainNetVideo(nn.Sequential):

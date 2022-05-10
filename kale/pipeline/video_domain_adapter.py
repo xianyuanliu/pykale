@@ -409,14 +409,14 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             optimizer = torch.optim.Adam(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            # optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
-            optimizer = torch.optim.SGD(
-                self.rgb_feat.get_parameters()
-                + self.rgb_domain_clf.get_parameters()
-                + self.classifier.get_parameters(),
-                lr=self._init_lr,
-                **self._optimizer_params["optim_params"],
-            )
+            optimizer = torch.optim.SGD(parameters, lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            # optimizer = torch.optim.SGD(
+            #     self.rgb_feat.get_parameters()
+            #     + self.rgb_domain_clf.get_parameters()
+            #     + self.classifier.get_parameters(),
+            #     lr=self._init_lr,
+            #     **self._optimizer_params["optim_params"],
+            # )
 
             if self._adapt_lr:
                 # feature_sched = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[20], gamma=0.1)
