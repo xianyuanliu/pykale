@@ -11,7 +11,7 @@ import pytorch_lightning as pl
 from config import get_cfg_defaults
 from model import get_model
 from pytorch_lightning import loggers as pl_loggers
-from pytorch_lightning.callbacks import LearningRateMonitor, TQDMProgressBar
+from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
 from kale.loaddata.video_access import VideoDataset
 from kale.loaddata.video_multi_domain import VideoMultiDomainDatasets
@@ -97,6 +97,13 @@ def main():
         # mode="min",
         # )
 
+        checkpoint_callback = ModelCheckpoint(
+            filename="{epoch}-{step}-{valid_target_top1_acc:.4f}",
+            save_last=False,
+            monitor="valid_target_top1_acc",
+            mode="max",
+        )
+
         # # Set early stopping
         # early_stop_callback = EarlyStopping(monitor="valid_target_acc", min_delta=0.0000, patience=100, mode="max")
 
@@ -116,8 +123,8 @@ def main():
             # logger=tb_logger,  # logger,
             # weights_summary='full',
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
-            # callbacks=[lr_monitor, checkpoint_callback, progress_bar],
-            callbacks=[lr_monitor, progress_bar],
+            callbacks=[lr_monitor, checkpoint_callback, progress_bar],
+            # callbacks=[lr_monitor, progress_bar],
             # callbacks=[early_stop_callback, lr_monitor],
             # limit_train_batches=0.005,
             # limit_val_batches=0.06,
