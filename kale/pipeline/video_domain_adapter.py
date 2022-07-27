@@ -555,7 +555,7 @@ class JANTrainerVideo(BaseMMDLikeVideo):
         return losses.compute_mmd_loss(joint_kernels, batch_size)
 
 
-class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNtrainer):
+class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
@@ -951,7 +951,7 @@ class CDANTrainerVideo(CDANTrainer):
         return task_loss, adv_loss, log_metrics
 
 
-class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLtrainer):
+class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(

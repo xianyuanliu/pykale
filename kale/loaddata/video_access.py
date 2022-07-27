@@ -90,10 +90,10 @@ def generate_list(data_name, data_params_local, domain):
 
     if data_name == "EPIC":
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name, "EPIC_KITCHENS_2018")
-    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC-100"]:
+    elif data_name in ["ADL", "GTEA", "KITCHEN", "EPIC100"]:
         dataset_path = Path(data_params_local["dataset_root"]).joinpath(data_name)
     else:
-        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC-100]")
+        raise ValueError("Wrong dataset name. Select from [EPIC, ADL, GTEA, KITCHEN, EPIC100]")
 
     data_path = Path.joinpath(dataset_path, "frames_rgb_flow")
 
@@ -112,7 +112,7 @@ class VideoDataset(Enum):
     ADL = "ADL"
     GTEA = "GTEA"
     KITCHEN = "KITCHEN"
-    EPIC100 = "EPIC-100"
+    EPIC100 = "EPIC100"
 
     @staticmethod
     def get_source_target(source: "VideoDataset", target: "VideoDataset", seed, params):
