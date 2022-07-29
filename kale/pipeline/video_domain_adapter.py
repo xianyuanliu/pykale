@@ -34,11 +34,13 @@ from kale.pipeline.domain_adapter import (
     WDGRLTrainer,
 )
 
+
 # from kale.utils.logger import save_results_to_json
 
 
 def create_mmd_based_video(
-    method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type, **train_params
+        method: Method, dataset, image_modality, feature_extractor, task_classifier, input_type, class_type,
+        **train_params
 ):
     """MMD-based deep learning methods for domain adaptation on video data: DAN and JAN"""
     if not method.is_mmd_method():
@@ -70,15 +72,15 @@ def create_mmd_based_video(
 
 
 def create_dann_like_video(
-    method: Method,
-    dataset,
-    image_modality,
-    feature_extractor,
-    task_classifier,
-    critic,
-    input_type,
-    class_type,
-    **train_params,
+        method: Method,
+        dataset,
+        image_modality,
+        feature_extractor,
+        task_classifier,
+        critic,
+        input_type,
+        class_type,
+        **train_params,
 ):
     """DANN-based deep learning methods for domain adaptation on video data: DANN, CDAN, CDAN+E"""
 
@@ -388,16 +390,16 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
 class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        class_type,
-        input_type,
-        kernel_mul=2.0,
-        kernel_num=5,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            class_type,
+            input_type,
+            kernel_mul=2.0,
+            kernel_num=5,
+            **base_params,
     ):
         super().__init__(dataset, feature_extractor, task_classifier, kernel_mul, kernel_num, **base_params)
         self.image_modality = image_modality
@@ -517,14 +519,14 @@ class JANTrainerVideo(BaseMMDLikeVideo):
     """This is an implementation of JAN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        kernel_mul=(2.0, 2.0),
-        kernel_num=(5, 1),
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            kernel_mul=(2.0, 2.0),
+            kernel_num=(5, 1),
+            **base_params,
     ):
         super().__init__(
             dataset,
@@ -544,7 +546,7 @@ class JANTrainerVideo(BaseMMDLikeVideo):
 
         joint_kernels = None
         for source, target, k_mul, k_num, sigma in zip(
-            source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
+                source_list, target_list, self._kernel_mul, self._kernel_num, [None, 1.68]
         ):
             kernels = losses.gaussian_kernel(source, target, kernel_mul=k_mul, kernel_num=k_num, fix_sigma=sigma)
             if joint_kernels is not None:
@@ -559,16 +561,16 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
     """This is an implementation of DANN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        method,
-        input_type,
-        class_type,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            method,
+            input_type,
+            class_type,
+            **base_params,
     ):
         super(DANNTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, method, **base_params
@@ -749,18 +751,18 @@ class CDANTrainerVideo(CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        input_type,
-        class_type,
-        use_entropy=False,
-        use_random=False,
-        random_dim=1024,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            input_type,
+            class_type,
+            use_entropy=False,
+            use_random=False,
+            random_dim=1024,
+            **base_params,
     ):
         super(CDANTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, use_entropy, use_random, random_dim, **base_params
@@ -955,19 +957,19 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
     """This is an implementation of WDGRL for video data."""
 
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        method,
-        input_type,
-        class_type,
-        k_critic=5,
-        gamma=10,
-        beta_ratio=0,
-        **base_params,
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            method,
+            input_type,
+            class_type,
+            k_critic=5,
+            gamma=10,
+            beta_ratio=0,
+            **base_params,
     ):
         super(WDGRLTrainerVideo, self).__init__(
             dataset, feature_extractor, task_classifier, critic, k_critic, gamma, beta_ratio, **base_params
@@ -1059,8 +1061,8 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
                     wasserstein_distance_flow = d_hat_flow.mean() - (1 + self._beta_ratio) * d_t_hat_flow.mean()
                     wasserstein_distance_audio = d_hat_audio.mean() - (1 + self._beta_ratio) * d_t_hat_audio.mean()
                     wasserstein_distance = (
-                        wasserstein_distance_rgb + wasserstein_distance_flow + wasserstein_distance_audio
-                    ) / 3
+                                                   wasserstein_distance_rgb + wasserstein_distance_flow + wasserstein_distance_audio
+                                           ) / 3
                 else:  # For joint(rgb+flow) input
                     dok = torch.cat((dok_src_rgb, dok_src_flow, dok_tgt_rgb, dok_tgt_flow))
                     dok_src = torch.cat((dok_src_rgb, dok_src_flow))
@@ -1216,11 +1218,11 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
                 wasserstein_distance_flow = critic_s_flow.mean() - (1 + self._beta_ratio) * critic_t_flow.mean()
 
                 critic_cost = (
-                    -wasserstein_distance_rgb
-                    + -wasserstein_distance_flow
-                    + self._gamma * gp_rgb
-                    + self._gamma * gp_flow
-                ) * 0.5
+                                      -wasserstein_distance_rgb
+                                      + -wasserstein_distance_flow
+                                      + self._gamma * gp_rgb
+                                      + self._gamma * gp_flow
+                              ) * 0.5
 
                 self.critic_opt.zero_grad()
                 critic_cost.backward()
@@ -1265,13 +1267,13 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
                 wasserstein_distance_audio = critic_s_audio.mean() - (1 + self._beta_ratio) * critic_t_audio.mean()
 
                 critic_cost = (
-                    -wasserstein_distance_rgb
-                    + -wasserstein_distance_flow
-                    + -wasserstein_distance_audio
-                    + self._gamma * gp_rgb
-                    + self._gamma * gp_flow
-                    + self._gamma * gp_audio
-                ) * 0.5
+                                      -wasserstein_distance_rgb
+                                      + -wasserstein_distance_flow
+                                      + -wasserstein_distance_audio
+                                      + self._gamma * gp_rgb
+                                      + self._gamma * gp_flow
+                                      + self._gamma * gp_audio
+                              ) * 0.5
 
                 self.critic_opt.zero_grad()
                 critic_cost.backward()
@@ -1701,59 +1703,59 @@ class WDGRLTrainerVideo(BaseAdaptTrainerVideo, WDGRLTrainer):
 
 class TA3NTrainerVideo(BaseAdaptTrainerVideo):
     def __init__(
-        self,
-        dataset,
-        image_modality,
-        feature_extractor,
-        task_classifier,
-        critic,
-        method,
-        input_type,
-        class_type,
-        # **base_params,
-        dict_n_class,
-        init_lr,
-        batch_size,
-        optimizer,
-        baseline_type,
-        frame_aggregation,
-        alpha,
-        beta,
-        gamma,
-        mu,
-        adv_da,
-        use_target,
-        place_adv,
-        pred_normalize,
-        add_loss_da,
-        nb_adapt_epochs,
-        dann_warmup,
-        lr_adaptive,
-        lr_steps,
-        lr_decay,
-        num_segments=5,
-        # val_segments=25,
-        arch="TBN",
-        # path_pretrained="",
-        new_length=None,
-        before_softmax=True,
-        dropout_i=0.5,
-        dropout_v=0.5,
-        use_bn=None,
-        ens_DA=None,
-        crop_num=1,
-        partial_bn=True,
-        verbose=True,
-        add_fc=1,
-        fc_dim=1024,
-        n_rnn=1,
-        rnn_cell="LSTM",
-        n_directions=1,
-        n_ts=5,
-        use_attn="TransAttn",
-        n_attn=1,
-        use_attn_frame=None,
-        share_params="Y",
+            self,
+            dataset,
+            image_modality,
+            feature_extractor,
+            task_classifier,
+            critic,
+            method,
+            input_type,
+            class_type,
+            # **base_params,
+            dict_n_class,
+            init_lr,
+            batch_size,
+            optimizer,
+            baseline_type,
+            frame_aggregation,
+            alpha,
+            beta,
+            gamma,
+            mu,
+            adv_da,
+            use_target,
+            place_adv,
+            pred_normalize,
+            add_loss_da,
+            nb_adapt_epochs,
+            dann_warmup,
+            lr_adaptive,
+            lr_steps,
+            lr_decay,
+            num_segments=5,
+            # val_segments=25,
+            arch="TBN",
+            # path_pretrained="",
+            new_length=None,
+            before_softmax=True,
+            dropout_i=0.5,
+            dropout_v=0.5,
+            use_bn=None,
+            ens_DA=None,
+            crop_num=1,
+            partial_bn=True,
+            verbose=True,
+            add_fc=1,
+            fc_dim=1024,
+            n_rnn=1,
+            rnn_cell="LSTM",
+            n_directions=1,
+            n_ts=5,
+            use_attn="TransAttn",
+            n_attn=1,
+            use_attn_frame=None,
+            share_params="Y",
     ):
         super(TA3NTrainerVideo, self).__init__(dataset, feature_extractor, task_classifier)
 
@@ -1777,15 +1779,21 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         self.domain_classifier_frame = critic["frame-level"]
         self.domain_classifier_video = critic["video-level"]
 
-        self.classifier_frame_verb = task_classifier["frame-level"]["verb"]
-        self.classifier_frame_noun = task_classifier["frame-level"]["noun"]
-        self.classifier_video_verb = task_classifier["video-level"]["verb"]
-        self.classifier_video_noun = task_classifier["video-level"]["noun"]
+        if self.verb:
+            self.classifier_frame_verb = task_classifier["frame-level"]["verb"]
+            self.classifier_video_verb = task_classifier["video-level"]["verb"]
+        if self.noun:
+            self.classifier_frame_noun = task_classifier["frame-level"]["noun"]
+            self.classifier_video_noun = task_classifier["video-level"]["noun"]
 
         self.criterion = torch.nn.CrossEntropyLoss()
         self.criterion_domain = torch.nn.CrossEntropyLoss()
 
-        self.train_metric = "all"
+        if self.verb and self.noun:
+            self.train_metric = "all"
+        elif self.verb and not self.noun:
+            self.train_metric = "verb"
+
         self.adv_DA = adv_da
         self.use_target = use_target
         self.place_adv = place_adv
@@ -1978,12 +1986,14 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             normal_(self.fc_feature_target.weight, 0, std)
             constant_(self.fc_feature_target.bias, 0)
 
-            self.fc_classifier_target_verb = nn.Linear(feat_frame_dim, num_class[0])
-            normal_(self.fc_classifier_target_verb.weight, 0, std)
-            constant_(self.fc_classifier_target_verb.bias, 0)
-            self.fc_classifier_target_noun = nn.Linear(feat_frame_dim, num_class[1])
-            normal_(self.fc_classifier_target_noun.weight, 0, std)
-            constant_(self.fc_classifier_target_noun.bias, 0)
+            if self.verb:
+                self.fc_classifier_target_verb = nn.Linear(feat_frame_dim, num_class[0])
+                normal_(self.fc_classifier_target_verb.weight, 0, std)
+                constant_(self.fc_classifier_target_verb.bias, 0)
+            if self.noun:
+                self.fc_classifier_target_noun = nn.Linear(feat_frame_dim, num_class[1])
+                normal_(self.fc_classifier_target_noun.weight, 0, std)
+                constant_(self.fc_classifier_target_noun.bias, 0)
 
         # BN for the above layers
         if self.use_bn is not None:  # S & T: use AdaBN (ICLRW 2017) approach
@@ -2075,13 +2085,15 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         constant_(self.fc_feature_domain_video.bias, 0)
 
         # 3. classifiers (video-level)
-        self.fc_classifier_video_verb_source = nn.Linear(feat_video_dim, num_class["verb"])
-        normal_(self.fc_classifier_video_verb_source.weight, 0, std)
-        constant_(self.fc_classifier_video_verb_source.bias, 0)
+        if self.verb:
+            self.fc_classifier_video_verb_source = nn.Linear(feat_video_dim, num_class["verb"])
+            normal_(self.fc_classifier_video_verb_source.weight, 0, std)
+            constant_(self.fc_classifier_video_verb_source.bias, 0)
 
-        self.fc_classifier_video_noun_source = nn.Linear(feat_video_dim, num_class["noun"])
-        normal_(self.fc_classifier_video_noun_source.weight, 0, std)
-        constant_(self.fc_classifier_video_noun_source.bias, 0)
+        if self.noun:
+            self.fc_classifier_video_noun_source = nn.Linear(feat_video_dim, num_class["noun"])
+            normal_(self.fc_classifier_video_noun_source.weight, 0, std)
+            constant_(self.fc_classifier_video_noun_source.bias, 0)
 
         if self.ens_DA == "MCD":
             self.fc_classifier_video_source_2 = nn.Linear(
@@ -2111,13 +2123,15 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             normal_(self.fc_feature_video_target_2.weight, 0, std)
             constant_(self.fc_feature_video_target_2.bias, 0)
 
-            self.fc_classifier_video_verb_target = nn.Linear(feat_video_dim, num_class)
-            normal_(self.fc_classifier_video_verb_target.weight, 0, std)
-            constant_(self.fc_classifier_video_verb_target.bias, 0)
+            if self.verb:
+                self.fc_classifier_video_verb_target = nn.Linear(feat_video_dim, num_class)
+                normal_(self.fc_classifier_video_verb_target.weight, 0, std)
+                constant_(self.fc_classifier_video_verb_target.bias, 0)
 
-            self.fc_classifier_video_noun_target = nn.Linear(feat_video_dim, num_class)
-            normal_(self.fc_classifier_video_noun_target.weight, 0, std)
-            constant_(self.fc_classifier_video_noun_target.bias, 0)
+            if self.noun:
+                self.fc_classifier_video_noun_target = nn.Linear(feat_video_dim, num_class)
+                normal_(self.fc_classifier_video_noun_target.weight, 0, std)
+                constant_(self.fc_classifier_video_noun_target.bias, 0)
 
         # BN for the above layers
         if self.use_bn is not None:  # S & T: use AdaBN (ICLRW 2017) approach
@@ -2268,8 +2282,8 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             num_extra_f = len_ts * self.n_ts - num_segments
             if num_extra_f < 0:  # can remove last frame-level features
                 feat_fc_video = feat_fc_video[
-                    :, : len_ts * self.n_ts, :
-                ]  # make the temporal length can be divided by n_ts (16 x 25 x 512 --> 16 x 24 x 512)
+                                :, : len_ts * self.n_ts, :
+                                ]  # make the temporal length can be divided by n_ts (16 x 25 x 512 --> 16 x 24 x 512)
             elif num_extra_f > 0:  # need to repeat last frame-level features
                 feat_fc_video = torch.cat(
                     (feat_fc_video, feat_fc_video[:, -1:, :].repeat(1, num_extra_f, 1)), 1
@@ -2338,26 +2352,29 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             ).type_as(target_data)
             target_data = torch.cat((target_data, target_data_dummy))
 
-        source_label_verb = source_label[0]  # pytorch 0.4.X
-        source_label_noun = source_label[1]  # pytorch 0.4.X
-
-        target_label_verb = target_label[0]  # pytorch 0.4.X
-        target_label_noun = target_label[1]  # pytorch 0.4.X
+        if self.verb:
+            source_label_verb = source_label[0]  # pytorch 0.4.X
+            target_label_verb = target_label[0]  # pytorch 0.4.X
+        if self.noun:
+            source_label_noun = source_label[1]  # pytorch 0.4.X
+            target_label_noun = target_label[1]  # pytorch 0.4.X
 
         if self.baseline_type == "frame":
             # expand the size for all the frames
-            source_label_verb_frame = source_label_verb.unsqueeze(1).repeat(1, self.train_segments).view(-1)
-            source_label_noun_frame = source_label_noun.unsqueeze(1).repeat(1, self.train_segments).view(-1)
-
-            target_label_verb_frame = target_label_verb.unsqueeze(1).repeat(1, self.train_segments).view(-1)
-            target_label_noun_frame = target_label_noun.unsqueeze(1).repeat(1, self.train_segments).view(-1)
+            if self.verb:
+                source_label_verb_frame = source_label_verb.unsqueeze(1).repeat(1, self.train_segments).view(-1)
+                target_label_verb_frame = target_label_verb.unsqueeze(1).repeat(1, self.train_segments).view(-1)
+            if self.noun:
+                source_label_noun_frame = source_label_noun.unsqueeze(1).repeat(1, self.train_segments).view(-1)
+                target_label_noun_frame = target_label_noun.unsqueeze(1).repeat(1, self.train_segments).view(-1)
 
         # determine the label for calculating the loss function
-        label_source_verb = source_label_verb_frame if self.baseline_type == "frame" else source_label_verb
-        label_target_verb = target_label_verb_frame if self.baseline_type == "frame" else target_label_verb
-
-        label_source_noun = source_label_noun_frame if self.baseline_type == "frame" else source_label_noun
-        label_target_noun = target_label_noun_frame if self.baseline_type == "frame" else target_label_noun
+        if self.verb:
+            label_source_verb = source_label_verb_frame if self.baseline_type == "frame" else source_label_verb
+            label_target_verb = target_label_verb_frame if self.baseline_type == "frame" else target_label_verb
+        if self.noun:
+            label_source_noun = source_label_noun_frame if self.baseline_type == "frame" else source_label_noun
+            label_target_noun = target_label_noun_frame if self.baseline_type == "frame" else target_label_noun
 
         if split_name != "T":
             self.beta_new = self.beta
@@ -2395,8 +2412,11 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         # loss_verb = self.criterion(out_verb, label_verb)
         # loss_noun = self.criterion(out_noun, label_noun)
-        src_loss_verb = self.criterion(out_source[0], label_source_verb)
-        src_loss_noun = self.criterion(out_source[1], label_source_noun)
+        if self.verb:
+            src_loss_verb = self.criterion(out_source[0], label_source_verb)
+        if self.noun:
+            src_loss_noun = self.criterion(out_source[1], label_source_noun)
+
         if self.train_metric == "all":
             src_task_loss = 0.5 * (src_loss_verb + src_loss_noun)
         elif self.train_metric == "noun":
@@ -2521,12 +2541,14 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
             # 3. attentive entropy loss
             if self.add_loss_DA == "attentive_entropy" and self.use_attn is not None and self.use_target is not None:
-                loss_entropy_verb = losses.attentive_entropy(
-                    torch.cat((out_source[0], out_target[0]), 0), pred_domain_all[1]
-                )
-                loss_entropy_noun = losses.attentive_entropy(
-                    torch.cat((out_source[1], out_target[1]), 0), pred_domain_all[1]
-                )
+                if self.verb:
+                    loss_entropy_verb = losses.attentive_entropy(
+                        torch.cat((out_source[0], out_target[0]), 0), pred_domain_all[1]
+                    )
+                if self.noun:
+                    loss_entropy_noun = losses.attentive_entropy(
+                        torch.cat((out_source[1], out_target[1]), 0), pred_domain_all[1]
+                    )
 
                 if self.train_metric == "all":
                     src_task_loss += self.gamma * 0.5 * (loss_entropy_verb + loss_entropy_noun)
@@ -2547,19 +2569,29 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         # )
         # prec1_action, prec5_action = torch.tensor(prec1_action), torch.tensor(prec5_action)
 
-        prec1_src_verb, prec5_src_verb = self.accuracy(out_source[0].data, label_source_verb, topk=(1, 5))
-        prec1_src_noun, prec5_src_noun = self.accuracy(out_source[1].data, label_source_noun, topk=(1, 5))
-        prec1_src_action, prec5_src_action = self.multitask_accuracy(
-            (out_source[0].data, out_source[1].data), (label_source_verb, label_source_noun), topk=(1, 5)
-        )
-        prec1_src_action, prec5_src_action = torch.tensor(prec1_src_action), torch.tensor(prec5_src_action)
+        if self.verb and not self.noun:
+            prec1_src_noun, prec5_src_noun, prec1_src_action, prec5_src_action = 0, 0, 0, 0
+            prec1_tgt_noun, prec5_tgt_noun, prec1_tgt_action, prec5_tgt_action = 0, 0, 0, 0
 
-        prec1_tgt_verb, prec5_tgt_verb = self.accuracy(out_target[0].data, label_target_verb, topk=(1, 5))
-        prec1_tgt_noun, prec5_tgt_noun = self.accuracy(out_target[1].data, label_target_noun, topk=(1, 5))
-        prec1_tgt_action, prec5_tgt_action = self.multitask_accuracy(
-            (out_target[0].data, out_target[1].data), (label_target_verb, label_target_noun), topk=(1, 5)
-        )
-        prec1_tgt_action, prec5_tgt_action = torch.tensor(prec1_tgt_action), torch.tensor(prec5_tgt_action)
+        if self.verb:
+            prec1_src_verb, prec5_src_verb = self.accuracy(out_source[0].data, label_source_verb, topk=(1, 5))
+        if self.noun:
+            prec1_src_noun, prec5_src_noun = self.accuracy(out_source[1].data, label_source_noun, topk=(1, 5))
+        if self.verb and self.noun:
+            prec1_src_action, prec5_src_action = self.multitask_accuracy(
+                (out_source[0].data, out_source[1].data), (label_source_verb, label_source_noun), topk=(1, 5)
+            )
+            prec1_src_action, prec5_src_action = torch.tensor(prec1_src_action), torch.tensor(prec5_src_action)
+
+        if self.verb:
+            prec1_tgt_verb, prec5_tgt_verb = self.accuracy(out_target[0].data, label_target_verb, topk=(1, 5))
+        if self.noun:
+            prec1_tgt_noun, prec5_tgt_noun = self.accuracy(out_target[1].data, label_target_noun, topk=(1, 5))
+        if self.verb and self.noun:
+            prec1_tgt_action, prec5_tgt_action = self.multitask_accuracy(
+                (out_target[0].data, out_target[1].data), (label_target_verb, label_target_noun), topk=(1, 5)
+            )
+            prec1_tgt_action, prec5_tgt_action = torch.tensor(prec1_tgt_action), torch.tensor(prec5_tgt_action)
 
         # measure elapsed time
         # batch_time = time.time() - self.end
@@ -2572,25 +2604,38 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         # ======= return log_metrics ======#
 
-        log_metrics = {
-            f"{split_name}_verb_source_acc": prec1_src_verb,
-            f"{split_name}_noun_source_acc": prec1_src_noun,
-            f"{split_name}_verb_target_acc": prec1_tgt_verb,
-            f"{split_name}_noun_target_acc": prec1_tgt_noun,
-            f"{split_name}_verb_source_top1_acc": prec1_src_verb,
-            f"{split_name}_verb_source_top5_acc": prec5_src_verb,
-            f"{split_name}_noun_source_top1_acc": prec1_src_noun,
-            f"{split_name}_noun_source_top5_acc": prec5_src_noun,
-            f"{split_name}_action_source_top1_acc": prec1_src_action,
-            f"{split_name}_action_source_top5_acc": prec5_src_action,
-            f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
-            f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
-            f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
-            f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
-            f"{split_name}_action_target_top1_acc": prec1_tgt_action,
-            f"{split_name}_action_target_top5_acc": prec5_tgt_action,
-            f"{split_name}_domain_acc": prec1_src_verb,
-        }
+        if self.verb and not self.noun:
+            log_metrics = {
+                f"{split_name}_source_acc": prec1_src_verb,
+                f"{split_name}_target_acc": prec1_tgt_verb,
+                f"{split_name}_source_top1_acc": prec1_src_verb,
+                f"{split_name}_source_top5_acc": prec5_src_verb,
+                f"{split_name}_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_domain_acc": prec1_src_verb,
+                f"{split_name}_source_domain_acc": prec1_src_verb,
+                f"{split_name}_target_domain_acc": prec1_src_verb,
+            }
+        elif self.verb and self.noun:
+            log_metrics = {
+                f"{split_name}_verb_source_acc": prec1_src_verb,
+                f"{split_name}_noun_source_acc": prec1_src_noun,
+                f"{split_name}_verb_target_acc": prec1_tgt_verb,
+                f"{split_name}_noun_target_acc": prec1_tgt_noun,
+                f"{split_name}_verb_source_top1_acc": prec1_src_verb,
+                f"{split_name}_verb_source_top5_acc": prec5_src_verb,
+                f"{split_name}_noun_source_top1_acc": prec1_src_noun,
+                f"{split_name}_noun_source_top5_acc": prec5_src_noun,
+                f"{split_name}_action_source_top1_acc": prec1_src_action,
+                f"{split_name}_action_source_top5_acc": prec5_src_action,
+                f"{split_name}_verb_target_top1_acc": prec1_tgt_verb,
+                f"{split_name}_verb_target_top5_acc": prec5_tgt_verb,
+                f"{split_name}_noun_target_top1_acc": prec1_tgt_noun,
+                f"{split_name}_noun_target_top5_acc": prec5_tgt_noun,
+                f"{split_name}_action_target_top1_acc": prec1_tgt_action,
+                f"{split_name}_action_target_top5_acc": prec5_tgt_action,
+                f"{split_name}_domain_acc": prec1_src_verb,
+            }
 
         # log_metrics = {
         #     "Loss Total": loss,
@@ -2621,11 +2666,12 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             # optimizer = torch.optim.SGD(
             #     self.parameters(), self._init_lr, momentum=self.momentum, weight_decay=self.weight_decay, nesterov=True
             # )
-            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"], )
         elif self._optimizer_params["type"] == "Adam":
             # log_info("using Adam")
             # optimizer = torch.optim.Adam(self.parameters(), self._init_lr, weight_decay=self.weight_decay)
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr,
+                                         **self._optimizer_params["optim_params"], )
         else:
             pass
             # log_error("optimizer not support or specified!!!")
@@ -2859,15 +2905,22 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         #     log_output("feat_fc_target (after attention): ", feat_fc_target)
 
         # === source layers (frame-level) ===#
-
-        pred_fc_source = (
-            self.classifier_frame_verb(feat_fc_source),
-            self.classifier_frame_noun(feat_fc_source),
-        )
-        pred_fc_target = (
-            self.classifier_frame_verb(feat_fc_target),
-            self.classifier_frame_noun(feat_fc_target),
-        )
+        if self.verb and self.noun:
+            pred_fc_source = (
+                self.classifier_frame_verb(feat_fc_source),
+                self.classifier_frame_noun(feat_fc_source),
+            )
+            pred_fc_target = (
+                self.classifier_frame_verb(feat_fc_target),
+                self.classifier_frame_noun(feat_fc_target),
+            )
+        if self.verb and not self.noun:
+            pred_fc_source = (
+                self.classifier_frame_verb(feat_fc_source),
+            )
+            pred_fc_target = (
+                self.classifier_frame_verb(feat_fc_target),
+            )
 
         # pred_fc_source = (
         #     self.fc_classifier_source_verb(feat_fc_source),
@@ -2895,11 +2948,11 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             feat_fc_video_target = self.aggregate_frames(feat_fc_target, num_segments, pred_fc_domain_frame_target)
 
             attn_relation_source = feat_fc_video_source[
-                :, 0
-            ]  # assign random tensors to attention values to avoid runtime error
+                                   :, 0
+                                   ]  # assign random tensors to attention values to avoid runtime error
             attn_relation_target = feat_fc_video_target[
-                :, 0
-            ]  # assign random tensors to attention values to avoid runtime error
+                                   :, 0
+                                   ]  # assign random tensors to attention values to avoid runtime error
 
         elif "trn" in self.frame_aggregation:
             feat_fc_video_source = feat_fc_source.view(
@@ -2931,11 +2984,11 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
                 )
             else:
                 attn_relation_source = feat_fc_video_relation_source[
-                    :, :, 0
-                ]  # assign random tensors to attention values to avoid runtime error
+                                       :, :, 0
+                                       ]  # assign random tensors to attention values to avoid runtime error
                 attn_relation_target = feat_fc_video_relation_target[
-                    :, :, 0
-                ]  # assign random tensors to attention values to avoid runtime error
+                                       :, :, 0
+                                       ]  # assign random tensors to attention values to avoid runtime error
 
             # sum up relation features (ignore 1-relation)
             feat_fc_video_source = torch.sum(feat_fc_video_relation_source, 1)
@@ -2992,18 +3045,30 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         # log_output("feat_fc_video_source: ", feat_fc_video_source)
         # log_output("feat_fc_video_target: ", feat_fc_video_target)
 
-        pred_fc_video_source = (
-            self.fc_classifier_video_verb_source(feat_fc_video_source),
-            self.fc_classifier_video_noun_source(feat_fc_video_source),
-        )
-        pred_fc_video_target = (
-            self.fc_classifier_video_verb_target(feat_fc_video_target)
-            if self.share_params == "N"
-            else self.fc_classifier_video_verb_source(feat_fc_video_target),
-            self.fc_classifier_video_noun_target(feat_fc_video_target)
-            if self.share_params == "N"
-            else self.fc_classifier_video_noun_source(feat_fc_video_target),
-        )
+        if self.verb and self.noun:
+            pred_fc_video_source = (
+                self.fc_classifier_video_verb_source(feat_fc_video_source),
+                self.fc_classifier_video_noun_source(feat_fc_video_source),
+            )
+            pred_fc_video_target = (
+                self.fc_classifier_video_verb_target(feat_fc_video_target)
+                if self.share_params == "N"
+                else self.fc_classifier_video_verb_source(feat_fc_video_target),
+                self.fc_classifier_video_noun_target(feat_fc_video_target)
+                if self.share_params == "N"
+                else self.fc_classifier_video_noun_source(feat_fc_video_target),
+            )
+        elif self.verb and not self.noun:
+            pred_fc_video_source = (
+                self.fc_classifier_video_verb_source(feat_fc_video_source),
+                None
+            )
+            pred_fc_video_target = (
+                self.fc_classifier_video_verb_target(feat_fc_video_target)
+                if self.share_params == "N"
+                else self.fc_classifier_video_verb_source(feat_fc_video_target),
+                None
+            )
 
         # log_output("pred_fc_video_source: ", pred_fc_video_source)
         # log_output("pred_fc_video_target: ", pred_fc_video_target)
@@ -3011,8 +3076,11 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         if self.baseline_type == "video":  # only store the prediction from classifier 1 (for now)
             feat_all_source.append(pred_fc_video_source[0].view((batch_source,) + pred_fc_video_source[0].size()[-1:]))
             feat_all_target.append(pred_fc_video_target[0].view((batch_target,) + pred_fc_video_target[0].size()[-1:]))
-            feat_all_source.append(pred_fc_video_source[1].view((batch_source,) + pred_fc_video_source[1].size()[-1:]))
-            feat_all_target.append(pred_fc_video_target[1].view((batch_target,) + pred_fc_video_target[1].size()[-1:]))
+            if self.verb and self.noun:
+                feat_all_source.append(
+                    pred_fc_video_source[1].view((batch_source,) + pred_fc_video_source[1].size()[-1:]))
+                feat_all_target.append(
+                    pred_fc_video_target[1].view((batch_target,) + pred_fc_video_target[1].size()[-1:]))
 
         # === adversarial branch (video-level) ===#
         pred_fc_domain_video_source = self.domain_classifier_video(feat_fc_video_source, beta)
@@ -3386,8 +3454,10 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
     def removeDummy(self, attn, out_1, out_2, pred_domain, feat, batch_size):
         attn = attn[:batch_size]
-        if isinstance(out_1, (list, tuple)):
+        if isinstance(out_1, (list, tuple)) and out_1[1] is not None:
             out_1 = (out_1[0][:batch_size], out_1[1][:batch_size])
+        elif isinstance(out_1, (list, tuple)) and out_1[1] is None:
+            out_1 = (out_1[0][:batch_size],)
         else:
             out_1 = out_1[:batch_size]
         out_2 = out_2[:batch_size]

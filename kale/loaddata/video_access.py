@@ -188,53 +188,60 @@ class VideoDataset(Enum):
         target_tf = transform_names[target]
 
         if input_type == "image":
-
             if rgb:
                 rgb_source = factories[source](
-                    src_data_path,
-                    src_tr_listpath,
-                    src_te_listpath,
-                    "rgb",
-                    num_segments,
-                    frames_per_segment,
-                    num_verb_classes,
-                    source_tf,
-                    seed,
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=source_tf,
+                    seed=seed,
+                    input_type=input_type,
                 )
                 rgb_target = factories[target](
-                    tgt_data_path,
-                    tgt_tr_listpath,
-                    tgt_te_listpath,
-                    "rgb",
-                    num_segments,
-                    frames_per_segment,
-                    num_verb_classes,
-                    target_tf,
-                    seed,
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="rgb",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=target_tf,
+                    seed=seed,
+                    input_type=input_type,
                 )
 
             if flow:
                 flow_source = factories[source](
-                    src_data_path,
-                    src_tr_listpath,
-                    src_te_listpath,
-                    "flow",
-                    num_segments,
-                    frames_per_segment,
-                    num_verb_classes,
-                    source_tf,
-                    seed,
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=source_tf,
+                    seed=seed,
+                    input_type=input_type,
                 )
                 flow_target = factories[target](
-                    tgt_data_path,
-                    tgt_tr_listpath,
-                    tgt_te_listpath,
-                    "flow",
-                    num_segments,
-                    frames_per_segment,
-                    num_verb_classes,
-                    target_tf,
-                    seed,
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="flow",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=target_tf,
+                    seed=seed,
+                    input_type=input_type,
                 )
             if audio:
                 raise ValueError("Not support {} for {} input_type".format(image_modality, input_type))
@@ -251,7 +258,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=source_tf,
+                    transform_kind=source_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -265,7 +272,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=target_tf,
+                    transform_kind=target_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -279,7 +286,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=source_tf,
+                    transform_kind=source_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -293,7 +300,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=target_tf,
+                    transform_kind=target_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -307,7 +314,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=source_tf,
+                    transform_kind=source_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -321,7 +328,7 @@ class VideoDataset(Enum):
                     num_segments=num_segments,
                     frames_per_segment=frames_per_segment,
                     n_classes=num_verb_classes,
-                    transform=target_tf,
+                    transform_kind=target_tf,
                     seed=seed,
                     input_type=input_type,
                 )
@@ -352,10 +359,12 @@ class VideoDatasetAccess(DatasetAccess):
 
     def __init__(
         self,
+        domain,
         data_path,
         train_list,
         test_list,
         image_modality,
+        input_type,
         num_segments,
         frames_per_segment,
         n_classes,
@@ -363,10 +372,12 @@ class VideoDatasetAccess(DatasetAccess):
         seed=1,
     ):
         super().__init__(n_classes)
+        self._domain = domain
         self._data_path = data_path
         self._train_list = train_list
         self._test_list = test_list
         self._image_modality = image_modality
+        self._input_type = input_type
         self._num_segments = num_segments
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
@@ -466,6 +477,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=False,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="train",
             n_classes=self._n_classes,
         )
@@ -481,6 +493,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=True,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="test",
             n_classes=self._n_classes,
         )
@@ -533,23 +546,23 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
         num_segments,
         frames_per_segment,
         n_classes,
-        transform,
+        transform_kind,
         seed,
         input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
+            domain,
             data_path,
             train_list,
             test_list,
             image_modality,
+            input_type,
             num_segments,
             frames_per_segment,
             n_classes,
-            transform,
+            transform_kind,
             seed,
         )
-        self._input_type = input_type
-        self._domain = domain
         self._num_train_dataload = len(pd.read_pickle(self._train_list).index)
         self._num_test_dataload = len(pd.read_pickle(self._test_list).index)
 

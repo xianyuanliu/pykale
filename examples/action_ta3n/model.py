@@ -155,6 +155,7 @@ def get_model(cfg, dataset, dict_num_classes):
     )
 
     classifier_network = get_classnet_ta3n(
+        class_type=class_type,
         input_size_frame=class_feature_dim,
         input_size_video=class_feature_dim,
         dict_n_class=dict_num_classes,

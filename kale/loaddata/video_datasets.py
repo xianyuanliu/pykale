@@ -35,6 +35,7 @@ class BasicVideoDataset(VideoFrameDataset):
         annotationfile_path: str,
         dataset_split: str,
         image_modality: str,
+        input_type: str,
         num_segments: int = 1,
         frames_per_segment: int = 16,
         imagefile_template: str = "img_{:010d}.jpg",
@@ -58,6 +59,7 @@ class BasicVideoDataset(VideoFrameDataset):
             transform,
             random_shift,
             test_mode,
+            input_type,
         )
 
     def _parse_list(self):
