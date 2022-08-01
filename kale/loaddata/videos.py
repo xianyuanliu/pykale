@@ -171,7 +171,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         test_mode: bool = False,
         input_type: str = "image",
         num_data_load=None,
-        total_segments=25,
     ):
         super(VideoFrameDataset, self).__init__()
 
@@ -188,7 +187,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             self.frames_per_segment //= 2
         self.input_type = input_type
         self.num_data_load = num_data_load
-        self.total_segments = (total_segments,)
+        self.total_segments = (num_segments,)  # followed by EPIC100
         self._data = None
 
         self._parse_list()
@@ -211,6 +210,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         if self.image_modality == 'rgb':
             feat_path = os.path.join(directory, self.imagefile_template.format(idx))
             feat = [torch.load(feat_path)]
+            # print(feat_path)
             return feat
 
         elif self.image_modality == 'flow':
@@ -393,6 +393,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         """
         if self.input_type == "image":
             indices = indices + record.start_frame
+        if self.input_type == "feature" and self.imagefile_template in ["img_{:05d}.t7", "flow_{:05d}.t7"]:
+            indices = indices + record.start_frame - 1
         if self.input_type == "image":
             images = list()
             image_indices = list()
@@ -421,6 +423,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                     if frame_index < record.num_frames:
                         frame_index += 1
             features = torch.stack(features)
+            # print(record.label)
             return features, record.label, record.segment_id
 
     def __len__(self):
