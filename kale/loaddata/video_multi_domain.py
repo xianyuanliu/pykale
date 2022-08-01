@@ -162,11 +162,11 @@ class VideoMultiDomainDatasets(MultiDomainDatasets):
             logging.debug("Load audio train and val")
             (self._audio_source_by_split["train"], self._audio_source_by_split["valid"]) = self._source_access_dict[
                 "audio"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
 
             (self._audio_target_by_split["train"], self._audio_target_by_split["valid"]) = self._target_access_dict[
                 "audio"
-            ].get_train_val(self._val_split_ratio)
+            ].get_train_valid(self._valid_split_ratio)
 
             logging.debug("Load RGB Test")
             self._audio_source_by_split["test"] = self._source_access_dict["audio"].get_test()
