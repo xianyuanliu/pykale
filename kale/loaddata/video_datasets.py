@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image
 
-from kale.loaddata.videos import VideoFrameDataset, VideoRecord
+from kale.loaddata.videos import VideoFrameDataset, VideoRecord, VideoFeatureRecord
 
 
 class BasicVideoDataset(VideoFrameDataset):
@@ -46,9 +46,13 @@ class BasicVideoDataset(VideoFrameDataset):
     ):
         self.root_path = Path(root_path)
         self.image_modality = image_modality
+        self.input_type = input_type
         self.dataset = dataset_split
         self.n_classes = n_classes
-        self.img_path = self.root_path.joinpath(self.image_modality)
+        if self.input_type == "image":
+            self.img_path = self.root_path.joinpath(self.image_modality)
+        elif self.input_type == "feature":
+            self.img_path = self.root_path.joinpath("feature")
         super(BasicVideoDataset, self).__init__(
             root_path,
             annotationfile_path,
