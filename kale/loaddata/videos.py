@@ -63,8 +63,9 @@ class VideoRecord(object):
 
 
 class VideoFeatureRecord(object):
-    def __init__(self, i, row, num_segments):
+    def __init__(self, row, root_datapath, i, num_segments):
         self._data = row
+        self._path = os.path.join(root_datapath, row[0])
         self._index = i
         self._seg = num_segments
 
@@ -74,7 +75,7 @@ class VideoFeatureRecord(object):
 
     @property
     def path(self):
-        return self._index
+        return self._path
 
     @property
     def num_frames(self):
@@ -192,7 +193,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
 
         self._parse_list()
 
-    def _read_features(self):
+    def _read_features_from_pkl(self):
         with open(self.root_path, "rb") as f:
             data = pickle.load(f)
             if self.image_modality == "all":
@@ -206,6 +207,17 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             data_narrations = data["narration_ids"]
             self._data = dict(zip(data_narrations, data_features))
 
+    def _read_features_from_t7(self, directory, idx):
+        if self.image_modality == 'rgb':
+            feat_path = os.path.join(directory, self.imagefile_template.format(idx))
+            feat = [torch.load(feat_path)]
+            return feat
+
+        elif self.image_modality == 'flow':
+            x_feat = torch.load(os.path.join(directory, self.imagefile_template.format('x', idx)))
+            y_feat = torch.load(os.path.join(directory, self.imagefile_template.format('y', idx)))
+            return [x_feat, y_feat]
+
     def _load_image(self, directory, idx):
         if self.image_modality == "rgb":
             return [Image.open(os.path.join(directory, self.imagefile_template.format(idx))).convert("RGB")]
@@ -217,20 +229,24 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         else:
             raise ValueError("Input modality is not in [rgb, flow, joint]. Current is {}".format(self.image_modality))
 
-    def _load_feature(self, idx, segment):
-        if self._data is None:
-            self._read_features()
-        if (
-            self.image_modality == "rgb"
-            or self.image_modality == "flow"
-            or self.image_modality == "audio"
-            or self.image_modality == "all"
+    def _load_feature(self, directory, idx, segment):
+        if str(self.root_path)[-4:] == ".pkl":
+            if self._data is None:
+                self._read_features_from_pkl()
+            if (
+                self.image_modality == "rgb"
+                or self.image_modality == "flow"
+                or self.image_modality == "audio"
+                or self.image_modality == "all"
         ):
-            return torch.from_numpy(np.expand_dims(self._data[segment][idx - 1], axis=0)).float()
+                return torch.from_numpy(np.expand_dims(self._data[segment][idx - 1], axis=0)).float()
+            else:
+                raise ValueError(
+                    "Input modality is not in [rgb, flow, audio, all]. Current is {}".format(self.image_modality)
+                )
         else:
-            raise ValueError(
-                "Input modality is not in [rgb, flow, audio, all]. Current is {}".format(self.image_modality)
-            )
+            if self._data is None:
+                return self._read_features_from_t7(directory, idx)
 
     def _parse_list(self):
         if self.input_type == "image":
@@ -240,7 +256,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         elif self.input_type == "feature":
             label_file = pd.read_pickle(self.annotationfile_path).reset_index()
             self.video_list = [
-                VideoFeatureRecord(i, row[1], self.total_segments[0]) for i, row in enumerate(label_file.iterrows())
+                VideoFeatureRecord(row[1], self.root_path, i, self.total_segments[0]) for i, row in enumerate(label_file.iterrows())
             ]
             # repeat the list if the length is less than num_data_load (especially for target data)
             n_repeat = self.num_data_load // len(self.video_list)
@@ -399,7 +415,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             for seg_ind in indices:
                 frame_index = int(seg_ind)
                 for i in range(self.frames_per_segment):
-                    seg_feats = self._load_feature(frame_index, record.segment_id)
+                    seg_feats = self._load_feature(record.path, frame_index, record.segment_id)
                     features.extend(seg_feats)
                     feature_indices.append(frame_index)
                     if frame_index < record.num_frames:
