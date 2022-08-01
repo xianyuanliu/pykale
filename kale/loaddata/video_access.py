@@ -332,6 +332,38 @@ class VideoDataset(Enum):
                     seed=seed,
                     input_type=input_type,
                 )
+            if rgb and flow and audio:
+                # All modality modes follow EPIC settings (early fusion),
+                # concatenating modality features (3x1024 -> 3072) at the beginning.
+                # To keep our code comparable, we develop dataloaders using rgb source and rgb target.
+                # We load rgb source and rgb target for model learning in video domain adapter.py.
+                rgb_source = factories[source](
+                    domain="source",
+                    data_path=src_data_path,
+                    train_list=src_tr_listpath,
+                    test_list=src_te_listpath,
+                    image_modality="all",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=source_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
+
+                rgb_target = factories[source](
+                    domain="target",
+                    data_path=tgt_data_path,
+                    train_list=tgt_tr_listpath,
+                    test_list=tgt_te_listpath,
+                    image_modality="all",
+                    num_segments=num_segments,
+                    frames_per_segment=frames_per_segment,
+                    n_classes=num_verb_classes,
+                    transform_kind=target_tf,
+                    seed=seed,
+                    input_type=input_type,
+                )
         else:
             raise Exception("Invalid input type option: {}".format(input_type))
 
@@ -353,7 +385,7 @@ class VideoDatasetAccess(DatasetAccess):
         image_modality (string): image type (RGB or Optical Flow)
         frames_per_segment (int): length of each action sample (the unit is number of frame)
         n_classes (int): number of class
-        transform_kind (string): types of video transforms
+        transform_kind (string, optional): types of video transforms
         seed: (int): seed value set manually.
     """
 
@@ -382,6 +414,11 @@ class VideoDatasetAccess(DatasetAccess):
         self._frames_per_segment = frames_per_segment
         self._transform = video_transform.get_transform(transform_kind, self._image_modality)
         self._seed = seed
+
+        if self._input_type == "image":
+            self._imagefile_template = "frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg"
+        else:
+            self._imagefile_template = "img_{:05d}.t7" if self._image_modality in ["rgb"] else self._image_modality + "{}_{:05d}.t7"
 
     def get_train_valid(self, valid_ratio):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
@@ -438,7 +475,8 @@ class GTEADatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["train"],
             random_shift=False,
             test_mode=False,
@@ -453,7 +491,8 @@ class GTEADatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["test"],
             random_shift=False,
             test_mode=True,
@@ -472,7 +511,8 @@ class ADLDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["train"],
             random_shift=False,
             test_mode=False,
@@ -481,14 +521,14 @@ class ADLDatasetAccess(VideoDatasetAccess):
             dataset_split="train",
             n_classes=self._n_classes,
         )
-
     def get_test(self):
         return BasicVideoDataset(
             root_path=self._data_path,
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["test"],
             random_shift=False,
             test_mode=True,
@@ -508,7 +548,8 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._train_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["train"],
             random_shift=False,
             test_mode=False,
@@ -523,7 +564,8 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             annotationfile_path=self._test_list,
             num_segments=self._num_segments,
             frames_per_segment=self._frames_per_segment,
-            imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            # imagefile_template="frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg",
+            imagefile_template=self._imagefile_template,
             transform=self._transform["test"],
             random_shift=False,
             test_mode=True,
