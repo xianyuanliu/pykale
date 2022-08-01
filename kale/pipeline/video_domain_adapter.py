@@ -1773,8 +1773,6 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         if self.audio:
             self.audio_feat_spatial = self.feat["audio"]["spatial"]
             self.audio_feat_temporal = self.feat["audio"]["temporal"]
-        # self.all_feat_spatial = self.feat["all"]["spatial"]
-        # self.all_feat_temporal = self.feat["all"]["temporal"]
 
         self.domain_classifier_frame = critic["frame-level"]
         self.domain_classifier_video = critic["video-level"]
@@ -2330,7 +2328,13 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         return feat_fc_video
 
     def compute_loss(self, batch, split_name="V"):
-        ((source_data, source_label, _), (target_data, target_label, _)) = batch
+        # All modality modes follow EPIC settings (early fusion),
+        # concatenating modality features (3x1024 -> 3072) at the beginning.
+        # We load rgb source and rgb target for model learning.
+        if self.rgb and self.flow and self.audio:
+            ((source_data, source_label, _), (target_data, target_label, _)) = batch[0], batch[3]
+        else:
+            ((source_data, source_label, _), (target_data, target_label, _)) = batch
 
         source_size_ori = source_data.size()  # original shape
         target_size_ori = target_data.size()  # original shape
@@ -2822,9 +2826,22 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         if self.add_fc < 1:
             raise ValueError("add at least one fc layer")
 
-        # TODO: only rgb now add audio & flow later
-        feat_fc_source = self.rgb_feat_spatial(feat_base_source)
-        feat_fc_target = self.rgb_feat_spatial(feat_base_target)
+        if self.rgb and not self.flow and not self.audio:
+            feat_fc_source = self.rgb_feat_spatial(feat_base_source)
+            feat_fc_target = self.rgb_feat_spatial(feat_base_target)
+        elif self.flow and not self.rgb and not self.audio:
+            feat_fc_source = self.flow_feat_spatial(feat_base_source)
+            feat_fc_target = self.flow_feat_spatial(feat_base_target)
+        elif self.audio and not self.rgb and not self.flow:
+            feat_fc_source = self.audio_feat_spatial(feat_base_source)
+            feat_fc_target = self.audio_feat_spatial(feat_base_target)
+
+        # All modality modes follow EPIC settings (early fusion),
+        # concatenating modality features (3x1024 -> 3072) at the beginning.
+        # We load rgb source and rgb target for model learning.
+        elif self.rgb and self.flow and self.audio:
+            feat_fc_source = self.rgb_feat_spatial(feat_base_source)
+            feat_fc_target = self.rgb_feat_spatial(feat_base_target)
 
         # feat_fc_source = self.fc_feature_shared_source(feat_base_source)
         # feat_fc_target = (
