@@ -1,7 +1,7 @@
 """Commonly used losses, from domain adaptation package
 https://github.com/criteo-research/pytorch-ada/blob/master/adalib/ada/models/losses.py
 """
-import numpy as np
+# import numpy as np
 import torch
 import torch.nn as nn
 from torch.autograd import grad

@@ -418,7 +418,9 @@ class VideoDatasetAccess(DatasetAccess):
         if self._input_type == "image":
             self._imagefile_template = "frame_{:010d}.jpg" if self._image_modality in ["rgb"] else "flow_{}_{:010d}.jpg"
         else:
-            self._imagefile_template = "img_{:05d}.t7" if self._image_modality in ["rgb"] else self._image_modality + "{}_{:05d}.t7"
+            self._imagefile_template = (
+                "img_{:05d}.t7" if self._image_modality in ["rgb"] else self._image_modality + "{}_{:05d}.t7"
+            )
 
     def get_train_valid(self, valid_ratio):
         """Get the train and validation dataset with the fixed random split. This is used for joint input like RGB and
@@ -481,6 +483,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=False,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="train",
             n_classes=self._n_classes,
         )
@@ -497,6 +500,7 @@ class GTEADatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=True,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="test",
             n_classes=self._n_classes,
         )
@@ -521,6 +525,7 @@ class ADLDatasetAccess(VideoDatasetAccess):
             dataset_split="train",
             n_classes=self._n_classes,
         )
+
     def get_test(self):
         return BasicVideoDataset(
             root_path=self._data_path,
@@ -554,6 +559,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=False,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="train",
             n_classes=self._n_classes,
         )
@@ -570,6 +576,7 @@ class KITCHENDatasetAccess(VideoDatasetAccess):
             random_shift=False,
             test_mode=True,
             image_modality=self._image_modality,
+            input_type=self._input_type,
             dataset_split="test",
             n_classes=self._n_classes,
         )
@@ -614,14 +621,11 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on train subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_train.pkl".format(self._domain)),
             annotationfile_path=self._train_list,
-            total_segments=25,
             # TODO: pass the parameter to num_segments
             num_segments=self._num_segments,
             frames_per_segment=1,
             image_modality=self._image_modality,
-            imagefile_template="img_{:05d}.t7"
-            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-            else self._input_type + "{}_{:05d}.t7",
+            imagefile_template="None",
             random_shift=False,
             test_mode=True,
             input_type="feature",
@@ -634,13 +638,10 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             # Uncomment to run on test subset for EPIC 2021 challenge
             # data_path=Path.joinpath(self._data_path, self._input_type, "{}_test.pkl".format(self._domain)),
             annotationfile_path=self._test_list,
-            total_segments=25,
             num_segments=self._num_segments,
             frames_per_segment=1,
             image_modality=self._image_modality,
-            imagefile_template="img_{:05d}.t7"
-            if self._image_modality in ["RGB", "RGBDiff", "RGBDiff2", "RGBDiffplus"]
-            else self._input_type + "{}_{:05d}.t7",
+            imagefile_template="None",
             random_shift=True,
             test_mode=True,
             input_type="feature",

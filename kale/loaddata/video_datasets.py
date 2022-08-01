@@ -6,7 +6,7 @@ from pathlib import Path
 import pandas as pd
 from PIL import Image
 
-from kale.loaddata.videos import VideoFrameDataset, VideoRecord, VideoFeatureRecord
+from kale.loaddata.videos import VideoFrameDataset, VideoRecord
 
 
 class BasicVideoDataset(VideoFrameDataset):

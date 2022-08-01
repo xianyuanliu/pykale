@@ -207,15 +207,14 @@ class VideoFrameDataset(torch.utils.data.Dataset):
             self._data = dict(zip(data_narrations, data_features))
 
     def _read_features_from_t7(self, directory, idx):
-        if self.image_modality == 'rgb':
+        if self.image_modality == "rgb":
             feat_path = os.path.join(directory, self.imagefile_template.format(idx))
             feat = [torch.load(feat_path)]
-            # print(feat_path)
             return feat
 
-        elif self.image_modality == 'flow':
-            x_feat = torch.load(os.path.join(directory, self.imagefile_template.format('x', idx)))
-            y_feat = torch.load(os.path.join(directory, self.imagefile_template.format('y', idx)))
+        elif self.image_modality == "flow":
+            x_feat = torch.load(os.path.join(directory, self.imagefile_template.format("x", idx)))
+            y_feat = torch.load(os.path.join(directory, self.imagefile_template.format("y", idx)))
             return [x_feat, y_feat]
 
     def _load_image(self, directory, idx):
@@ -238,7 +237,7 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                 or self.image_modality == "flow"
                 or self.image_modality == "audio"
                 or self.image_modality == "all"
-        ):
+            ):
                 return torch.from_numpy(np.expand_dims(self._data[segment][idx - 1], axis=0)).float()
             else:
                 raise ValueError(
@@ -256,7 +255,8 @@ class VideoFrameDataset(torch.utils.data.Dataset):
         elif self.input_type == "feature":
             label_file = pd.read_pickle(self.annotationfile_path).reset_index()
             self.video_list = [
-                VideoFeatureRecord(row[1], self.root_path, i, self.total_segments[0]) for i, row in enumerate(label_file.iterrows())
+                VideoFeatureRecord(row[1], self.root_path, i, self.total_segments[0])
+                for i, row in enumerate(label_file.iterrows())
             ]
             # repeat the list if the length is less than num_data_load (especially for target data)
             n_repeat = self.num_data_load // len(self.video_list)
@@ -423,7 +423,6 @@ class VideoFrameDataset(torch.utils.data.Dataset):
                     if frame_index < record.num_frames:
                         frame_index += 1
             features = torch.stack(features)
-            # print(record.label)
             return features, record.label, record.segment_id
 
     def __len__(self):

@@ -21,7 +21,7 @@ model_urls_ta3n = {
 
 class TA3NSpatialBlock(nn.Module):
     def __init__(
-            self, input_size=1024, output_size=512, input_type="feature", add_fc=1, dropout_rate=0.5, num_classes=[10]
+        self, input_size=1024, output_size=512, input_type="feature", add_fc=1, dropout_rate=0.5, num_classes=[10]
     ):
         super(TA3NSpatialBlock, self).__init__()
         self.add_fc = add_fc
@@ -155,15 +155,15 @@ def ta3n(name, input_size=1024, output_size=256, input_type="feature", frame_agg
 
 
 def ta3n_joint(
-        rgb=False,
-        flow=False,
-        audio=False,
-        input_size=1024,
-        output_size=256,
-        input_type="feature",
-        frame_aggregation="tsn-m",
-        segments=5,
-        dict_n_class={},
+    rgb=False,
+    flow=False,
+    audio=False,
+    input_size=1024,
+    output_size=256,
+    input_type="feature",
+    frame_aggregation="tsn-m",
+    segments=5,
+    dict_n_class={},
 ):
     """Get TA3N model for different inputs.
 
@@ -192,7 +192,7 @@ def ta3n_joint(
 
     # For debugging
     if rgb and flow and audio:
-        model_all = ta3n("rgb_ta3n", 3 * input_size, output_size, input_type, frame_aggregation, segments, )
+        model_all = ta3n("rgb_ta3n", 3 * input_size, output_size, input_type, frame_aggregation, segments,)
     return {"rgb": model_rgb, "flow": model_flow, "audio": model_audio, "all": model_all}
 
 
@@ -227,6 +227,7 @@ def get_domainnet_ta3n(input_size_frame, input_size_video):
     frame_model = DomainNetTA3NFrame(input_size=input_size_frame)
     video_model = DomainNetTA3NVideo(input_size=input_size_video)
     return {"frame-level": frame_model, "video-level": video_model}
+
 
 #
 # model_urls = {
