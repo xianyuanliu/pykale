@@ -34,7 +34,7 @@ def get_config(cfg):
             # "nb_init_epochs": cfg.SOLVER.MIN_EPOCHS,
             "init_lr": cfg.SOLVER.BASE_LR,
             "batch_size": cfg.SOLVER.TRAIN_BATCH_SIZE,
-            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY},},
+            "optimizer": {"type": cfg.SOLVER.TYPE, "optim_params": {"weight_decay": cfg.SOLVER.WEIGHT_DECAY}, },
             # "num_source": cfg.DATASET.NUM_SOURCE,
             # "num_target": cfg.DATASET.NUM_TARGET,
             "num_segments": cfg.DATASET.NUM_SEGMENTS,
@@ -110,6 +110,7 @@ def get_config(cfg):
             "target": cfg.DATASET.TARGET,
             "size_type": cfg.DATASET.SIZE_TYPE,
             "weight_type": cfg.DATASET.WEIGHT_TYPE,
+            "image_modality": cfg.DATASET.IMAGE_MODALITY,
             "input_type": cfg.DATASET.INPUT_TYPE,
             "class_type": cfg.DATASET.CLASS_TYPE,
         }
@@ -136,12 +137,17 @@ def get_model(cfg, dataset, dict_num_classes):
     config_params = get_config(cfg)
     train_params = config_params["train_params"]
     train_params_local = deepcopy(train_params)
-    # test_params = config_params["test_params"]
-    # test_params_local = deepcopy(test_params)
     data_params = config_params["data_params"]
     data_params_local = deepcopy(data_params)
     input_type = data_params_local["input_type"]
     class_type = data_params_local["class_type"]
+
+    # All modality modes follow EPIC settings (early fusion),
+    # concatenating modality features (3x1024 -> 3072) at the beginning.
+    if data_params_local["image_modality"] == "all":
+        input_size = 3072
+    else:
+        input_size = 1024 if data_params_local["source"] == "EPIC100" else 2048
 
     # setup feature extractor
     feature_network, class_feature_dim, domain_feature_dim = get_extractor_ta3n(
@@ -150,7 +156,7 @@ def get_model(cfg, dataset, dict_num_classes):
         dict_num_classes,
         cfg.DATASET.FRAME_AGGREGATION,
         cfg.DATASET.NUM_SEGMENTS,
-        input_size=1024,
+        input_size=input_size,
         output_size=512,
     )
 
