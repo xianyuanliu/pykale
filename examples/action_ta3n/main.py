@@ -101,8 +101,8 @@ def main():
             logger=tb_logger,
             log_every_n_steps=5,
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,
-            callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            # callbacks=[lr_monitor, progress_bar],
+            # callbacks=[checkpoint_callback, lr_monitor, progress_bar],
+            callbacks=[lr_monitor, progress_bar],
             # limit_train_batches=0.03,
             # limit_val_batches=0.4,
             # limit_test_batches=0.03,
@@ -113,6 +113,7 @@ def main():
         # fig = lr_finder.plot(suggest=True)
         # fig.show()
         # logging.info(lr_finder.suggestion())
+        # print(lr_finder.suggestion())
 
         ### Training/validation process
         trainer.fit(model)
