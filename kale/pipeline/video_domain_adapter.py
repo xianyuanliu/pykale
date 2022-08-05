@@ -167,7 +167,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
         self._update_batch_epoch_factors(batch_nb)
 
-        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
+        task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
         if self.current_epoch < self._init_epochs:
             loss = task_loss
         else:
@@ -176,9 +176,9 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -202,7 +202,7 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             )
             if self.method.is_mmd_method():
                 metrics_to_log = metrics_to_log[:-3] + ("{}_mmd".format(split_name),)
-            if split_name == "Te":
+            if split_name == "test":
                 metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
         elif self.verb and self.noun:
             metrics_to_log = (
@@ -229,16 +229,16 @@ class BaseAdaptTrainerVideo(BaseAdaptTrainer):
             )
             if self.method.is_mmd_method():
                 metrics_to_log = metrics_to_log[:-1] + ("{}_mmd".format(split_name),)
-            if split_name == "Te":
+            if split_name == "test":
                 metrics_to_log = metrics_to_log[:1] + metrics_to_log[4:]
         return metrics_to_log
 
     def validation_epoch_end(self, outputs):
-        metrics_to_log = self.create_metrics_log("V")
+        metrics_to_log = self.create_metrics_log("valid")
         return self._validation_epoch_end(outputs, metrics_to_log)
 
     def test_epoch_end(self, outputs):
-        metrics_at_test = self.create_metrics_log("Te")
+        metrics_at_test = self.create_metrics_log("test")
 
         # Uncomment to save output to json file for EPIC UDA 2021 challenge.(3/3)
         # save_results_to_json(
@@ -2378,7 +2378,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
             label_source_noun = source_label_noun_frame if self.baseline_type == "frame" else source_label_noun
             label_target_noun = target_label_noun_frame if self.baseline_type == "frame" else target_label_noun
 
-        if split_name != "T":
+        if split_name != "train":
             self.beta_new = self.beta
 
         (
@@ -2491,7 +2491,7 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         # (II) adversarial discriminative model: adversarial loss
         loss_adversarial = 0
-        if split_name == "T":
+        if split_name == "train":
             if self.adv_DA is not None and self.use_target is not None:
                 loss_adversarial = 0
                 pred_domain_all = []
@@ -3212,13 +3212,13 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         self._update_batch_epoch_factors(batch_nb)
 
-        loss, task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="T")
+        loss, task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="train")
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["T_total_loss"] = loss
-        log_metrics["T_adv_loss"] = adv_loss
-        log_metrics["T_task_loss"] = task_loss
+        log_metrics["train_total_loss"] = loss
+        log_metrics["train_adv_loss"] = adv_loss
+        log_metrics["train_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -3344,9 +3344,9 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["V_loss"] = loss
-        log_metrics["V_adv_loss"] = adv_loss
-        log_metrics["V_task_loss"] = task_loss
+        log_metrics["valid_loss"] = loss
+        log_metrics["valid_adv_loss"] = adv_loss
+        log_metrics["valid_task_loss"] = task_loss
 
         for key in log_metrics:
             self.log(key, log_metrics[key])
@@ -3421,11 +3421,11 @@ class TA3NTrainerVideo(BaseAdaptTrainerVideo):
         """
 
         # return self.validation_step(batch, batch_idx)
-        loss, task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="Te")
+        loss, task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="test")
 
         log_metrics = get_aggregated_metrics_from_dict(log_metrics)
         log_metrics.update(get_metrics_from_parameter_dict(self.get_parameters_watch_list(), loss.device))
-        log_metrics["Te_loss"] = loss
+        log_metrics["test_loss"] = loss
         return log_metrics
 
     def add_dummy_data(self, x_rgb, x_flow, x_audio, batch_size):

@@ -77,10 +77,10 @@ def main():
         tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
-            filename="{epoch}-{step}-{V:.4f}",
+            filename="{epoch}-{step}-{valid_loss:.4f}",
             # save_last=True,
             # save_top_k=1,
-            monitor="V_loss",
+            monitor="valid_loss",
             mode="min",
         )
 
@@ -101,8 +101,8 @@ def main():
             logger=tb_logger,
             log_every_n_steps=5,
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,
-            # callbacks=[checkpoint_callback, lr_monitor, progress_bar],
-            callbacks=[lr_monitor, progress_bar],
+            callbacks=[checkpoint_callback, lr_monitor, progress_bar],
+            # callbacks=[lr_monitor, progress_bar],
             # limit_train_batches=0.03,
             # limit_val_batches=0.4,
             # limit_test_batches=0.03,
