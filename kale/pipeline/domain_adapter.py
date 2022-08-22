@@ -426,7 +426,7 @@ class BaseAdaptTrainer(pl.LightningModule):
 
         task_loss, adv_loss, log_metrics = self.compute_loss(batch, split_name="test")
         loss = task_loss + self.lamb_da * adv_loss
-        log_metrics["Te_loss"] = loss
+        log_metrics["test_loss"] = loss
         return log_metrics
 
     def test_epoch_end(self, outputs):
