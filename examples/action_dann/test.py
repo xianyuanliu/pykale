@@ -70,12 +70,13 @@ def main():
 
     # ---- setup model and logger ----
     model, train_params = get_model(cfg, dataset, dict_num_classes)
-    trainer = pl.Trainer(logger=False, resume_from_checkpoint=args.ckpt, gpus=args.gpus,)
+    # trainer = pl.Trainer(logger=False, resume_from_checkpoint=args.ckpt, gpus=args.gpus,)
+    trainer = pl.Trainer(logger=False, gpus=args.gpus,)
 
-    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
+    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, map_location="cuda:0"))
 
     # test scores
-    trainer.test(model=model_test)
+    trainer.test(model=model_test, ckpt_path=args.ckpt)
 
 
 if __name__ == "__main__":
