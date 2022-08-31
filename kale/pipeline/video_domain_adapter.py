@@ -6,10 +6,12 @@
 """Domain adaptation systems (pipelines) for video data, e.g., for action recognition.
 Most are inherited from kale.pipeline.domain_adapter.
 """
+import csv
 import math
 import time
 
 import numpy as np
+import pandas as pd
 import torch
 
 # import torch.nn.functional as F
@@ -637,12 +639,22 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
             tu_id,
         ) = self.get_inputs_from_batch(batch)
 
-        _, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
+        feat_src, y_hat, [d_hat_rgb, d_hat_flow, d_hat_audio] = self.forward(
             {"rgb": x_s_rgb, "flow": x_s_flow, "audio": x_s_audio}
         )
-        _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
+        feat_tgt, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
             {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
         )
+
+        # # Saving i3d output features for tsne
+        # df_src = pd.DataFrame(feat_src[0].detach().cpu().numpy())
+        # df_src["label"] = 0
+        # df_tgt = pd.DataFrame(feat_tgt[0].detach().cpu().numpy())
+        # df_tgt["label"] = 1
+        # save_path = "D:/Projects/GitHub/tools/tsne/feats/d22d1/feat-ct.csv"
+        # df_src.to_csv(save_path, index=False, header=False, mode="a")
+        # df_tgt.to_csv(save_path, index=False, header=False, mode="a")
+
         source_batch_size = len(y_s[0])
         target_batch_size = len(y_tu[0])
 
