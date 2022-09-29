@@ -653,7 +653,6 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         # df_tgt = pd.DataFrame(feat_tgt[0].detach().cpu().numpy())
         # df_tgt["domain"] = 1
         # df_tgt["class_id"] = y_tu[0].detach().cpu().numpy()
-        # save_path = "D:/Projects/GitHub/tools/tsne/feats/d22d1/feat-ct.csv"
         # save_path = "D:/Projects/GitHub/tools/tsne/feat.csv"
         # df_src.to_csv(save_path, index=False, header=False, mode="a")
         # df_tgt.to_csv(save_path, index=False, header=False, mode="a")
