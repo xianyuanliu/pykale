@@ -33,7 +33,7 @@ class SEInceptionI3DRGB(nn.Module):
     def __init__(self, num_channels, num_classes, attention):
         super(SEInceptionI3DRGB, self).__init__()
         model = InceptionI3d(in_channels=num_channels, num_classes=num_classes)
-        temporal_length = 16
+        temporal_length = 8
         se_layer = get_attention(attention)
 
         # Add channel-wise SELayer

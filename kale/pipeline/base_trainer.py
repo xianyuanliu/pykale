@@ -1,3 +1,4 @@
+import pandas as pd
 import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
@@ -89,7 +90,7 @@ class ActionRecogTrainer(BaseTrainer):
             x = self.flow_feat(x)
         x = x.view(x.size(0), -1)
         output = self.classifier(x)
-        return output
+        return x, output
 
     def compute_loss(self, batch, split_name="valid"):
         # if len(batch) == 3:  # Video, audio, labels
@@ -102,7 +103,13 @@ class ActionRecogTrainer(BaseTrainer):
         #     x, y = batch
         x, y, _ = batch
         y = y[0]  # only one label
-        y_hat = self.forward(x)
+        feat, y_hat = self.forward(x)
+
+        # # Saving i3d output features for tsne
+        # df = pd.DataFrame(feat.detach().cpu().numpy())
+        # df["class_id"] = y.detach().cpu().numpy()
+        # save_path = "D:/Projects/GitHub/tools/tsne/feats/ar/adl-src-all.csv"
+        # df.to_csv(save_path, index=False, header=False, mode="a")
 
         loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y)
         return loss, log_metrics
