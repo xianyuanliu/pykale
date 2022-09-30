@@ -1,5 +1,6 @@
 */**/__pycache__
 */__pycache__
+*.dcm
 *.pt
 *.pth
 *.zip
@@ -24,8 +25,9 @@ examples/*/data/
 examples/*/outputs/
 examples/*/lightning_logs/
 examples/*/tb_logs/
+examples/*/logs/
 examples/*/demo*/
-examples/*/configs_xianyuan/
+examples/*/configs_experiment/
 
 # Logs
 log-*.txt
