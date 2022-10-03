@@ -75,7 +75,7 @@ def main():
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
             filename="{epoch}-{step}-{valid_loss:.4f}",
-            # save_last=True,
+            save_last=True,
             # save_top_k=1,
             monitor="valid_loss",
             mode="min",
@@ -100,9 +100,9 @@ def main():
             fast_dev_run=cfg.OUTPUT.FAST_DEV_RUN,  # True,
             callbacks=[lr_monitor, checkpoint_callback, progress_bar],
             # callbacks=[early_stop_callback, lr_monitor],
-            # limit_train_batches=0.005,
-            # limit_val_batches=0.06,
-            # limit_test_batches=0.06,
+            # limit_train_batches=0.1,
+            # limit_val_batches=0.25,
+            # limit_test_batches=0.2,
         )
 
         ### Find learning_rate
@@ -115,8 +115,8 @@ def main():
         trainer.fit(model)
 
         ### Test process
-        trainer.test()
-
+        trainer.test(ckpt_path="best")
+        trainer.test(ckpt_path=checkpoint_callback.last_model_path)
 
 if __name__ == "__main__":
     main()
