@@ -71,7 +71,7 @@ def main():
         print(f"==> Building model for seed {seed} ......")
         # ---- setup model and logger ----
         model, train_params = get_model(cfg, dataset, dict_num_classes)
-        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.TB_DIR, name="seed{}".format(seed))
+        tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(seed))
         checkpoint_callback = ModelCheckpoint(
             # dirpath=full_checkpoint_dir,
             filename="{epoch}-{step}-{valid_loss:.4f}",

@@ -16,7 +16,7 @@ _C = CN()
 # Dataset
 # -----------------------------------------------------------------------------
 _C.DATASET = CN()
-_C.DATASET.ROOT = "J:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
+_C.DATASET.ROOT = "F:/Datasets/EgoAction/"  # "/shared/tale2/Shared"
 _C.DATASET.SOURCE = "EPIC"  # dataset options=["EPIC", "GTEA", "ADL", "KITCHEN", "EPIC100"]
 _C.DATASET.SRC_TRAINLIST = "epic_D1_train.pkl"
 _C.DATASET.SRC_TESTLIST = "epic_D1_test.pkl"
@@ -75,7 +75,7 @@ _C.OUTPUT = CN()
 _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.FAST_DEV_RUN = False  # True for debug
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
-_C.OUTPUT.TB_DIR = os.path.join("tb_logs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
+_C.OUTPUT.OUT_DIR = os.path.join("tb_logs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
 
 
 def get_cfg_defaults():
