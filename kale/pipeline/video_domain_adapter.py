@@ -727,8 +727,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
 
             # x = self.concatenate(x_rgb, x_flow, x_audio)
 
-            x_st = self.tem_agg1(self.concatenate(x_rgb, x_flow, False))
-            x = self.tem_agg2(self.concatenate(x_st, x_audio, False))
+            x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
+            x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
 
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
