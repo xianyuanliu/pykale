@@ -714,22 +714,23 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
             # For joint input, both two ifs are used
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
+                x_rgb_flat = x_rgb.view(x_rgb.size(0), -1)
+                reverse_feature_rgb = GradReverse.apply(x_rgb_flat, self.alpha)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
-                x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
+                x_flow_flat = x_flow.view(x_flow.size(0), -1)
+                reverse_feature_flow = GradReverse.apply(x_flow_flat, self.alpha)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
-                x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
+                x_audio_flat = x_audio.view(x_audio.size(0), -1)
+                reverse_feature_audio = GradReverse.apply(x_audio_flat, self.alpha)
 
             # x = self.concatenate(x_rgb, x_flow, x_audio)
 
             x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
             x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
 
+            x = x.view(x.size(0), -1)
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
             softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
@@ -765,7 +766,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                     adversarial_output_audio = self.domain_classifier(feature_audio)
 
             return (
-                [x_rgb, x_flow, x_audio],
+                [x_rgb_flat, x_flow_flat, x_audio_flat],
                 class_output,
                 [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
             )
