@@ -25,6 +25,8 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLTrainer,
 )
+from kale.predict.class_domain_nets import DomainNetVideo
+
 
 # from kale.utils.logger import save_results_to_json
 
@@ -705,11 +707,15 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.audio_feat = self.feat["audio"]
         self.tem_agg1 = SELayerFeatAgg()
         self.tem_agg2 = SELayerFeatAgg()
+        self.tem_agg3 = SELayerFeatAgg()
+        self.domain_noun_input_size = 256 * 8 * 300
+        self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
+
 
     def forward(self, x):
         if self.feat is not None:
             x_rgb = x_flow = x_audio = None
-            adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
+            adversarial_output_rgb_verb = adversarial_output_flow_verb = adversarial_output_audio_verb = None
 
             # For joint input, both two ifs are used
             if self.rgb:
@@ -728,42 +734,80 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
             # x = self.concatenate(x_rgb, x_flow, x_audio)
 
             x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
-            x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
+            x_sa = self.tem_agg1(torch.cat((x_rgb, x_audio), dim=-1))
+            # x = self.tem_agg1(torch.cat((x_st, x_sa), dim=-1))
+            x = torch.cat((x_st, x_sa), dim=-1)
+            # x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
 
             x = x.view(x.size(0), -1)
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
-            softmax_output = torch.nn.Softmax(dim=1)(class_output[0])
-            reverse_out = GradReverse.apply(softmax_output, self.alpha)
+            softmax_output_verb = torch.nn.Softmax(dim=1)(class_output[0])
+            reverse_out_verb = GradReverse.apply(softmax_output_verb, self.alpha)
+
+            softmax_output_noun = torch.nn.Softmax(dim=1)(class_output[1])
+            reverse_out_noun = GradReverse.apply(softmax_output_noun, self.alpha)
 
             if self.rgb:
-                feature_rgb = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
-                feature_rgb = feature_rgb.view(-1, reverse_out.size(1) * reverse_feature_rgb.size(1))
+                feature_rgb_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
+                feature_rgb_verb = feature_rgb_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_rgb.size(1))
                 if self.random_layer:
-                    random_out_rgb = self.random_layer.forward(feature_rgb)
-                    adversarial_output_rgb = self.domain_classifier(random_out_rgb.view(-1, random_out_rgb.size(1)))
+                    random_out_rgb_verb = self.random_layer.forward(feature_rgb_verb)
+                    adversarial_output_rgb_verb = self.domain_classifier(random_out_rgb_verb.view(-1, random_out_rgb_verb.size(1)))
                 else:
-                    adversarial_output_rgb = self.domain_classifier(feature_rgb)
+                    adversarial_output_rgb_verb = self.domain_classifier(feature_rgb_verb)
+
+                feature_rgb_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
+                feature_rgb_noun = feature_rgb_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_rgb.size(1))
+                if self.random_layer:
+                    random_out_rgb_noun = self.random_layer.forward(feature_rgb_noun)
+                    adversarial_output_rgb_noun = self.domain_classifier_noun(random_out_rgb_noun.view(-1, random_out_rgb_noun.size(1)))
+                else:
+                    adversarial_output_rgb_noun = self.domain_classifier_noun(feature_rgb_noun)
 
             if self.flow:
-                feature_flow = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
-                feature_flow = feature_flow.view(-1, reverse_out.size(1) * reverse_feature_flow.size(1))
+                feature_flow_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
+                feature_flow_verb = feature_flow_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_flow.size(1))
                 if self.random_layer:
-                    random_out_flow = self.random_layer.forward(feature_flow)
-                    adversarial_output_flow = self.domain_classifier(random_out_flow.view(-1, random_out_flow.size(1)))
+                    random_out_flow_verb = self.random_layer.forward(feature_flow_verb)
+                    adversarial_output_flow_verb = self.domain_classifier(random_out_flow_verb.view(-1, random_out_flow_verb.size(1)))
                 else:
-                    adversarial_output_flow = self.domain_classifier(feature_flow)
+                    adversarial_output_flow_verb = self.domain_classifier(feature_flow_verb)
+
+                feature_flow_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
+                feature_flow_noun = feature_flow_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_flow.size(1))
+                if self.random_layer:
+                    random_out_flow_noun = self.random_layer.forward(feature_flow_noun)
+                    adversarial_output_flow_noun = self.domain_classifier_noun(random_out_flow_noun.view(-1, random_out_flow_noun.size(1)))
+                else:
+                    adversarial_output_flow_noun = self.domain_classifier_noun(feature_flow_noun)
 
             if self.audio:
-                feature_audio = torch.bmm(reverse_out.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
-                feature_audio = feature_audio.view(-1, reverse_out.size(1) * reverse_feature_audio.size(1))
+                feature_audio_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
+                feature_audio_verb = feature_audio_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_audio.size(1))
                 if self.random_layer:
-                    random_out_audio = self.random_layer.forward(feature_audio)
-                    adversarial_output_audio = self.domain_classifier(
-                        random_out_audio.view(-1, random_out_audio.size(1))
+                    random_out_audio_verb = self.random_layer.forward(feature_audio_verb)
+                    adversarial_output_audio_verb = self.domain_classifier_noun(
+                        random_out_audio_verb.view(-1, random_out_audio_verb.size(1))
                     )
                 else:
-                    adversarial_output_audio = self.domain_classifier(feature_audio)
+                    adversarial_output_audio_verb = self.domain_classifier_noun(feature_audio_verb)
+
+                feature_audio_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
+                feature_audio_noun = feature_audio_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_audio.size(1))
+                if self.random_layer:
+                    random_out_audio_noun = self.random_layer.forward(feature_audio_noun)
+                    adversarial_output_audio_noun = self.domain_classifier(
+                        random_out_audio_noun.view(-1, random_out_audio_noun.size(1))
+                    )
+                else:
+                    adversarial_output_audio_noun = self.domain_classifier(feature_audio_noun)
+
+            adversarial_output_rgb = torch.cat((adversarial_output_rgb_verb, adversarial_output_rgb_noun), dim=-1)
+            adversarial_output_flow = torch.cat((adversarial_output_flow_verb, adversarial_output_flow_noun), dim=-1)
+            adversarial_output_audio = torch.cat((adversarial_output_audio_verb, adversarial_output_audio_noun), dim=-1)
+
+
 
             return (
                 [x_rgb_flat, x_flow_flat, x_audio_flat],
@@ -792,8 +836,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         _, y_t_hat, [d_t_hat_rgb, d_t_hat_flow, d_t_hat_audio] = self.forward(
             {"rgb": x_tu_rgb, "flow": x_tu_flow, "audio": x_tu_audio}
         )
-        source_batch_size = len(y_s[0])
-        target_batch_size = len(y_tu[0])
+        source_batch_size = len(y_s[0]) * 2
+        target_batch_size = len(y_tu[0]) * 2
 
         # # Only use verb class to get entropy weights
         if self.entropy:

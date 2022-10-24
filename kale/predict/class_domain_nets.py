@@ -211,15 +211,18 @@ class DomainNetVideo(nn.Module):
         n_channel (int, optional): the number of channel for Linear and BN layers.
     """
 
-    def __init__(self, input_size=128, n_channel=100):
+    def __init__(self, input_size=128, n_channel=4096):
         super(DomainNetVideo, self).__init__()
 
         self.fc1 = nn.Linear(input_size, n_channel)
         self.bn1 = nn.BatchNorm1d(n_channel)
-        self.relu1 = nn.ReLU()
-        self.fc2 = nn.Linear(n_channel, 2)
+        self.relu = nn.ReLU()
+        self.fc2 = nn.Linear(n_channel, 100)
+        self.bn2 = nn.BatchNorm1d(100)
+        self.fc3 = nn.Linear(100, 2)
 
     def forward(self, input):
-        x = self.relu1(self.bn1(self.fc1(input)))
-        x = self.fc2(x)
+        x = self.relu(self.bn(self.fc1(input)))
+        x = self.relu(self.bn(self.fc2(input)))
+        x = self.fc3(x)
         return x
