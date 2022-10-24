@@ -128,6 +128,30 @@ class SELayerFeat(SELayer):
         return out
 
 
+class SELayerFeatAgg(SELayer):
+    """Construct channel-wise SELayer for feature vector input."""
+
+    def __init__(self, channel=2048, reduction=2):
+        super(SELayerFeatAgg, self).__init__(channel, reduction)
+        self.out_channel = 1024
+        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.out_channel, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        b, t, _ = x.size()
+        y = self.avg_pool(x).view(b, t)
+        y = self.fc(y).view(b, t, 1)
+        # out = x * y.expand_as(x)
+        y = y - 0.5
+        out = x + x * y.expand_as(x)
+        return out
+
+
 class SELayerCoC(SELayer):
     """Construct convolution-based channel-wise SELayer."""
 

@@ -10,6 +10,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
+from kale.embed.video_selayer import SELayerFeatAgg
 from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseAdaptTrainer,
@@ -702,6 +703,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
+        self.tem_agg1 = SELayerFeatAgg()
+        self.tem_agg2 = SELayerFeatAgg()
 
     def forward(self, x):
         if self.feat is not None:
@@ -722,7 +725,10 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 x_audio = x_audio.view(x_audio.size(0), -1)
                 reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
 
-            x = self.concatenate(x_rgb, x_flow, x_audio)
+            # x = self.concatenate(x_rgb, x_flow, x_audio)
+
+            x_st = self.tem_agg1(self.concatenate(x_rgb, x_flow))
+            x = self.tem_agg2(self.concatenate(x_st, x_audio))
 
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
