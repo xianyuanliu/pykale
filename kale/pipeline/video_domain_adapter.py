@@ -26,6 +26,7 @@ from kale.pipeline.domain_adapter import (
     WDGRLTrainer,
 )
 from kale.predict.class_domain_nets import DomainNetVideo
+from kale.utils.logger import save_results_to_json
 
 
 # from kale.utils.logger import save_results_to_json
@@ -711,6 +712,14 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.domain_noun_input_size = 256 * 8 * 300
         self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
 
+        # Uncomment to store output for EPIC UDA 2021 challenge.(1/3)
+        # self.y_hat = []
+        # self.y_hat_noun = []
+        # self.y_t_hat = []
+        # self.y_t_hat_noun = []
+        # self.s_id = []
+        # self.tu_id = []
+
 
     def forward(self, x):
         if self.feat is not None:
@@ -927,6 +936,15 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         task_loss, log_metrics = self.get_loss_log_metrics(split_name, y_hat, y_t_hat, y_s, y_tu, dok)
         adv_loss = loss_dmn_src + loss_dmn_tgt  # adv_loss = src + tgt
         log_metrics.update({f"{split_name}_source_domain_acc": dok_src, f"{split_name}_target_domain_acc": dok_tgt})
+
+        # # Uncomment to store output for EPIC UDA 2021 challenge.(2/3)
+        # if split_name == "test":
+        #     self.y_hat.extend(y_hat[0].tolist())
+        #     self.y_hat_noun.extend(y_hat[1].tolist())
+        #     self.y_t_hat.extend(y_t_hat[0].tolist())
+        #     self.y_t_hat_noun.extend(y_t_hat[1].tolist())
+        #     self.s_id.extend(s_id)
+        #     self.tu_id.extend(tu_id)
 
         return task_loss, adv_loss, log_metrics
 
