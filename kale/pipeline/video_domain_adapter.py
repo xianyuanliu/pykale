@@ -803,9 +803,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 else:
                     adversarial_output_audio_noun = self.domain_classifier_noun(feature_audio_noun)
 
-            adversarial_output_rgb = torch.cat((adversarial_output_rgb_verb, adversarial_output_rgb_noun), dim=-1)
-            adversarial_output_flow = torch.cat((adversarial_output_flow_verb, adversarial_output_flow_noun), dim=-1)
-            adversarial_output_audio = torch.cat((adversarial_output_audio_verb, adversarial_output_audio_noun), dim=-1)
+            adversarial_output_rgb = torch.cat((adversarial_output_rgb_verb, adversarial_output_rgb_noun), dim=0)
+            adversarial_output_flow = torch.cat((adversarial_output_flow_verb, adversarial_output_flow_noun), dim=0)
+            adversarial_output_audio = torch.cat((adversarial_output_audio_verb, adversarial_output_audio_noun), dim=0)
 
 
 
