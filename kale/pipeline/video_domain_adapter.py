@@ -707,7 +707,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
-        self.tem_agg1 = SELayerFeat()
+        self.tem_agg1 = SELayerFeat(channel=8)
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg1 = SRMFeat(channel=8)
         # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
