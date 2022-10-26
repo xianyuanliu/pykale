@@ -10,7 +10,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.embed.video_selayer import CBAMFeat, ECANetFeat, SELayerFeat, SRMFeat
+from kale.embed.video_selayer import CBAMFeat, ECANetFeat, SELayerFeat, SRMFeat, FeatAgg
 from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseAdaptTrainer,
@@ -711,8 +711,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg1 = SRMFeat(channel=8)
         # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg2 = SELayerFeat()
-        # self.tem_agg3 = SELayerFeat()
+        self.tem_agg2 = FeatAgg()
+        self.tem_agg3 = FeatAgg()
         self.domain_noun_input_size = 256 * 8 * 300
         self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
 
@@ -764,6 +764,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
                 x_sa = self.tem_agg1(torch.cat((x_rgb, x_audio), dim=-1))
                 # x = self.tem_agg1(torch.cat((x_st, x_sa), dim=-1))
+                x_st = self.tem_agg2(x_st)
+                x_sa = self.tem_agg3(x_sa)
                 x = torch.cat((x_st, x_sa), dim=-1)
                 # x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
                 x = x.view(x.size(0), -1)

@@ -130,27 +130,15 @@ class SELayerFeat(SELayer):
         return out
 
 
-# class SELayerFeatAgg(SELayer):
-#     """Construct channel-wise SELayer for feature vector input."""
-#
-#     def __init__(self, channel=8, reduction=2):
-#         super(SELayerFeatAgg, self).__init__(channel, reduction)
-#         self.avg_pool = nn.AdaptiveAvgPool1d(1)
-#         self.fc = nn.Sequential(
-#             nn.Linear(self.channel, self.channel // self.reduction, bias=False),
-#             nn.ReLU(inplace=True),
-#             nn.Linear(self.channel // self.reduction, self.channel, bias=False),
-#             nn.Sigmoid(),
-#         )
-#
-#     def forward(self, x):
-#         b, t, _ = x.size()
-#         y = self.avg_pool(x).view(b, t)
-#         y = self.fc(y).view(b, t, 1)
-#         # out = x * y.expand_as(x)
-#         y = y - 0.5
-#         out = x + x * y.expand_as(x)
-#         return out
+class FeatAgg(nn.Module):
+    def __init__(self, kernel_size=195):
+        super(FeatAgg, self).__init__()
+        self.kernel_size = kernel_size
+        self.conv = nn.Conv1d(8, 8, kernel_size=self.kernel_size, padding=1, bias=False)
+
+    def forward(self, x):
+        y = self.conv(x)
+        return y
 
 
 class SRM(nn.Module):
@@ -555,12 +543,10 @@ class ECANetFeat(nn.Module):
 
     def forward(self, x):
         # feature descriptor on the global spatial information
-        y = self.avg_pool(x)  # b x c x h x w
+        y = self.avg_pool(x)  # b x t x f
 
         # Two different branches of ECA module
-        # y = self.conv(y.squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1)
         y = self.conv(y.transpose(-1, -2)).transpose(-1, -2)
-        # y = self.conv(x)
 
         # Multi-scale information fusion
         y = self.sigmoid(y)
