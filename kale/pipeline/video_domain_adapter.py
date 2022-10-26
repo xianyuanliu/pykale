@@ -26,7 +26,8 @@ from kale.pipeline.domain_adapter import (
     WDGRLTrainer,
 )
 from kale.predict.class_domain_nets import DomainNetVideo
-from kale.utils.logger import save_results_to_json
+
+# from kale.utils.logger import save_results_to_json
 
 
 # from kale.utils.logger import save_results_to_json
@@ -720,10 +721,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         # self.s_id = []
         # self.tu_id = []
 
-
     def forward(self, x):
         if self.feat is not None:
-            x_rgb = x_flow = x_audio = None
+            x_rgb_flat = x_flow_flat = x_audio_flat = None
             adversarial_output_rgb = adversarial_output_flow = adversarial_output_audio = None
 
             # For joint input, both two ifs are used
@@ -769,7 +769,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 feature_rgb_verb = feature_rgb_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_rgb.size(1))
                 if self.random_layer:
                     random_out_rgb_verb = self.random_layer.forward(feature_rgb_verb)
-                    adversarial_output_rgb_verb = self.domain_classifier(random_out_rgb_verb.view(-1, random_out_rgb_verb.size(1)))
+                    adversarial_output_rgb_verb = self.domain_classifier(
+                        random_out_rgb_verb.view(-1, random_out_rgb_verb.size(1))
+                    )
                 else:
                     adversarial_output_rgb_verb = self.domain_classifier(feature_rgb_verb)
 
@@ -777,7 +779,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 feature_rgb_noun = feature_rgb_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_rgb.size(1))
                 if self.random_layer:
                     random_out_rgb_noun = self.random_layer.forward(feature_rgb_noun)
-                    adversarial_output_rgb_noun = self.domain_classifier_noun(random_out_rgb_noun.view(-1, random_out_rgb_noun.size(1)))
+                    adversarial_output_rgb_noun = self.domain_classifier_noun(
+                        random_out_rgb_noun.view(-1, random_out_rgb_noun.size(1))
+                    )
                 else:
                     adversarial_output_rgb_noun = self.domain_classifier_noun(feature_rgb_noun)
 
@@ -788,7 +792,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 feature_flow_verb = feature_flow_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_flow.size(1))
                 if self.random_layer:
                     random_out_flow_verb = self.random_layer.forward(feature_flow_verb)
-                    adversarial_output_flow_verb = self.domain_classifier(random_out_flow_verb.view(-1, random_out_flow_verb.size(1)))
+                    adversarial_output_flow_verb = self.domain_classifier(
+                        random_out_flow_verb.view(-1, random_out_flow_verb.size(1))
+                    )
                 else:
                     adversarial_output_flow_verb = self.domain_classifier(feature_flow_verb)
 
@@ -796,7 +802,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 feature_flow_noun = feature_flow_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_flow.size(1))
                 if self.random_layer:
                     random_out_flow_noun = self.random_layer.forward(feature_flow_noun)
-                    adversarial_output_flow_noun = self.domain_classifier_noun(random_out_flow_noun.view(-1, random_out_flow_noun.size(1)))
+                    adversarial_output_flow_noun = self.domain_classifier_noun(
+                        random_out_flow_noun.view(-1, random_out_flow_noun.size(1))
+                    )
                 else:
                     adversarial_output_flow_noun = self.domain_classifier_noun(feature_flow_noun)
 
@@ -804,7 +812,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
 
             if self.audio:
                 feature_audio_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
-                feature_audio_verb = feature_audio_verb.view(-1, reverse_out_verb.size(1) * reverse_feature_audio.size(1))
+                feature_audio_verb = feature_audio_verb.view(
+                    -1, reverse_out_verb.size(1) * reverse_feature_audio.size(1)
+                )
                 if self.random_layer:
                     random_out_audio_verb = self.random_layer.forward(feature_audio_verb)
                     adversarial_output_audio_verb = self.domain_classifier(
@@ -814,7 +824,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                     adversarial_output_audio_verb = self.domain_classifier(feature_audio_verb)
 
                 feature_audio_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
-                feature_audio_noun = feature_audio_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_audio.size(1))
+                feature_audio_noun = feature_audio_noun.view(
+                    -1, reverse_out_noun.size(1) * reverse_feature_audio.size(1)
+                )
                 if self.random_layer:
                     random_out_audio_noun = self.random_layer.forward(feature_audio_noun)
                     adversarial_output_audio_noun = self.domain_classifier_noun(
@@ -823,9 +835,9 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 else:
                     adversarial_output_audio_noun = self.domain_classifier_noun(feature_audio_noun)
 
-                adversarial_output_audio = torch.cat((adversarial_output_audio_verb, adversarial_output_audio_noun),
-                                                     dim=0)
-
+                adversarial_output_audio = torch.cat(
+                    (adversarial_output_audio_verb, adversarial_output_audio_noun), dim=0
+                )
 
             return (
                 [x_rgb_flat, x_flow_flat, x_audio_flat],

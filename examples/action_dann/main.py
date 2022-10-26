@@ -118,5 +118,6 @@ def main():
         trainer.test(ckpt_path="best")
         trainer.test(ckpt_path=checkpoint_callback.last_model_path)
 
+
 if __name__ == "__main__":
     main()
