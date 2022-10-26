@@ -10,7 +10,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.embed.video_selayer import SELayerFeatAgg
+from kale.embed.video_selayer import CBAMFeat, ECANetFeat, SELayerFeat, SRMFeat
 from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseAdaptTrainer,
@@ -707,9 +707,12 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
-        self.tem_agg1 = SELayerFeatAgg()
-        self.tem_agg2 = SELayerFeatAgg()
-        self.tem_agg3 = SELayerFeatAgg()
+        self.tem_agg1 = SELayerFeat()
+        # self.tem_agg1 = ECANetFeat()
+        # self.tem_agg1 = SRMFeat(channel=8)
+        # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        # self.tem_agg2 = SELayerFeat()
+        # self.tem_agg3 = SELayerFeat()
         self.domain_noun_input_size = 256 * 8 * 300
         self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
 
