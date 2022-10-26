@@ -26,9 +26,15 @@ def get_image_modality(image_modality):
 
     if image_modality.lower() == "all":
         rgb = flow = audio = True
-    elif image_modality.lower() == "joint":
+    elif image_modality.lower() == "rgb+flow":
         rgb = flow = True
         audio = False
+    elif image_modality.lower() == "rgb+audio":
+        rgb = audio = True
+        flow = False
+    elif image_modality.lower() == "flow+audio":
+        flow = audio = True
+        rgb = False
     elif image_modality.lower() in ["rgb", "flow", "audio"]:
         rgb = image_modality == "rgb"
         flow = image_modality == "flow"

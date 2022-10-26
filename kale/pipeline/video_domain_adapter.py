@@ -746,6 +746,15 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 x = x_flow_flat
             if not self.rgb and not self.flow and self.audio:
                 x = x_audio_flat
+            if self.rgb and self.flow and not self.audio:
+                x = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
+                x = x.view(x.size(0), -1)
+            if self.rgb and not self.flow and self.audio:
+                x = self.tem_agg1(torch.cat((x_rgb, x_audio), dim=-1))
+                x = x.view(x.size(0), -1)
+            if not self.rgb and self.flow and self.audio:
+                x = self.tem_agg1(torch.cat((x_flow, x_audio), dim=-1))
+                x = x.view(x.size(0), -1)
             if self.rgb and self.flow and self.audio:
                 # x = self.concatenate(x_rgb, x_flow, x_audio)
 
