@@ -90,7 +90,7 @@ def get_model(cfg, dataset, dict_num_classes):
 
     # setup task classifier
     classifier_network = ClassNetVideo(
-        input_size=8192, dict_n_class=dict_num_classes, class_type=class_type.lower()
+        input_size=class_feature_dim, dict_n_class=dict_num_classes, class_type=class_type.lower()
     )
 
     # setup domain classifier
