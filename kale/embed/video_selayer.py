@@ -134,7 +134,11 @@ class FeatAgg(nn.Module):
     def __init__(self, kernel_size=195):
         super(FeatAgg, self).__init__()
         self.kernel_size = kernel_size
-        self.conv = nn.Conv1d(8, 8, kernel_size=self.kernel_size, padding=1, bias=False)
+        self.conv = nn.Sequential(
+            nn.Conv1d(8, 16, kernel_size=387, padding=1, bias=False),
+            nn.Conv1d(16, 32, kernel_size=99, padding=1, bias=False),
+            nn.Conv1d(32, 64, kernel_size=27, padding=1, bias=False),
+        )
 
     def forward(self, x):
         y = self.conv(x)
@@ -485,7 +489,7 @@ class MultiSpectralDCTLayer(nn.Module):
         for i, (u_x, v_y) in enumerate(zip(mapper_x, mapper_y)):
             for t_x in range(tile_size_x):
                 for t_y in range(tile_size_y):
-                    dct_filter[i * c_part : (i + 1) * c_part, t_x, t_y] = self.build_filter(
+                    dct_filter[i * c_part: (i + 1) * c_part, t_x, t_y] = self.build_filter(
                         t_x, u_x, tile_size_x
                     ) * self.build_filter(t_y, v_y, tile_size_y)
 
