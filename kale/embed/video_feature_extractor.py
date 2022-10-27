@@ -136,7 +136,7 @@ def get_extractor_feat(model_name, image_modality, input_size=1024, output_size=
     if rgb:
         if flow:
             if audio:  # For all inputs
-                class_feature_dim = int(domain_feature_dim * 4)
+                class_feature_dim = int(domain_feature_dim * 3)
             else:  # For joint(rgb+flow) input
                 class_feature_dim = int(domain_feature_dim * 2)
         else:
