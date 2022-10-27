@@ -130,6 +130,36 @@ class SELayerFeat(SELayer):
         return out
 
 
+class GenAtt(nn.Module):
+    def __init__(self, channel=8, reduction=4):
+        super(GenAtt, self).__init__()
+        self.channel = channel
+        self.reduction = reduction
+        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, r, f, a):
+        rf = torch.cat((r, f), dim=-1)
+        rfa = torch.cat((rf, a), dim=-1)
+
+        b, t, _ = rfa.size()
+        y = self.avg_pool(rfa).view(b, t)
+        y = self.fc(y).view(b, t, 1)
+
+        out_r = r * y.expand_as(r)
+        out_f = f * y.expand_as(f)
+        out_a = a * y.expand_as(a)
+
+        out = torch.cat((out_r, out_f), dim=-1)
+        out = torch.cat((out, out_a), dim=-1)
+        return out
+
+
 class FeatAgg(nn.Module):
     def __init__(self, kernel_size=195):
         super(FeatAgg, self).__init__()
