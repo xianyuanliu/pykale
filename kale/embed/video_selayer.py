@@ -519,7 +519,7 @@ class MultiSpectralDCTLayer(nn.Module):
         for i, (u_x, v_y) in enumerate(zip(mapper_x, mapper_y)):
             for t_x in range(tile_size_x):
                 for t_y in range(tile_size_y):
-                    dct_filter[i * c_part: (i + 1) * c_part, t_x, t_y] = self.build_filter(
+                    dct_filter[i * c_part : (i + 1) * c_part, t_x, t_y] = self.build_filter(
                         t_x, u_x, tile_size_x
                     ) * self.build_filter(t_y, v_y, tile_size_y)
 

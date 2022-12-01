@@ -223,3 +223,32 @@ class DomainNetVideo(nn.Module):
         x = self.relu(self.bn1(self.fc1(input)))
         x = self.fc2(x)
         return x
+
+
+class DomainNetVideo2(nn.Module):
+    """Regular domain classifier network for video input.
+
+    Args:
+        input_size (int, optional): the dimension of the final feature vector. Defaults to 512.
+        n_channel (int, optional): the number of channel for Linear and BN layers.
+    """
+
+    def __init__(self, input_size=128, hidden_size=256):
+        super(DomainNetVideo2, self).__init__()
+        self.input_size = input_size
+        self.hidden_size = hidden_size
+        self.network = nn.Sequential(
+            nn.Linear(self.input_size, self.hidden_size),
+            nn.BatchNorm1d(self.hidden_size),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(self.hidden_size, self.hidden_size),
+            nn.BatchNorm1d(self.hidden_size),
+            nn.ReLU(inplace=True),
+            nn.Dropout(0.5),
+            nn.Linear(self.hidden_size, 2),
+        )
+
+    def forward(self, input):
+        x = self.network(input)
+        return x
