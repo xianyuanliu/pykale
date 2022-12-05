@@ -12,7 +12,7 @@ from copy import deepcopy
 
 from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
 from kale.pipeline import domain_adapter, video_domain_adapter
-from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo
+from kale.predict.class_domain_nets import ClassNetVideo, DomainNetVideo, DomainNetVideo2
 
 
 def get_config(cfg):
@@ -84,9 +84,12 @@ def get_model(cfg, dataset, dict_num_classes):
             cfg.DAN.METHOD.upper(),
             cfg.DATASET.IMAGE_MODALITY,
             input_size=1024,
-            output_size=256,
+            output_size=128,
             num_segments=cfg.DATASET.NUM_SEGMENTS,
         )
+
+    class_feature_dim = 1024
+    domain_feature_dim = 1024
 
     # setup task classifier
     classifier_network = ClassNetVideo(

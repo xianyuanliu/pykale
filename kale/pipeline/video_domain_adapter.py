@@ -10,7 +10,8 @@ Most are inherited from kale.pipeline.domain_adapter.
 import torch
 
 import kale.predict.losses as losses
-from kale.embed.video_selayer import CBAMFeat, ECANetFeat, SELayerFeat, SRMFeat, FeatAgg, GenAtt
+from kale.embed.common_fusions import LowRankTensorFusion
+from kale.embed.video_selayer import CBAMFeat, ECANetFeat, FeatAgg, GenAtt, SELayerFeat, SRMFeat
 from kale.loaddata.video_access import get_class_type, get_image_modality
 from kale.pipeline.domain_adapter import (
     BaseAdaptTrainer,
@@ -25,7 +26,8 @@ from kale.pipeline.domain_adapter import (
     set_requires_grad,
     WDGRLTrainer,
 )
-from kale.predict.class_domain_nets import DomainNetVideo
+from kale.predict.class_domain_nets import DomainNetVideo, DomainNetVideo2
+
 
 # from kale.utils.logger import save_results_to_json
 
@@ -708,13 +710,14 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
         # self.tem_agg1 = SELayerFeat(channel=8)
-        self.tem_agg1 = GenAtt(channel=8)
+        # self.tem_agg1 = GenAtt(channel=8)
+        self.fusion = LowRankTensorFusion(input_dims=[1024, 1024, 1024], output_dim=1024, rank=4)
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg1 = SRMFeat(channel=8)
         # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
         # self.tem_agg2 = FeatAgg()
         # self.tem_agg3 = FeatAgg()
-        self.domain_noun_input_size = 256 * 8 * 300
+        self.domain_noun_input_size = 128 * 8 * 300
         self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
 
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
@@ -762,7 +765,8 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
             if self.rgb and self.flow and self.audio:
                 # x = self.concatenate(x_rgb, x_flow, x_audio)
 
-                x = self.tem_agg1(x_rgb, x_flow, x_audio)
+                # x = self.tem_agg1(x_rgb, x_flow, x_audio)
+                x = self.fusion([x_rgb, x_flow, x_audio])
                 # x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
                 # x_sa = self.tem_agg1(torch.cat((x_rgb, x_audio), dim=-1))
                 # x = self.tem_agg1(torch.cat((x_st, x_sa), dim=-1))
