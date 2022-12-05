@@ -28,7 +28,6 @@ from kale.pipeline.domain_adapter import (
 )
 from kale.predict.class_domain_nets import DomainNetVideo, DomainNetVideo2
 
-
 # from kale.utils.logger import save_results_to_json
 
 

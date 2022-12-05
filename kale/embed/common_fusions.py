@@ -339,7 +339,7 @@ class LowRankTensorFusion(nn.Module):
             factor = nn.Parameter(torch.Tensor(self.rank, input_dim + 1, self.output_dim)).to(
                 torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
             )
-            nn.init.xavier_normal(factor)
+            nn.init.xavier_normal_(factor)
             self.factors.append(factor)
 
         self.fusion_weights = nn.Parameter(torch.Tensor(1, self.rank)).to(
@@ -349,7 +349,7 @@ class LowRankTensorFusion(nn.Module):
             torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         )
         # init the fusion weights
-        nn.init.xavier_normal(self.fusion_weights)
+        nn.init.xavier_normal_(self.fusion_weights)
         self.fusion_bias.data.fill_(0)
 
     def forward(self, modalities):

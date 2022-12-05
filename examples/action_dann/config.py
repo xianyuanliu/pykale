@@ -31,6 +31,7 @@ _C.DATASET.FRAMES_PER_SEGMENT = 16  # = 16, if image input; = 1, if feature inpu
 _C.DATASET.NUM_REPEAT = 5
 _C.DATASET.WEIGHT_TYPE = "natural"
 _C.DATASET.SIZE_TYPE = "max"  # options=["source", "max", "adaptive]
+
 # ---------------------------------------------------------------------------- #
 # Solver
 # ---------------------------------------------------------------------------- #
@@ -68,6 +69,7 @@ _C.DAN = CN()
 _C.DAN.METHOD = "CDAN"  # options=["CDAN", "CDAN-E", "DANN", "DAN", "JAN"]
 _C.DAN.USERANDOM = False
 _C.DAN.RANDOM_DIM = 1024
+
 # ---------------------------------------------------------------------------- #
 # Misc options
 # ---------------------------------------------------------------------------- #
@@ -76,6 +78,15 @@ _C.OUTPUT.VERBOSE = False  # To discuss, for HPC jobs
 _C.OUTPUT.FAST_DEV_RUN = False  # True for debug
 _C.OUTPUT.PB_FRESH = 0  # 0 # 50 # 0 to disable  ; MAYBE make it a command line option
 _C.OUTPUT.OUT_DIR = os.path.join("tb_logs", _C.DATASET.SOURCE + "2" + _C.DATASET.TARGET)
+
+# -----------------------------------------------------------------------------
+# Comet
+# -----------------------------------------------------------------------------
+_C.COMET = CN()
+_C.COMET.ENABLE = True
+_C.COMET.API_KEY = "fwDWzM3HmQuZuFGFS2q90vLT3"
+_C.COMET.PROJECT_NAME = "EPIC100-ARDA"
+_C.COMET.EXPERIMENT_NAME = "ARDA"
 
 
 def get_cfg_defaults():
