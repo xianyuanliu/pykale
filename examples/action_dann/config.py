@@ -83,7 +83,7 @@ _C.OUTPUT.OUT_DIR = os.path.join("tb_logs", _C.DATASET.SOURCE + "2" + _C.DATASET
 # Comet
 # -----------------------------------------------------------------------------
 _C.COMET = CN()
-_C.COMET.ENABLE = True
+_C.COMET.ENABLE = False
 _C.COMET.API_KEY = "fwDWzM3HmQuZuFGFS2q90vLT3"
 _C.COMET.PROJECT_NAME = "EPIC100-ARDA"
 _C.COMET.EXPERIMENT_NAME = _C.DAN.METHOD
