@@ -759,7 +759,7 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         return {"loss": loss}
 
 
-class CDANTrainerVideo(CDANTrainer):
+class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
     """This is an implementation of CDAN for video data."""
 
     def __init__(
