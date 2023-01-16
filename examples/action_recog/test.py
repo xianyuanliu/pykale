@@ -107,7 +107,7 @@ def main():
     )
 
     ### Training/validation process
-    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
+    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, map_location="cuda:0"))
 
     ### Evaluation
     trainer.test(model=model_test, dataloaders=test_loader, ckpt_path=args.ckpt)
