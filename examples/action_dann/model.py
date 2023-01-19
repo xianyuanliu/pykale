@@ -88,8 +88,8 @@ def get_model(cfg, dataset, dict_num_classes):
             num_segments=cfg.DATASET.NUM_SEGMENTS,
         )
 
-    class_feature_dim = 1024
-    domain_feature_dim = 1024
+    # class_feature_dim = 1024
+    # domain_feature_dim = 1024
 
     # setup task classifier
     classifier_network = ClassNetVideo(

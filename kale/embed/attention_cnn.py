@@ -275,11 +275,11 @@ class TransformerSENet(nn.Module):
             nn.Linear(self.input_size, self.n_channel),
             nn.BatchNorm1d(8),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
             nn.Linear(self.n_channel, self.n_channel),
             nn.BatchNorm1d(8),
             nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
+            # nn.Dropout(0.5),
             nn.Linear(self.n_channel, self.output_size),
         )
 
