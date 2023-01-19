@@ -710,7 +710,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         self.audio_feat = self.feat["audio"]
         # self.tem_agg1 = SELayerFeat(channel=8)
         # self.tem_agg1 = GenAtt(channel=8)
-        self.fusion = LowRankTensorFusion(input_dims=[1024, 1024, 1024], output_dim=1024, rank=4)
+        # self.fusion = LowRankTensorFusion(input_dims=[1024, 1024, 1024], output_dim=1024, rank=4)
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg1 = SRMFeat(channel=8)
         # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
@@ -762,10 +762,10 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 x = self.tem_agg1(torch.cat((x_flow, x_audio), dim=-1))
                 x = x.view(x.size(0), -1)
             if self.rgb and self.flow and self.audio:
-                # x = self.concatenate(x_rgb, x_flow, x_audio)
+                x = self.concatenate(x_rgb, x_flow, x_audio)
 
                 # x = self.tem_agg1(x_rgb, x_flow, x_audio)
-                x = self.fusion([x_rgb, x_flow, x_audio])
+                # x = self.fusion([x_rgb, x_flow, x_audio])
                 # x_st = self.tem_agg1(torch.cat((x_rgb, x_flow), dim=-1))
                 # x_sa = self.tem_agg1(torch.cat((x_rgb, x_audio), dim=-1))
                 # x = self.tem_agg1(torch.cat((x_st, x_sa), dim=-1))
