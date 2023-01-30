@@ -539,6 +539,11 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
 
+        self.tem_agg = SELayerFeat(channel=8)
+        # self.tem_agg = ECANetFeat()
+        # self.tem_agg = SRMFeat(channel=8)
+        # self.tem_agg = CBAMFeat(channel=8, reduction=4)
+
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
         # self.y_hat = []
         # self.y_hat_noun = []
@@ -555,21 +560,31 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
             # For joint input, both two ifs are used
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_rgb = x_rgb.view(x_rgb.size(0), -1)
-                reverse_feature_rgb = GradReverse.apply(x_rgb, self.alpha)
+                # x_rgb = x_rgb.view(x_rgb.size(0), -1)
+                x_rgb_flatten = x_rgb.view(x_rgb.size(0), -1)
+                reverse_feature_rgb = GradReverse.apply(x_rgb_flatten, self.alpha)
                 adversarial_output_rgb = self.domain_classifier(reverse_feature_rgb)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
-                x_flow = x_flow.view(x_flow.size(0), -1)
-                reverse_feature_flow = GradReverse.apply(x_flow, self.alpha)
+                # x_flow = x_flow.view(x_flow.size(0), -1)
+                x_flow_flatten = x_flow.view(x_flow.size(0), -1)
+                reverse_feature_flow = GradReverse.apply(x_flow_flatten, self.alpha)
                 adversarial_output_flow = self.domain_classifier(reverse_feature_flow)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
-                x_audio = x_audio.view(x_audio.size(0), -1)
-                reverse_feature_audio = GradReverse.apply(x_audio, self.alpha)
+                # x_audio = x_audio.view(x_audio.size(0), -1)
+                x_audio_flatten = x_audio.view(x_audio.size(0), -1)
+                reverse_feature_audio = GradReverse.apply(x_audio_flatten, self.alpha)
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
-            x = self.concatenate(x_rgb, x_flow, x_audio)
+            if self.rgb and self.flow and self.audio:
+                # x = self.concatenate(x_rgb, x_flow, x_audio)
+
+                x_rf = torch.cat((x_rgb, x_flow), dim=-1)
+                x_fa = torch.cat((x_flow, x_audio), dim=-1)
+                x = torch.cat((x_rf, x_fa), dim=-1)
+                x = self.tem_agg(x)
+                x = x.view(x.size(0), -1)
 
             class_output = self.classifier(x)
 
