@@ -543,21 +543,29 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.tem_agg1 = SELayerFeat(channel=8)
         self.tem_agg2 = SELayerFeat(channel=8)
         self.tem_agg3 = SELayerFeat(channel=8)
+        self.tem_agg4 = SELayerFeat(channel=8)
+        self.tem_agg5 = SELayerFeat(channel=8)
 
         # self.tem_agg = ECANetFeat()
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg2 = ECANetFeat()
         # self.tem_agg3 = ECANetFeat()
+        # self.tem_agg4 = ECANetFeat()
+        # self.tem_agg5 = ECANetFeat()
 
         # self.tem_agg = SRMFeat(channel=8)
         # self.tem_agg1 = SRMFeat(channel=8)
         # self.tem_agg2 = SRMFeat(channel=8)
         # self.tem_agg3 = SRMFeat(channel=8)
+        # self.tem_agg4 = SRMFeat(channel=8)
+        # self.tem_agg5 = SRMFeat(channel=8)
 
         # self.tem_agg = CBAMFeat(channel=8, reduction=4)
         # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
         # self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
         # self.tem_agg3 = CBAMFeat(channel=8, reduction=4)
+        # self.tem_agg4 = CBAMFeat(channel=8, reduction=4)
+        # self.tem_agg5 = CBAMFeat(channel=8, reduction=4)
 
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
         # self.y_hat = []
@@ -596,8 +604,8 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
                 # x = self.concatenate(x_rgb, x_flow, x_audio)
 
                 x_rgb = self.tem_agg3(x_rgb)
-                x_flow = self.tem_agg3(x_flow)
-                x_audio = self.tem_agg3(x_audio)
+                x_flow = self.tem_agg4(x_flow)
+                x_audio = self.tem_agg5(x_audio)
 
                 x_rf = torch.cat((x_rgb, x_flow), dim=-1)
                 x_fa = torch.cat((x_flow, x_audio), dim=-1)
