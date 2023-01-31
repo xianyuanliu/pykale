@@ -540,9 +540,20 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.audio_feat = self.feat["audio"]
 
         self.tem_agg = SELayerFeat(channel=8)
+        self.tem_agg1 = SELayerFeat(channel=8)
+        self.tem_agg2 = SELayerFeat(channel=8)
+
         # self.tem_agg = ECANetFeat()
+        # self.tem_agg1 = ECANetFeat()
+        # self.tem_agg2 = ECANetFeat()
+
         # self.tem_agg = SRMFeat(channel=8)
+        # self.tem_agg1 = SRMFeat(channel=8)
+        # self.tem_agg2 = SRMFeat(channel=8)
+
         # self.tem_agg = CBAMFeat(channel=8, reduction=4)
+        # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        # self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
 
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
         # self.y_hat = []
@@ -578,10 +589,10 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
             if self.rgb and self.flow and self.audio:
-                x = self.concatenate(x_rgb, x_flow, x_audio)
+                # x = self.concatenate(x_rgb, x_flow, x_audio)
 
-                # x_rf = torch.cat((x_rgb, x_flow), dim=-1)
-                # x_fa = torch.cat((x_flow, x_audio), dim=-1)
+                x_rf = torch.cat((x_rgb, x_flow), dim=-1)
+                x_fa = torch.cat((x_flow, x_audio), dim=-1)
 
                 # x_ra = torch.cat((x_rgb, x_audio), dim=-1)
                 # x_af = torch.cat((x_audio, x_flow), dim=-1)
@@ -589,8 +600,13 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
                 # x_fr = torch.cat((x_flow, x_rgb), dim=-1)
                 # x_ra = torch.cat((x_rgb, x_audio), dim=-1)
 
-                # x = torch.cat((x_rf, x_fa), dim=-1)
+                x_a = self.tem_agg1(x_rf)
+                x_b = self.tem_agg2(x_fa)
+                x = torch.cat((x_a, x_b), dim=-1)
                 x = self.tem_agg(x)
+
+                # x = torch.cat((x_rf, x_fa), dim=-1)
+                # x = self.tem_agg(x)
                 x = x.view(x.size(0), -1)
 
             class_output = self.classifier(x)
