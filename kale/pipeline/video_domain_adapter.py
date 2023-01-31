@@ -578,18 +578,18 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
                 adversarial_output_audio = self.domain_classifier(reverse_feature_audio)
 
             if self.rgb and self.flow and self.audio:
-                # x = self.concatenate(x_rgb, x_flow, x_audio)
+                x = self.concatenate(x_rgb, x_flow, x_audio)
 
-                x_rf = torch.cat((x_rgb, x_flow), dim=-1)
-                x_fa = torch.cat((x_flow, x_audio), dim=-1)
+                # x_rf = torch.cat((x_rgb, x_flow), dim=-1)
+                # x_fa = torch.cat((x_flow, x_audio), dim=-1)
 
                 # x_ra = torch.cat((x_rgb, x_audio), dim=-1)
                 # x_af = torch.cat((x_audio, x_flow), dim=-1)
-                #
+
                 # x_fr = torch.cat((x_flow, x_rgb), dim=-1)
                 # x_ra = torch.cat((x_rgb, x_audio), dim=-1)
 
-                x = torch.cat((x_rf, x_fa), dim=-1)
+                # x = torch.cat((x_rf, x_fa), dim=-1)
                 x = self.tem_agg(x)
                 x = x.view(x.size(0), -1)
 
