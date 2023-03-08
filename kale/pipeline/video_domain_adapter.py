@@ -8,6 +8,7 @@ Most are inherited from kale.pipeline.domain_adapter.
 """
 
 import torch
+from torch import nn
 
 import kale.predict.losses as losses
 from kale.embed.common_fusions import LowRankTensorFusion
@@ -375,6 +376,12 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
         self.rgb_feat = self.feat["rgb"]
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
+        self.tem_agg = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg3 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg4 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg5 = CBAMFeat(channel=8, reduction=4)
 
     def forward(self, x):
         if self.feat is not None:
@@ -382,15 +389,30 @@ class BaseMMDLikeVideo(BaseAdaptTrainerVideo, BaseMMDLike):
 
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
-                x_rgb = x_rgb.view(x_rgb.size(0), -1)
+                # x_rgb = x_rgb.view(x_rgb.size(0), -1)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
-                x_flow = x_flow.view(x_flow.size(0), -1)
+                # x_flow = x_flow.view(x_flow.size(0), -1)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
-                x_audio = x_audio.view(x_audio.size(0), -1)
+                # x_audio = x_audio.view(x_audio.size(0), -1)
 
-            x = self.concatenate(x_rgb, x_flow, x_audio)
+            if self.rgb and self.flow and self.audio:
+                x_rgb = self.tem_agg3(x_rgb)
+                x_flow = self.tem_agg4(x_flow)
+                x_audio = self.tem_agg5(x_audio)
+
+                x_ra = torch.cat((x_rgb, x_audio), dim=-1)
+                x_af = torch.cat((x_audio, x_flow), dim=-1)
+
+                x_a = self.tem_agg1(x_ra)
+                x_b = self.tem_agg2(x_af)
+                x = torch.cat((x_a, x_b), dim=-1)
+                x = self.tem_agg(x)
+
+                x = x.view(x.size(0), -1)
+
+            # x = self.concatenate(x_rgb, x_flow, x_audio)
             class_output = self.classifier(x)
             return [x_rgb, x_flow, x_audio], class_output
 
@@ -539,12 +561,12 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         self.flow_feat = self.feat["flow"]
         self.audio_feat = self.feat["audio"]
 
-        self.tem_agg = SELayerFeat(channel=8)
-        self.tem_agg1 = SELayerFeat(channel=8)
-        self.tem_agg2 = SELayerFeat(channel=8)
-        self.tem_agg3 = SELayerFeat(channel=8)
-        self.tem_agg4 = SELayerFeat(channel=8)
-        self.tem_agg5 = SELayerFeat(channel=8)
+        # self.tem_agg = SELayerFeat(channel=8)
+        # self.tem_agg1 = SELayerFeat(channel=8)
+        # self.tem_agg2 = SELayerFeat(channel=8)
+        # self.tem_agg3 = SELayerFeat(channel=8)
+        # self.tem_agg4 = SELayerFeat(channel=8)
+        # self.tem_agg5 = SELayerFeat(channel=8)
 
         # self.tem_agg = ECANetFeat()
         # self.tem_agg1 = ECANetFeat()
@@ -560,12 +582,12 @@ class DANNTrainerVideo(BaseAdaptTrainerVideo, DANNTrainer):
         # self.tem_agg4 = SRMFeat(channel=8)
         # self.tem_agg5 = SRMFeat(channel=8)
 
-        # self.tem_agg = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg3 = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg4 = CBAMFeat(channel=8, reduction=4)
-        # self.tem_agg5 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg3 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg4 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg5 = CBAMFeat(channel=8, reduction=4)
 
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
         # self.y_hat = []
@@ -767,11 +789,17 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
         # self.fusion = LowRankTensorFusion(input_dims=[1024, 1024, 1024], output_dim=1024, rank=4)
         # self.tem_agg1 = ECANetFeat()
         # self.tem_agg1 = SRMFeat(channel=8)
-        # self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg1 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg2 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg3 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg4 = CBAMFeat(channel=8, reduction=4)
+        self.tem_agg5 = CBAMFeat(channel=8, reduction=4)
         # self.tem_agg2 = FeatAgg()
         # self.tem_agg3 = FeatAgg()
-        self.domain_noun_input_size = 128 * 8 * 300
-        self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
+        # self.domain_noun_input_size = 128 * 8 * 300
+        # self.domain_noun_input_size = 128*300
+        # self.domain_classifier_noun = DomainNetVideo(input_size=self.domain_noun_input_size)
 
         # Uncomment to store output for EPIC UDA 2021 challenge. (1/6)
         # self.y_hat = []
@@ -790,14 +818,17 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
             if self.rgb:
                 x_rgb = self.rgb_feat(x["rgb"])
                 x_rgb_flat = x_rgb.view(x_rgb.size(0), -1)
+                # x_rgb_flat = nn.Linear(1024, 128)(x_rgb_flat)
                 reverse_feature_rgb = GradReverse.apply(x_rgb_flat, self.alpha)
             if self.flow:
                 x_flow = self.flow_feat(x["flow"])
                 x_flow_flat = x_flow.view(x_flow.size(0), -1)
+                # x_flow_flat = nn.Linear(1024, 128)(x_flow_flat)
                 reverse_feature_flow = GradReverse.apply(x_flow_flat, self.alpha)
             if self.audio:
                 x_audio = self.audio_feat(x["audio"])
                 x_audio_flat = x_audio.view(x_audio.size(0), -1)
+                # x_audio_flat = nn.Linear(1024, 128)(x_audio_flat)
                 reverse_feature_audio = GradReverse.apply(x_audio_flat, self.alpha)
 
             if self.rgb and not self.flow and not self.audio:
@@ -816,7 +847,7 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 x = self.tem_agg1(torch.cat((x_flow, x_audio), dim=-1))
                 x = x.view(x.size(0), -1)
             if self.rgb and self.flow and self.audio:
-                x = self.concatenate(x_rgb, x_flow, x_audio)
+                # x = self.concatenate(x_rgb, x_flow, x_audio)
 
                 # x = self.tem_agg1(x_rgb, x_flow, x_audio)
                 # x = self.fusion([x_rgb, x_flow, x_audio])
@@ -827,15 +858,30 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 # x_sa = self.tem_agg3(x_sa)
                 # x = torch.cat((x_st, x_sa), dim=-1)
                 # x = self.tem_agg2(torch.cat((x_st, x_audio), dim=-1))
+                # x = x.view(x.size(0), -1)
+
+                x_rgb = self.tem_agg3(x_rgb)
+                x_flow = self.tem_agg4(x_flow)
+                x_audio = self.tem_agg5(x_audio)
+
+                x_ra = torch.cat((x_rgb, x_audio), dim=-1)
+                x_af = torch.cat((x_audio, x_flow), dim=-1)
+
+                x_a = self.tem_agg1(x_ra)
+                x_b = self.tem_agg2(x_af)
+                x = torch.cat((x_a, x_b), dim=-1)
+                x = self.tem_agg(x)
+
                 x = x.view(x.size(0), -1)
+                # x = nn.Linear(4096, 256)(x)
 
             class_output = self.classifier(x)
             # # Only use verb class to get softmax_output
             softmax_output_verb = torch.nn.Softmax(dim=1)(class_output[0])
             reverse_out_verb = GradReverse.apply(softmax_output_verb, self.alpha)
 
-            softmax_output_noun = torch.nn.Softmax(dim=1)(class_output[1])
-            reverse_out_noun = GradReverse.apply(softmax_output_noun, self.alpha)
+            # softmax_output_noun = torch.nn.Softmax(dim=1)(class_output[1])
+            # reverse_out_noun = GradReverse.apply(softmax_output_noun, self.alpha)
 
             if self.rgb:
                 feature_rgb_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
@@ -848,17 +894,17 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 else:
                     adversarial_output_rgb_verb = self.domain_classifier(feature_rgb_verb)
 
-                feature_rgb_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
-                feature_rgb_noun = feature_rgb_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_rgb.size(1))
-                if self.random_layer:
-                    random_out_rgb_noun = self.random_layer.forward(feature_rgb_noun)
-                    adversarial_output_rgb_noun = self.domain_classifier_noun(
-                        random_out_rgb_noun.view(-1, random_out_rgb_noun.size(1))
-                    )
-                else:
-                    adversarial_output_rgb_noun = self.domain_classifier_noun(feature_rgb_noun)
-
-                adversarial_output_rgb = torch.cat((adversarial_output_rgb_verb, adversarial_output_rgb_noun), dim=0)
+                # feature_rgb_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_rgb.unsqueeze(1))
+                # feature_rgb_noun = feature_rgb_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_rgb.size(1))
+                # if self.random_layer:
+                #     random_out_rgb_noun = self.random_layer.forward(feature_rgb_noun)
+                #     adversarial_output_rgb_noun = self.domain_classifier_noun(
+                #         random_out_rgb_noun.view(-1, random_out_rgb_noun.size(1))
+                #     )
+                # else:
+                #     adversarial_output_rgb_noun = self.domain_classifier_noun(feature_rgb_noun)
+                #
+                # adversarial_output_rgb = torch.cat((adversarial_output_rgb_verb, adversarial_output_rgb_noun), dim=0)
 
             if self.flow:
                 feature_flow_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
@@ -871,17 +917,17 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 else:
                     adversarial_output_flow_verb = self.domain_classifier(feature_flow_verb)
 
-                feature_flow_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
-                feature_flow_noun = feature_flow_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_flow.size(1))
-                if self.random_layer:
-                    random_out_flow_noun = self.random_layer.forward(feature_flow_noun)
-                    adversarial_output_flow_noun = self.domain_classifier_noun(
-                        random_out_flow_noun.view(-1, random_out_flow_noun.size(1))
-                    )
-                else:
-                    adversarial_output_flow_noun = self.domain_classifier_noun(feature_flow_noun)
-
-                adversarial_output_flow = torch.cat((adversarial_output_flow_verb, adversarial_output_flow_noun), dim=0)
+                # feature_flow_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_flow.unsqueeze(1))
+                # feature_flow_noun = feature_flow_noun.view(-1, reverse_out_noun.size(1) * reverse_feature_flow.size(1))
+                # if self.random_layer:
+                #     random_out_flow_noun = self.random_layer.forward(feature_flow_noun)
+                #     adversarial_output_flow_noun = self.domain_classifier_noun(
+                #         random_out_flow_noun.view(-1, random_out_flow_noun.size(1))
+                #     )
+                # else:
+                #     adversarial_output_flow_noun = self.domain_classifier_noun(feature_flow_noun)
+                #
+                # adversarial_output_flow = torch.cat((adversarial_output_flow_verb, adversarial_output_flow_noun), dim=0)
 
             if self.audio:
                 feature_audio_verb = torch.bmm(reverse_out_verb.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
@@ -896,26 +942,27 @@ class CDANTrainerVideo(BaseAdaptTrainerVideo, CDANTrainer):
                 else:
                     adversarial_output_audio_verb = self.domain_classifier(feature_audio_verb)
 
-                feature_audio_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
-                feature_audio_noun = feature_audio_noun.view(
-                    -1, reverse_out_noun.size(1) * reverse_feature_audio.size(1)
-                )
-                if self.random_layer:
-                    random_out_audio_noun = self.random_layer.forward(feature_audio_noun)
-                    adversarial_output_audio_noun = self.domain_classifier_noun(
-                        random_out_audio_noun.view(-1, random_out_audio_noun.size(1))
-                    )
-                else:
-                    adversarial_output_audio_noun = self.domain_classifier_noun(feature_audio_noun)
+                # feature_audio_noun = torch.bmm(reverse_out_noun.unsqueeze(2), reverse_feature_audio.unsqueeze(1))
+                # feature_audio_noun = feature_audio_noun.view(
+                #     -1, reverse_out_noun.size(1) * reverse_feature_audio.size(1)
+                # )
+                # if self.random_layer:
+                #     random_out_audio_noun = self.random_layer.forward(feature_audio_noun)
+                #     adversarial_output_audio_noun = self.domain_classifier_noun(
+                #         random_out_audio_noun.view(-1, random_out_audio_noun.size(1))
+                #     )
+                # else:
+                #     adversarial_output_audio_noun = self.domain_classifier_noun(feature_audio_noun)
 
-                adversarial_output_audio = torch.cat(
-                    (adversarial_output_audio_verb, adversarial_output_audio_noun), dim=0
-                )
+                # adversarial_output_audio = torch.cat(
+                #     (adversarial_output_audio_verb, adversarial_output_audio_noun), dim=0
+                # )
 
             return (
                 [x_rgb_flat, x_flow_flat, x_audio_flat],
                 class_output,
-                [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+                # [adversarial_output_rgb, adversarial_output_flow, adversarial_output_audio],
+                [adversarial_output_rgb_verb, adversarial_output_flow_verb, adversarial_output_audio_verb],
             )
 
     def compute_loss(self, batch, split_name="V"):
