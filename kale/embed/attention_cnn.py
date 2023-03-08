@@ -241,52 +241,52 @@ class TransformerSENet(nn.Module):
     def __init__(self, input_size=512, n_channel=512, output_size=256, dropout_keep_prob=0.5):
         super(TransformerSENet, self).__init__()
         self.hidden_sizes = 512
-        # self.num_layers = 4
+        self.num_layers = 4
         self.input_size = input_size
         self.n_channel = n_channel
         self.output_size = output_size
 
-        # self.transformer = nn.ModuleList(
-        #     [
-        #         TransformerBlock(
-        #             emb_dim=input_size,
-        #             num_heads=8,
-        #             att_dropout=0.1,
-        #             att_resid_dropout=0.1,
-        #             final_dropout=0.1,
-        #             max_seq_len=9,
-        #             ff_dim=self.hidden_sizes,
-        #             causal=False,
-        #         )
-        #         for _ in range(self.num_layers)
-        #     ]
-        # )
+        self.transformer = nn.ModuleList(
+            [
+                TransformerBlock(
+                    emb_dim=input_size,
+                    num_heads=8,
+                    att_dropout=0.1,
+                    att_resid_dropout=0.1,
+                    final_dropout=0.1,
+                    max_seq_len=9,
+                    ff_dim=self.hidden_sizes,
+                    causal=False,
+                )
+                for _ in range(self.num_layers)
+            ]
+        )
 
-        # self.fc1 = nn.Linear(input_size, n_channel)
-        # self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(dropout_keep_prob)
-        # self.fc2 = nn.Linear(n_channel, output_size)
-        # self.selayer = SELayerFeat(channel=8, reduction=2)
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, output_size)
+        self.selayer = SELayerFeat(channel=8, reduction=2)
         # self.selayer = ECANetFeat()
         # self.selayer = SRMFeat(channel=8)
         # self.selayer = CBAMFeat(channel=8, reduction=4)
 
-        self.network = nn.Sequential(
-            nn.Linear(self.input_size, self.n_channel),
-            nn.BatchNorm1d(8),
-            nn.ReLU(inplace=True),
-            # nn.Dropout(0.5),
-            nn.Linear(self.n_channel, self.n_channel),
-            nn.BatchNorm1d(8),
-            nn.ReLU(inplace=True),
-            # nn.Dropout(0.5),
-            nn.Linear(self.n_channel, self.output_size),
-        )
+        # self.network = nn.Sequential(
+        #     nn.Linear(self.input_size, self.n_channel),
+        #     nn.BatchNorm1d(8),
+        #     nn.ReLU(inplace=True),
+        #     # nn.Dropout(0.5),
+        #     nn.Linear(self.n_channel, self.n_channel),
+        #     nn.BatchNorm1d(8),
+        #     nn.ReLU(inplace=True),
+        #     # nn.Dropout(0.5),
+        #     nn.Linear(self.n_channel, self.output_size),
+        # )
 
     def forward(self, x):
-        # for layer in self.transformer:
-        #     x = layer(x)
-        # x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
-        # x = self.selayer(x)
-        x = self.network(x)
+        for layer in self.transformer:
+            x = layer(x)
+        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
+        x = self.selayer(x)
+        # x = self.network(x)
         return x
