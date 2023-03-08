@@ -61,16 +61,16 @@ def main():
         source,
         target,
         image_modality=cfg.DATASET.IMAGE_MODALITY,
-        seed=seed,
+        random_state=seed,
         config_weight_type=cfg.DATASET.WEIGHT_TYPE,
         config_size_type=cfg.DATASET.SIZE_TYPE,
     )
 
     # ---- setup model and logger ----
     model, train_params = get_model(cfg, dataset, num_classes)
-    trainer = pl.Trainer(logger=False, resume_from_checkpoint=args.ckpt, gpus=args.gpus,)
+    trainer = pl.Trainer(logger=False, ckpt_path=args.ckpt, gpus=args.gpus,)
 
-    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt))
+    model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, map_location="cuda:0"))
 
     # test scores
     trainer.test(model=model_test)
