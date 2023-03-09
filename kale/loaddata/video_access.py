@@ -414,6 +414,86 @@ class VideoDataset(Enum):
 
         return dataset, class_numbers[name]
 
+    @staticmethod
+    def get_dataset_feature(name: "VideoDataset", seed, params):
+
+        config_params = get_action_recog_config(params)
+        data_params = config_params["data_params"]
+        data_params_local = deepcopy(data_params)
+        data_name = data_params_local["dataset_name"].upper()
+        data_path, tr_listpath, te_listpath = generate_list(data_name, data_params_local)
+        image_modality = data_params_local["dataset_image_modality"]
+        num_segments = data_params_local["dataset_num_segments"]
+        frames_per_segment = data_params_local["frames_per_segment"]
+
+        rgb, flow, audio = get_image_modality(image_modality)
+
+        transform_names = {
+            VideoDataset.EPIC100: None,
+        }
+
+        verb_class_numbers = {
+            VideoDataset.EPIC100: 18,
+        }
+
+        noun_class_numbers = {
+            VideoDataset.EPIC100: 20,
+        }
+
+        factories = {
+            VideoDataset.EPIC100: EPIC100DatasetAccess,
+        }
+
+        if rgb:
+            rgb = factories[name](
+                domain="source",
+                data_path=data_path,
+                train_list=tr_listpath,
+                test_list=te_listpath,
+                image_modality="rgb",
+                num_segments=num_segments,
+                frames_per_segment=frames_per_segment,
+                n_classes=verb_class_numbers[name],
+                transform=transform_names[name],
+                seed=seed,
+                input_type="feature",
+            )
+
+        if flow:
+            flow = factories[name](
+                domain="source",
+                data_path=data_path,
+                train_list=tr_listpath,
+                test_list=te_listpath,
+                image_modality="flow",
+                num_segments=num_segments,
+                frames_per_segment=frames_per_segment,
+                n_classes=verb_class_numbers[name],
+                transform=transform_names[name],
+                seed=seed,
+                input_type="feature",
+            )
+
+        if audio:
+            audio = factories[name](
+                domain="source",
+                data_path=data_path,
+                train_list=tr_listpath,
+                test_list=te_listpath,
+                image_modality="audio",
+                num_segments=num_segments,
+                frames_per_segment=frames_per_segment,
+                n_classes=verb_class_numbers[name],
+                transform=transform_names[name],
+                seed=seed,
+                input_type="feature",
+            )
+
+        return (
+            {"rgb": rgb, "flow": flow, "audio": audio},
+            {"verb": verb_class_numbers[name], "noun": noun_class_numbers[name]},
+        )
+
 
 class VideoDatasetAccess(DatasetAccess):
     """
@@ -434,17 +514,17 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-        self,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
-        method=None,
+            self,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+            method=None,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -681,18 +761,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-        self,
-        domain,
-        data_path,
-        train_list,
-        test_list,
-        image_modality,
-        num_segments,
-        frames_per_segment,
-        n_classes,
-        transform,
-        seed,
-        input_type,
+            self,
+            domain,
+            data_path,
+            train_list,
+            test_list,
+            image_modality,
+            num_segments,
+            frames_per_segment,
+            n_classes,
+            transform,
+            seed,
+            input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
@@ -728,10 +808,10 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
             num_data_load=self._num_train_dataload,
         )
 
-    def get_train_valid(self, valid_ratio):
-        train_dataset = self.get_train()
-        valid_dataset = self.get_test()
-        return train_dataset, valid_dataset
+    # def get_train_valid(self, valid_ratio):
+    #     train_dataset = self.get_train()
+    #     valid_dataset = self.get_test()
+    #     return train_dataset, valid_dataset
 
     def get_test(self):
         return VideoFrameDataset(
