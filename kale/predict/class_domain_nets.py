@@ -141,8 +141,8 @@ class ClassNetVideo(nn.Module):
         self,
         dict_n_class,
         input_size=512,
-        n_verb_channel=256,
-        n_noun_channel=512,
+        n_verb_channel=100,
+        n_noun_channel=100,
         dropout_keep_prob=0.5,
         class_type="verb",
     ):
@@ -159,7 +159,8 @@ class ClassNetVideo(nn.Module):
                 nn.Linear(input_size, n_verb_channel),
                 # nn.BatchNorm1d(n_verb_channel)
                 nn.ReLU(),
-                nn.Dropout(dropout_keep_prob),
+                # nn.Dropout(dropout_keep_prob),
+                nn.Linear(n_verb_channel, self.n_verb_class),
             )
         if self.noun:
             self.n_noun_class = dict_n_class["noun"]
@@ -172,7 +173,7 @@ class ClassNetVideo(nn.Module):
                 nn.Linear(input_size, n_noun_channel),
                 # nn.BatchNorm1d(n_noun_channel)
                 nn.ReLU(),
-                nn.Dropout(dropout_keep_prob),
+                # nn.Dropout(dropout_keep_prob),
                 nn.Linear(n_noun_channel, self.n_noun_class),
             )
 
