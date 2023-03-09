@@ -12,8 +12,8 @@ from copy import deepcopy
 
 from torch.utils.data import DataLoader
 
-from kale.embed.video_feature_extractor import get_extractor_video, get_extractor_feat
-from kale.pipeline.base_trainer import ActionRecogTrainer, ActionFeatRecogTrainer
+from kale.embed.video_feature_extractor import get_extractor_feat, get_extractor_video
+from kale.pipeline.base_trainer import ActionFeatRecogTrainer, ActionRecogTrainer
 from kale.predict.class_domain_nets import ClassNetVideo, ClassNetVideoC3D, ClassNetVideoI3D
 
 
@@ -46,7 +46,7 @@ def get_config(cfg):
 
 
 def get_train_valid_test_loaders(
-        train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
+    train_dataset, valid_dataset, test_dataset, train_batch_size, test_batch_size, num_workers=0, collate_fn=None
 ):
     """
     Get the dataloader from the dataset. HMDB51 and UCF101 are using collate_fn but others not.
@@ -114,7 +114,7 @@ def get_model_feature(cfg, dataset, num_classes):
 
     # setup feature extractor
     feature_network, class_feature_dim, _ = get_extractor_feat(
-        '',
+        "",
         image_modality=cfg.DATASET.IMAGE_MODALITY,
         input_size=1024,
         output_size=128,
@@ -122,9 +122,7 @@ def get_model_feature(cfg, dataset, num_classes):
     )
 
     # setup classifier
-    classifier_network = ClassNetVideo(
-        input_size=class_feature_dim, dict_n_class=num_classes, class_type="verb+noun"
-    )
+    classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=num_classes, class_type="verb+noun")
 
     config_params = get_config(cfg)
     train_params = config_params["train_params"]

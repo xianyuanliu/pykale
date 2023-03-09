@@ -6,8 +6,7 @@ import time
 
 import pytorch_lightning as pl
 from config import get_cfg_defaults
-from examples.action_recog.multi_datasets import VideoMultiModalDatasets
-from model import get_model, get_train_valid_test_loaders, get_model_feature
+from model import get_model, get_model_feature, get_train_valid_test_loaders
 from pytorch_lightning import loggers as pl_loggers
 from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQDMProgressBar
 
@@ -23,6 +22,7 @@ from pytorch_lightning.callbacks import LearningRateMonitor, ModelCheckpoint, TQ
 #     get_ucf101_dataset,
 # )
 from kale.loaddata.video_access import VideoDataset
+from kale.loaddata.video_multi_domain import VideoMultiModalDatasets
 from kale.utils.seed import set_seed
 
 
@@ -34,7 +34,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     args = parser.parse_args()
     return args
@@ -77,10 +77,7 @@ def main():
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.SOLVER.SEED, cfg
         )
         dataset = VideoMultiModalDatasets(
-            dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            random_state=seed,
-            num_workers=cfg.SOLVER.NUM_WORKERS,
+            dataset, image_modality=cfg.DATASET.IMAGE_MODALITY, random_state=seed, num_workers=cfg.SOLVER.NUM_WORKERS,
         )
 
     elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:

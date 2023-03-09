@@ -5,17 +5,8 @@ import logging
 
 import pytorch_lightning as pl
 import torch
-
 from config import get_cfg_defaults
-from examples.action_recog.multi_datasets import VideoMultiModalDatasets
-from model import get_model, get_train_valid_test_loaders, get_model_feature
-# from pytorch_lightning import loggers as pl_loggers
-
-# from examples.action_recog.pytorchvideo_data import (
-#     get_hmdb51_dataset_ptvideo,
-#     get_train_valid_test_loaders_ptvideo,
-#     get_ucf101_dataset_ptvideo,
-# )
+from model import get_model, get_model_feature, get_train_valid_test_loaders
 
 # from examples.action_recog.torchvision_data import (
 #     collate_video_label,
@@ -23,6 +14,15 @@ from model import get_model, get_train_valid_test_loaders, get_model_feature
 #     get_ucf101_dataset,
 # )
 from kale.loaddata.video_access import VideoDataset
+from kale.loaddata.video_multi_domain import VideoMultiModalDatasets
+
+# from pytorch_lightning import loggers as pl_loggers
+
+# from examples.action_recog.pytorchvideo_data import (
+#     get_hmdb51_dataset_ptvideo,
+#     get_train_valid_test_loaders_ptvideo,
+#     get_ucf101_dataset_ptvideo,
+# )
 
 
 def arg_parse():
@@ -33,7 +33,7 @@ def arg_parse():
         "--gpus",
         default=1,
         help="gpu id(s) to use. None/int(0) for cpu. list[x,y] for xth, yth GPU."
-             "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
+        "str(x) for the first x GPUs. str(-1)/int(-1) for all available GPUs",
     )
     parser.add_argument("--ckpt", default="", help="pre-trained parameters for the model (ckpt files)", type=str)
     args = parser.parse_args()
@@ -85,10 +85,7 @@ def main():
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.SOLVER.SEED, cfg
         )
         dataset = VideoMultiModalDatasets(
-            dataset,
-            image_modality=cfg.DATASET.IMAGE_MODALITY,
-            random_state=seed,
-            num_workers=cfg.SOLVER.NUM_WORKERS,
+            dataset, image_modality=cfg.DATASET.IMAGE_MODALITY, random_state=seed, num_workers=cfg.SOLVER.NUM_WORKERS,
         )
 
     elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:
@@ -112,13 +109,12 @@ def main():
     if cfg.DATASET.NAME in ["EPIC100"]:
         model = get_model_feature(cfg, dataset, num_classes)
     else:
-        model = get_model(cfg, num_classes)    # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(cfg.SOLVER.SEED))
+        model = get_model(
+            cfg, num_classes
+        )  # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(cfg.SOLVER.SEED))
 
     ### Set the lightning trainer.
-    trainer = pl.Trainer(
-        logger=False,
-        gpus=args.gpus,
-    )
+    trainer = pl.Trainer(logger=False, gpus=args.gpus,)
 
     ### Training/validation process
     model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, map_location="cuda:0"))

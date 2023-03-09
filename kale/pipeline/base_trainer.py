@@ -1,4 +1,3 @@
-import pandas as pd
 import pytorch_lightning as pl
 import torch
 from torch.nn import functional as F
@@ -26,11 +25,10 @@ class BaseTrainer(pl.LightningModule):
             optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr)
             return [optimizer]
         if self._optimizer_params["type"] == "Adam":
-            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr,
-                                         **self._optimizer_params["optim_params"], )
+            optimizer = torch.optim.Adam(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
             return [optimizer]
         if self._optimizer_params["type"] == "SGD":
-            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"], )
+            optimizer = torch.optim.SGD(self.parameters(), lr=self._init_lr, **self._optimizer_params["optim_params"],)
 
             if self._adapt_lr:
                 scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(optimizer, self._max_epochs, last_epoch=-1)
@@ -173,8 +171,9 @@ class ActionRecogTrainer(BaseTrainer):
 
 class ActionFeatRecogTrainer(ActionRecogTrainer):
     def __init__(self, dataset, feature_extractor, task_classifier, image_modality, batch_size, **kwargs):
-        super(ActionFeatRecogTrainer, self).__init__(feature_extractor, task_classifier, image_modality, batch_size,
-                                                     **kwargs)
+        super(ActionFeatRecogTrainer, self).__init__(
+            feature_extractor, task_classifier, image_modality, batch_size, **kwargs
+        )
         self.dataset = dataset
         self.dataset.prepare_data_loaders()
         self.feat = feature_extractor
@@ -222,9 +221,7 @@ class ActionFeatRecogTrainer(ActionRecogTrainer):
 
         prec1_verb, prec5_verb = losses.topk_accuracy(y_hat[0], y[0], topk=(1, 5))
         prec1_noun, prec5_noun = losses.topk_accuracy(y_hat[1], y[1], topk=(1, 5))
-        prec1_action, prec5_action = losses.multitask_topk_accuracy(
-            (y_hat[0], y_hat[1]), (y[0], y[1]), topk=(1, 5)
-        )
+        prec1_action, prec5_action = losses.multitask_topk_accuracy((y_hat[0], y_hat[1]), (y[0], y[1]), topk=(1, 5))
         task_loss = loss_cls_verb + loss_cls_noun
 
         log_metrics = {

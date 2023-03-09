@@ -13,7 +13,6 @@ from enum import Enum
 from pathlib import Path
 
 import pandas as pd
-import torch
 
 import kale.prepdata.video_transform as video_transform
 from kale.loaddata.dataset_access import DatasetAccess
@@ -514,17 +513,17 @@ class VideoDatasetAccess(DatasetAccess):
     """
 
     def __init__(
-            self,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
-            method=None,
+        self,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        method=None,
     ):
         super().__init__(n_classes)
         self._data_path = data_path
@@ -761,18 +760,18 @@ class EPIC100DatasetAccess(VideoDatasetAccess):
     """EPIC-100 video feature data loader"""
 
     def __init__(
-            self,
-            domain,
-            data_path,
-            train_list,
-            test_list,
-            image_modality,
-            num_segments,
-            frames_per_segment,
-            n_classes,
-            transform,
-            seed,
-            input_type,
+        self,
+        domain,
+        data_path,
+        train_list,
+        test_list,
+        image_modality,
+        num_segments,
+        frames_per_segment,
+        n_classes,
+        transform,
+        seed,
+        input_type,
     ):
         super(EPIC100DatasetAccess, self).__init__(
             data_path,
