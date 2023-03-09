@@ -7,7 +7,8 @@ import pytorch_lightning as pl
 import torch
 
 from config import get_cfg_defaults
-from model import get_model, get_train_valid_test_loaders
+from examples.action_recog.multi_datasets import VideoMultiModalDatasets
+from model import get_model, get_train_valid_test_loaders, get_model_feature
 # from pytorch_lightning import loggers as pl_loggers
 
 # from examples.action_recog.pytorchvideo_data import (
@@ -79,6 +80,17 @@ def main():
             cfg.SOLVER.NUM_WORKERS,
         )
 
+    elif cfg.DATASET.NAME in ["EPIC100"]:
+        dataset, num_classes = VideoDataset.get_dataset_feature(
+            VideoDataset(cfg.DATASET.NAME.upper()), cfg.SOLVER.SEED, cfg
+        )
+        dataset = VideoMultiModalDatasets(
+            dataset,
+            image_modality=cfg.DATASET.IMAGE_MODALITY,
+            random_state=seed,
+            num_workers=cfg.SOLVER.NUM_WORKERS,
+        )
+
     elif cfg.DATASET.NAME in ["HMDB51", "UCF101"]:
         dataset, num_classes = VideoDataset.get_dataset(
             VideoDataset(cfg.DATASET.NAME.upper()), cfg.MODEL.METHOD, seed, cfg
@@ -97,8 +109,10 @@ def main():
         raise ValueError("Dataset not supported")
 
     # ---- setup model and logger ----
-    model = get_model(cfg, num_classes)
-    # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(cfg.SOLVER.SEED))
+    if cfg.DATASET.NAME in ["EPIC100"]:
+        model = get_model_feature(cfg, dataset, num_classes)
+    else:
+        model = get_model(cfg, num_classes)    # tb_logger = pl_loggers.TensorBoardLogger(cfg.OUTPUT.OUT_DIR, name="seed{}".format(cfg.SOLVER.SEED))
 
     ### Set the lightning trainer.
     trainer = pl.Trainer(
@@ -110,7 +124,10 @@ def main():
     model_test = weights_update(model=model, checkpoint=torch.load(args.ckpt, map_location="cuda:0"))
 
     ### Evaluation
-    trainer.test(model=model_test, dataloaders=test_loader, ckpt_path=args.ckpt)
+    if cfg.DATASET.NAME in ["EPIC100"]:
+        trainer.test(model=model_test)
+    else:
+        trainer.test(model=model_test, dataloaders=test_loader, ckpt_path=args.ckpt)
 
 
 if __name__ == "__main__":
