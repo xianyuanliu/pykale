@@ -432,11 +432,11 @@ class VideoDataset(Enum):
         }
 
         verb_class_numbers = {
-            VideoDataset.EPIC100: 18,
+            VideoDataset.EPIC100: 10,
         }
 
         noun_class_numbers = {
-            VideoDataset.EPIC100: 20,
+            VideoDataset.EPIC100: 10,
         }
 
         factories = {
