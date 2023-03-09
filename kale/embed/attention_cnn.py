@@ -7,7 +7,7 @@ import torch.nn.functional as F
 
 from kale.embed.positional_encoding import PositionalEncoding
 
-# from kale.embed.video_selayer import SELayerFeat
+from kale.embed.video_selayer import SELayerFeat
 from kale.prepdata.tensor_reshape import seq_to_spatial, spatial_to_seq
 
 
@@ -263,30 +263,30 @@ class TransformerSENet(nn.Module):
             ]
         )
 
-        # self.fc1 = nn.Linear(input_size, n_channel)
-        # self.relu1 = nn.ReLU()
-        # self.dp1 = nn.Dropout(dropout_keep_prob)
-        # self.fc2 = nn.Linear(n_channel, output_size)
+        self.fc1 = nn.Linear(input_size, n_channel)
+        self.relu1 = nn.ReLU()
+        self.dp1 = nn.Dropout(dropout_keep_prob)
+        self.fc2 = nn.Linear(n_channel, output_size)
         # # self.fc3 = nn.Linear(input_size, output_size)
-        # self.selayer = SELayerFeat(channel=16, reduction=4)
+        self.selayer = SELayerFeat(channel=16, reduction=4)
 
-        self.network = nn.Sequential(
-            nn.Linear(self.input_size, self.n_channel),
-            # nn.BatchNorm1d(8),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(self.n_channel, self.n_channel),
-            # nn.BatchNorm1d(8),
-            nn.ReLU(inplace=True),
-            nn.Dropout(0.5),
-            nn.Linear(self.n_channel, self.output_size),
-        )
+        # self.network = nn.Sequential(
+        #     nn.Linear(self.input_size, self.n_channel),
+        #     # nn.BatchNorm1d(8),
+        #     nn.ReLU(inplace=True),
+        #     nn.Dropout(0.5),
+        #     nn.Linear(self.n_channel, self.n_channel),
+        #     # nn.BatchNorm1d(8),
+        #     nn.ReLU(inplace=True),
+        #     nn.Dropout(0.5),
+        #     nn.Linear(self.n_channel, self.output_size),
+        # )
 
     def forward(self, x):
-        # for layer in self.transformer:
-        #     x = layer(x)
-        # x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
+        for layer in self.transformer:
+            x = layer(x)
+        x = self.fc2(self.dp1(self.relu1(self.fc1(x))))
         # x = self.fc3(x)
-        # x = self.selayer(x)
-        x = self.network(x)
+        x = self.selayer(x)
+        # x = self.network(x)
         return x

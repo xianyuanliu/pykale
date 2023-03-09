@@ -121,6 +121,7 @@ def get_model_feature(cfg, dataset, num_classes):
         num_segments=cfg.DATASET.NUM_SEGMENTS,
     )
 
+    class_feature_dim = 128 * cfg.DATASET.NUM_SEGMENTS * 3
     # setup classifier
     classifier_network = ClassNetVideo(input_size=class_feature_dim, dict_n_class=num_classes, class_type="verb+noun")
 
