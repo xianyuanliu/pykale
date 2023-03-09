@@ -189,7 +189,7 @@ class SELayerFeat(SELayer):
         y = self.avg_pool(x).view(b, t)
         y = self.fc(y).view(b, t, 1)
         # out = x * y.expand_as(x)
-        # y = y - 0.5
+        y = y - 0.5
         out = x + x * y.expand_as(x)
         return out
 
