@@ -280,6 +280,49 @@ class SRMVideo(SRM):
         return out
 
 
+class SRMFeat(nn.Module):
+    """Construct Style-based Recalibration Module for images.
+    References:
+        Lee, HyunJae, Hyo-Eun Kim, and Hyeonseob Nam. "Srm: A style-based recalibration module for convolutional neural
+        networks." In Proceedings of the IEEE/CVF International Conference on Computer Vision, pp. 1854-1862. 2019.
+        https://github.com/hyunjaelee410/style-based-recalibration-module/blob/master/models/recalibration_modules.py
+    """
+
+    def __init__(self, channel):
+        super(SRMFeat, self).__init__()
+        self.channel = channel
+
+        # CFC: channel-wise fully connected layer
+        self.cfc = Parameter(torch.Tensor(channel, 2))
+        self.cfc.data.fill_(0)
+
+        self.bn = nn.BatchNorm1d(channel)
+        self.activation = nn.Sigmoid()
+
+        setattr(self.cfc, "srm_param", True)
+        setattr(self.bn.weight, "srm_param", True)
+        setattr(self.bn.bias, "srm_param", True)
+
+    def forward(self, x, eps=1e-5):
+        b, t, _ = x.size()
+
+        # Style pooling
+        mean = x.mean(dim=2, keepdim=True)
+        var = x.var(dim=2, keepdim=True) + eps
+        std = var.sqrt()
+
+        u = torch.cat((mean, std), dim=2)  # (b, t, 2)
+
+        # Style integration
+        z = u * self.cfc[None, :, :]  # b x t x 2
+        z = torch.sum(z, dim=2)[:, :, None]  # b x t x 1
+
+        z_hat = self.bn(z)
+        g = self.activation(z_hat)
+        out = x * g.expand_as(x)
+        return out
+
+
 class CBAM(nn.Module):
     """Construct Convolutional Block Attention Module.
 
@@ -389,6 +432,66 @@ class CBAMSpatialModuleVideo(CBAMSpatialModule):
 class CBAMChannelPool(nn.Module):
     def forward(self, x):
         return torch.cat((torch.max(x, 1)[0].unsqueeze(1), torch.mean(x, 1).unsqueeze(1)), dim=1)
+
+
+class CBAMFeat(nn.Module):
+    """Construct Convolutional Block Attention Module.
+    References:
+        [1] Woo, Sanghyun, Jongchan Park, Joon-Young Lee, and In So Kweon. "Cbam: Convolutional block attention
+        module." In Proceedings of the European conference on computer vision (ECCV), pp. 3-19. 2018.
+    """
+
+    def __init__(self, channel, reduction=16):
+        super(CBAMFeat, self).__init__()
+        self.CAM = CBAMChannelModuleFeat(channel, reduction)
+        self.SAM = CBAMSpatialModuleFeat()
+
+    def forward(self, x):
+        y = self.CAM(x)
+        y = self.SAM(y)
+        return y
+
+
+class CBAMChannelModuleFeat(SELayer):
+    def __init__(self, channel, reduction=16):
+        super(CBAMChannelModuleFeat, self).__init__(channel, reduction)
+        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.max_pool = nn.AdaptiveMaxPool1d(1)
+        self.fc = nn.Sequential(
+            nn.Linear(self.channel, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.channel // self.reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(self.channel // self.reduction, self.channel, bias=False),
+        )
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        b, t, _ = x.size()
+        y_avg = self.avg_pool(x).view(b, t)
+        y_max = self.max_pool(x).view(b, t)
+        y_avg = self.fc(y_avg).view(b, t, 1)
+        y_max = self.fc(y_max).view(b, t, 1)
+        y = torch.add(y_avg, y_max)
+        y = self.sigmoid(y)
+        out = x * y.expand_as(x)
+        return out
+
+
+class CBAMSpatialModuleFeat(nn.Module):
+    def __init__(self, kernel_size=7):
+        super(CBAMSpatialModuleFeat, self).__init__()
+        self.kernel_size = kernel_size
+        self.compress = CBAMChannelPool()
+        self.conv = nn.Conv1d(2, 1, self.kernel_size, stride=1, padding=(self.kernel_size - 1) // 2)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        x_compress = self.compress(x)
+        y = self.conv(x_compress)
+        y = self.sigmoid(y)
+        out = x * y.expand_as(x)
+        return out
 
 
 class FCANet(nn.Module):
@@ -581,6 +684,37 @@ class ECANetVideo(ECANet):
     def forward(self, x):
         y = self.avg_pool(x)  # b x c x 1 x 1 x 1
         y = self.conv(y.squeeze(-1).squeeze(-1).transpose(-1, -2)).transpose(-1, -2).unsqueeze(-1).unsqueeze(-1)
+        y = self.sigmoid(y)
+
+        return x * y.expand_as(x)
+
+
+class ECANetFeat(nn.Module):
+    """Constructs Efficient Channel Attention Module.
+    Args:
+        kernel_size: Adaptive selection of kernel size
+    References:
+        Wang, Qilong and Wu, Banggu and Zhu, Pengfei and Li, Peihua and Zuo, Wangmeng and Hu, Qinghua. "ECA-Net:
+        Efficient Channel Attention for Deep Convolutional Neural Networks." In Proceedings of the IEEE/CVF Conference
+        on Computer Vision and Pattern Recognition (CVPR), pp. 11534-11542. 2020.
+        https://github.com/BangguWu/ECANet/blob/master/models/eca_module.py
+    """
+
+    def __init__(self, kernel_size=3):
+        super(ECANetFeat, self).__init__()
+        self.kernel_size = kernel_size
+        self.avg_pool = nn.AdaptiveAvgPool1d(1)
+        self.conv = nn.Conv1d(1, 1, kernel_size=self.kernel_size, padding=(self.kernel_size - 1) // 2, bias=False)
+        self.sigmoid = nn.Sigmoid()
+
+    def forward(self, x):
+        # feature descriptor on the global spatial information
+        y = self.avg_pool(x)  # b x t x f
+
+        # Two different branches of ECA module
+        y = self.conv(y.transpose(-1, -2)).transpose(-1, -2)
+
+        # Multi-scale information fusion
         y = self.sigmoid(y)
 
         return x * y.expand_as(x)
