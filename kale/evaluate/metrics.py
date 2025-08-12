@@ -2,6 +2,7 @@
 # Author: Shuo Zhou, sz144@outlook.com
 #         Sina Tabakhi, sina.tabakhi@gmail.com
 #         Peizhen Bai, https://github.com/peizhenbai
+#         Mohammod Suvon, m.suvon@sheffield.ac.uk
 # =============================================================================
 
 """Commonly used metrics, losses, and distances, part from domain adaptation package
@@ -11,13 +12,14 @@ from enum import Enum
 
 import torch
 import torch.nn as nn
-from sklearn import metrics
+from sklearn.metrics import auc
 from torch.autograd import grad
 from torch.nn import functional as F
+from torchmetrics import AUROC, AveragePrecision, PrecisionRecallCurve
 
 
 def cross_entropy_logits(output, target, weights=None):
-    """Computes cross entropy with logits
+    """Computes cross-entropy with logits
 
     Args:
         output (Tensor): The output of the last layer of the network, before softmax.
@@ -43,6 +45,21 @@ def cross_entropy_logits(output, target, weights=None):
         losses = nn.NLLLoss(reduction="none")(class_output, target.type_as(y_hat).view(target.size(0)))
         loss = torch.sum(weights * losses) / torch.sum(weights)
     return loss, is_correct
+
+
+def binary_cross_entropy(output, target):
+    """
+    Compute binary cross-entropy loss between predicted output and true labels.
+
+    Args:
+        output (Tensor): The output of the last layer of the network, before softmax.
+        target (Tensor): The ground truth label.
+    """
+    loss_fct = torch.nn.BCELoss()
+    m = nn.Sigmoid()
+    n = torch.squeeze(m(output), 1)
+    loss = loss_fct(n, target)
+    return n, loss
 
 
 def topk_accuracy(output, target, topk=(1,)):
@@ -371,21 +388,27 @@ class protonet_loss:
         return torch.pow(x - y, 2).sum(2)
 
 
-def auprc_auroc_ap(target: torch.Tensor, score: torch.Tensor):
+def auprc_auroc_ap(target: torch.Tensor, score: torch.Tensor, task="binary"):
     """
-    auprc: area under the precision-recall curve
-    auroc: area under the receiver operating characteristic curve
-    ap: average precision
+    Args:
+        target: ground truth labels, shape [batch_size]
+        score: predicted scores, shape [batch_size]
+        task: type of task, "binary" for binary classification, "multiclass" for multiclass classification
+    Returns:
+        auprc: area under the precision-recall curve
+        auroc: area under the receiver operating characteristic curve
+        ap: average precision
 
-    Copy-paste from https://github.com/NYXFLOWER/GripNet
+    Adapted from https://github.com/NYXFLOWER/GripNet
     """
-    y = target.detach().cpu().numpy()
-    pred = score.detach().cpu().numpy()
-    auroc, ave_precision = metrics.roc_auc_score(y, pred), metrics.average_precision_score(y, pred)
-    precision, recall, _ = metrics.precision_recall_curve(y, pred)
-    auprc = metrics.auc(recall, precision)
+    auroc_metric = AUROC(task=task)
+    ave_precision_metric = AveragePrecision(task=task)
+    pr_curve = PrecisionRecallCurve(task=task)
+    auroc_score, ave_precision = auroc_metric(score, target), ave_precision_metric(score, target)
+    precision, recall, thresholds = pr_curve(score, target)
+    auprc_score = auc(recall.tolist(), precision.tolist())
 
-    return auprc, auroc, ave_precision
+    return auprc_score, auroc_score, ave_precision
 
 
 def concord_index(y, y_pred):
@@ -444,3 +467,35 @@ def calculate_distance(
         return torch.mm(x1, x2.t()) / (w1 * w2.t()).clamp(min=eps)
 
     raise Exception("This metric is not still implemented")
+
+
+def signal_image_elbo_loss(
+    recon_image,
+    target_image,
+    recon_signal,
+    target_signal,
+    mean,
+    log_var,
+    lambda_image=1.0,
+    lambda_signal=1.0,
+    annealing_factor=1.0,
+    scale_factor=1e-4,
+):
+    """
+    Computes a multimodal ELBO loss for VAE with image and signal modalities.
+    """
+    eps = 1e-8
+    image_mse = 0.0
+    signal_mse = 0.0
+
+    if recon_image is not None and target_image is not None:
+        image_mse = F.mse_loss(recon_image, target_image, reduction="sum") * lambda_image
+    if recon_signal is not None and target_signal is not None:
+        signal_mse = F.mse_loss(recon_signal, target_signal, reduction="sum") * lambda_signal
+
+    recon_loss = (image_mse + signal_mse) * scale_factor
+    log_var = torch.clamp(log_var, min=-10, max=10)
+    kl_div = -0.5 * torch.sum(1 + log_var - mean.pow(2) - log_var.exp() + eps, dim=1)
+    kl_div = kl_div.sum()
+    loss = recon_loss + annealing_factor * kl_div
+    return loss

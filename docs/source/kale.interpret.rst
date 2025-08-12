@@ -6,6 +6,14 @@ Interpret
 Submodules
 ----------
 
+kale.interpret.correlation\_analysis module
+--------------------------------------------
+
+.. automodule:: kale.interpret.correlation_analysis
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 kale.interpret.model\_weights module
 ------------------------------------
 
@@ -13,7 +21,6 @@ kale.interpret.model\_weights module
    :members:
    :undoc-members:
    :show-inheritance:
-
 
 kale.interpret.uncertainty\_quantiles module
 --------------------------------------------
@@ -27,6 +34,14 @@ kale.interpret.visualize module
 -------------------------------
 
 .. automodule:: kale.interpret.visualize
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+kale.interpret.signal\_image\_attribution module
+-------------------------------
+
+.. automodule:: kale.interpret.signal_image_attribution
    :members:
    :undoc-members:
    :show-inheritance:

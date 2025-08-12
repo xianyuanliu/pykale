@@ -4,14 +4,20 @@
 # =============================================================================
 
 
+from typing import Optional
+
 import matplotlib.pyplot as plt
 import numpy as np
 import seaborn as sns
+from matplotlib import colormaps
 from matplotlib.cm import get_cmap
 from nilearn.plotting import plot_connectome
+from rdkit import Chem
+from rdkit.Chem.Draw import rdMolDraw2D
 from sklearn.utils._param_validation import Interval, Real, validate_params
 from sklearn.utils.validation import indexable
 
+from ..prepdata.tensor_reshape import normalize_tensor
 from .model_weights import get_top_symmetric_weight
 
 
@@ -269,3 +275,74 @@ def visualize_connectome(weights, labels, coords, p=1e-3, cmap="tab20", marker_s
     proj.axes[next(iter(proj.axes))].ax.legend(**legend_params)
 
     return proj
+
+
+def draw_attention_map(attention_weights, out_path, colormap="viridis", title="Attention Map", xlabel="", ylabel=""):
+    """Draws a heatmap of attention weights."""
+    plt.figure(figsize=(10, 6))
+    sns.heatmap(attention_weights.numpy(), cmap=colormap)
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.tight_layout()
+    plt.savefig(out_path)
+    plt.close()
+
+
+def draw_mol_with_attention(attention_weights, smile, out_path, colormap="viridis"):
+    """Draws a molecule with attention weights as colors."""
+    mol = Chem.MolFromSmiles(smile)
+    weights = normalize_tensor(attention_weights)
+    weights = weights.cpu().numpy().tolist()
+
+    # Draw with RDKit 2D drawer
+    cmap = colormaps[colormap]
+    atom_colors = {i: cmap(float(w))[:3] for i, w in enumerate(weights)}
+
+    drawer = rdMolDraw2D.MolDraw2DSVG(400, 300)
+    drawer.DrawMolecule(
+        mol,
+        highlightAtoms=list(atom_colors.keys()),
+        highlightAtomColors=atom_colors,
+        highlightAtomRadii={i: 0.3 for i in atom_colors},
+    )
+    drawer.FinishDrawing()
+
+    with open(out_path, "w") as f:
+        f.write(drawer.GetDrawingText())
+
+
+def save_or_show_plot(save_path: Optional[str] = None, show: bool = True, **fig_kwargs) -> None:
+    """Save plot to file or show it.
+
+    Args:
+        save_path (str, optional): Path to save the figure. If None, the figure will be shown instead.
+        show (bool, optional): Whether to show the figure. Defaults to True.
+        **fig_kwargs: Additional keyword arguments for figure configuration. Supported parameters:
+            - dpi: int, dots per inch for the saved figure (default: 600)
+            - fig_width: float, width of the figure in inches (default: 16.0)
+            - fig_height: float, height of the figure in inches (default: 8.0)
+            - bbox_inches: str, bounding box for saved figure (default: "tight")
+            - pad_inches: float, padding for saved figure (default: 0.1)
+            - Any other parameters supported by plt.savefig()
+
+    Returns:
+        None
+    """
+    # Extract figure parameters with defaults
+    dpi = fig_kwargs.pop("dpi", 600)
+    w = fig_kwargs.pop("fig_width", 16.0)
+    h = fig_kwargs.pop("fig_height", 8.0)
+    bbox_inches = fig_kwargs.pop("bbox_inches", "tight")
+    pad_inches = fig_kwargs.pop("pad_inches", 0.1)
+
+    plt.gcf().set_size_inches(w, h)
+
+    if save_path is not None:
+        plt.tight_layout()
+        plt.savefig(save_path, dpi=dpi, bbox_inches=bbox_inches, pad_inches=pad_inches, **fig_kwargs)
+
+    if show:
+        plt.show()
+
+    plt.close()
